@@ -101,12 +101,14 @@ pub fn calculate_optimal_allocation(
 fn extract_features(
     daily_returns: &[f64],
     cash_flows: &[f64],
+    // Add additional features as needed
 ) -> Result<Array2<f64>, Box<dyn Error>> {
     let n = daily_returns.len();
-    let mut features = Array2::<f64>::zeros((n, 2));
+    let mut features = Array2::<f64>::zeros((n, 2)); // Adjust the number of columns based on additional features
     for i in 0..n {
         features[[i, 0]] = daily_returns[i];
         features[[i, 1]] = cash_flows[i];
+        // Add additional feature calculations
     }
     Ok(features)
 }
