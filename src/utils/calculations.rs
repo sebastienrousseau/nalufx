@@ -15,6 +15,13 @@ use std::error::Error;
 /// # Returns
 ///
 /// A vector of optimal allocations for each day, or an error if input slices have different lengths.
+///
+/// # Errors
+///
+/// Returns an error if:
+/// - The input slices have different lengths.
+/// - The input slices are empty.
+/// - An error occurs during the execution of the `perform_clustering` function.
 pub fn calculate_optimal_allocation(
     daily_returns: &[f64],
     cash_flows: &[f64],
@@ -44,7 +51,10 @@ pub fn calculate_optimal_allocation(
     let optimal_actions = train_reinforcement_learning(num_days)?;
 
     // Clustering
-    let clusters = perform_clustering(&features)?;
+    let clusters = match perform_clustering(&features) {
+        Ok(clusters) => clusters,
+        Err(err) => return Err(format!("Error during clustering: {}", err).into()),
+    };
 
     // Placeholder for the rest of the pipeline
 
