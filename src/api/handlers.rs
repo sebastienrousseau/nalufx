@@ -23,7 +23,11 @@ struct OpenAIMessage {
 }
 
 #[post("/predict")]
-async fn predict_cash_flow(data: web::Json<CashFlowRequest>) -> impl Responder {
+async fn predict_cash_flow(
+    data: web::Json<CashFlowRequest>,
+    daily_returns: web::Json<Vec<f64>>,
+    cash_flows: web::Json<Vec<f64>>,
+) -> impl Responder {
     let client = Client::new();
     let api_key = match env::var("OPENAI_API_KEY") {
         Ok(key) => key,
@@ -113,7 +117,9 @@ async fn predict_cash_flow(data: web::Json<CashFlowRequest>) -> impl Responder {
         vec![0.0; 6]
     };
 
-    let optimal_allocation = calculate_optimal_allocation(&predictions);
+    // Calculate the optimal allocation based on predictions
+    let optimal_allocation =
+        calculate_optimal_allocation(&daily_returns, &cash_flows, predictions.len());
 
     HttpResponse::Ok().json(CashFlowResponse {
         predictions,

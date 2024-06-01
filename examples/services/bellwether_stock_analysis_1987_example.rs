@@ -1,3 +1,4 @@
+use chrono::{TimeZone, Utc};
 use nalufx::{
     services::{
         fetch_data::fetch_data,
@@ -6,14 +7,15 @@ use nalufx::{
     utils::calculations::calculate_optimal_allocation,
 };
 
-/// The main function that demonstrates the usage of the nalufx library for the SPDR S&P 500 ETF Trust (SPY).
+/// The main function that demonstrates the usage of the nalufx library for a bellwether stock analysis.
 ///
-/// SPY is an exchange-traded fund (ETF) that tracks the performance of the S&P 500 index, which comprises 500 large-cap U.S. stocks.
+/// A bellwether stock is a stock that is considered to be a leading indicator of the overall market or economy.
+/// The status of a bellwether stock may change over time, and well-established companies in an industry are often considered as bellwethers.
 ///
 /// This function performs the following steps:
 /// 1. Initializes the logger using `env_logger`.
-/// 2. Defines the ticker symbol (SPY) and initial investment amount.
-/// 3. Fetches historical closing prices for SPY using `fetch_data`.
+/// 2. Defines the ticker symbol for a bellwether stock (e.g., "XYZ") and the initial investment amount.
+/// 3. Fetches historical closing prices for the bellwether stock using `fetch_data`, considering the year 1987 as a significant period.
 /// 4. Calculates daily returns from the closing prices using `calculate_daily_returns`.
 /// 5. Calculates cash flows based on the daily returns and initial investment using `calculate_cash_flows`.
 /// 6. Calculates the optimal allocation based on the historical data using `calculate_optimal_allocation`.
@@ -22,25 +24,28 @@ use nalufx::{
 /// ```
 #[tokio::main]
 pub(crate) async fn main() {
-    // Define the ticker symbol and initial investment amount
-    let ticker = "SPY";
+    // Define the ticker symbol for a bellwether stock and the initial investment amount
+    let ticker = "AAPL";
     let initial_investment = 100000.0;
 
-    // Fetch historical closing prices for SPY
-    match fetch_data(ticker, None, None).await {
+    let start_date = Utc.with_ymd_and_hms(1987, 1, 1, 0, 0, 0).unwrap();
+    let end_date = Utc.with_ymd_and_hms(1987, 12, 31, 23, 59, 59).unwrap();
+
+    // Fetch historical closing prices for the bellwether stock, considering the year 1987
+    match fetch_data(ticker, Some(start_date), Some(end_date)).await {
         Ok(closes) => {
             println!(
-                "Successfully fetched closing prices for {}: {:?}",
+                "Successfully fetched closing prices for {} in 1987: {:?}",
                 ticker, closes
             );
 
             // Calculate daily returns from closing prices
             let daily_returns = calculate_daily_returns(&closes);
-            println!("Daily returns for {}: {:?}", ticker, daily_returns);
+            println!("Daily returns for {} in 1987: {:?}", ticker, daily_returns);
 
             // Calculate cash flows based on daily returns and initial investment
             let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
-            println!("Cash Flows for {}: {:?}", ticker, cash_flows);
+            println!("Cash Flows for {} in 1987: {:?}", ticker, cash_flows);
 
             // Calculate the optimal allocation based on historical data
             let num_days = 3;
@@ -70,11 +75,15 @@ pub(crate) async fn main() {
                 );
             }
 
-            println!("Please note that these recommendations are based on the historical data and should be considered as a starting point for your investment strategy.");
+            println!("Please note that these recommendations are based on the historical data from 1987, which includes the significant market event known as 'Black Monday' or 'Armageddon'.");
             println!("It is always advisable to conduct further research and consult with a financial advisor before making any investment decisions.");
         }
         Err(e) => {
-            eprintln!("Error fetching data for ticker {}: {}", ticker, e);
+            eprintln!(
+                "Historical data not available for ticker {} in the specified date range: {}",
+                ticker, e
+            );
+            println!("Please try a different date range or choose another ticker symbol.");
         }
     }
 }

@@ -1,23 +1,29 @@
+use chrono::{DateTime, Utc};
 use log::{error, info};
 use reqwest::Client;
 use std::error::Error;
 use yahoo_finance_api as yahoo;
 
-pub async fn fetch_data(ticker: &str) -> Result<Vec<f64>, Box<dyn Error>> {
+pub async fn fetch_data(
+    ticker: &str,
+    start_date: Option<DateTime<Utc>>,
+    end_date: Option<DateTime<Utc>>,
+) -> Result<Vec<f64>, Box<dyn Error>> {
     info!("Attempting to fetch data for ticker: {}", ticker);
 
     let client = Client::builder()
         .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
         .build()?;
 
-    match client
-        .get(&format!(
-            "https://query1.finance.yahoo.com/v8/finance/chart/{}?range=1y&interval=1d",
-            ticker
-        ))
-        .send()
-        .await
-    {
+    let start_date = start_date.map_or(0, |date| date.timestamp());
+    let end_date = end_date.map_or(Utc::now().timestamp(), |date| date.timestamp());
+
+    let url = format!(
+        "https://query1.finance.yahoo.com/v8/finance/chart/{}?period1={}&period2={}&interval=1d",
+        ticker, start_date, end_date
+    );
+
+    match client.get(&url).send().await {
         Ok(response) => {
             if response.status().is_success() {
                 match response.json::<yahoo::YResponse>().await {
