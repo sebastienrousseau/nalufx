@@ -28,11 +28,11 @@ include = [
     "/tests/**",
 ]
 
-[[bench]]
+# [[bench]]
 # [[bench]] sections define benchmarks.
-name = "benchmark"
-harness = false
-path = "benches/bench.rs"
+# name = "benchmark"
+# harness = false
+# path = "benches/bench.rs"
 
 [profile.bench]
 # Profile for benchmarks.
@@ -57,7 +57,7 @@ version_check = "0.9.4"
 
 [dev-dependencies]
 # Development dependencies are only used for testing and building.
-criterion = "0.5.1"
+# criterion = "0.5.1"
 actix-rt = "2.9.0"
 
 [lib]

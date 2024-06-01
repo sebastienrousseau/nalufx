@@ -34,6 +34,12 @@ jobs:
             target/
           key: test-${{ runner.os }}-cargo-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
 
+      # Set environment variables from secrets
+      - name: Set environment variables
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+          echo "SERVER_ADDR=${{ secrets.SERVER_ADDR }}" >> $GITHUB_ENV
+
       # Run tests with all features
       - name: Run tests with all features
         id: run-tests-all-features
