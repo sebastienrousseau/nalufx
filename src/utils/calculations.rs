@@ -69,17 +69,25 @@ pub fn calculate_optimal_allocation(
     for day in 1..=num_days {
         let predicted_return = avg_daily_return * day as f64;
         let predicted_cash_flow = avg_cash_flow * day as f64;
-        let sentiment_score = sentiment_scores[day - 1];
-        let optimal_action = optimal_actions[day - 1];
-        let cluster = clusters[day - 1];
 
-        // Incorporate sentiment score, optimal action, and cluster into the prediction
-        let prediction = predicted_return
-            * predicted_cash_flow
-            * sentiment_score
-            * optimal_action
-            * (cluster as f64 + 1.0);
-        predictions.push(prediction);
+        // Check if the day index is within the valid range
+        if day <= sentiment_scores.len() && day <= optimal_actions.len() && day <= clusters.len() {
+            let sentiment_score = sentiment_scores[day - 1];
+            let optimal_action = optimal_actions[day - 1];
+            let cluster = clusters[day - 1];
+
+            // Incorporate sentiment score, optimal action, and cluster into the prediction
+            let prediction = predicted_return
+                * predicted_cash_flow
+                * sentiment_score
+                * optimal_action
+                * (cluster as f64 + 1.0);
+            predictions.push(prediction);
+        } else {
+            // If the day index is out of range, use default values
+            let prediction = predicted_return * predicted_cash_flow;
+            predictions.push(prediction);
+        }
     }
 
     // Calculate total prediction to normalize the predictions
@@ -136,7 +144,7 @@ fn train_reinforcement_learning(num_days: usize) -> Result<Vec<f64>, Box<dyn Err
     Ok(optimal_actions)
 }
 
-// Clustering using K-means
+// Clustering using K-means with hyperparameter tuning
 fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, Box<dyn Error>> {
     // Convert features to a Dataset
     let dataset = Dataset::from(features.clone());
