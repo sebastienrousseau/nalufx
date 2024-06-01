@@ -23,6 +23,10 @@ NaluFX (NFX) is a Rust library that provides tools for financial modeling, data 
 - Data fetching from multiple sources
 - Data processing and transformation utilities
 - Structured and easy-to-parse output formats
+- Time series forecasting
+- Sentiment analysis
+- Reinforcement learning
+- Clustering using K-means
 
 ## License
 

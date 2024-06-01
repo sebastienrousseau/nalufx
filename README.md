@@ -23,6 +23,10 @@ NaluFX (NFX) is a Rust library that provides tools for financial modeling, data 
 - Data fetching from multiple sources
 - Data processing and transformation utilities
 - Structured and easy-to-parse output formats
+- Time series forecasting
+- Sentiment analysis
+- Reinforcement learning
+- Clustering using K-means
 
 ## Installation
 
@@ -71,6 +75,34 @@ let request = CashFlowRequest {
 let response: CashFlowResponse = nalufx::handlers::predict_cash_flows(request).unwrap();
 
 println!("Predictions: {:?}", response.predictions);
+```
+
+### Optimal Allocation Calculation
+
+```rust
+use nalufx::calculations::calculate_optimal_allocation;
+
+let daily_returns = vec![0.01, 0.02, -0.01, 0.03];
+let cash_flows = vec![100.0, 200.0, 150.0, 250.0];
+let num_days = 4;
+
+match calculate_optimal_allocation(&daily_returns, &cash_flows, num_days) {
+    Ok(result) => println!("Optimal allocation: {:?}", result),
+    Err(e) => eprintln!("Error calculating optimal allocation: {}", e),
+}
+```
+
+### Clustering
+
+```rust
+use ndarray::array;
+use nalufx::calculations::perform_clustering;
+
+let features = array![[0.01, 100.0], [0.02, 200.0], [-0.01, 150.0], [0.03, 250.0]];
+match perform_clustering(&features) {
+    Ok(clusters) => println!("Clusters: {:?}", clusters),
+    Err(e) => eprintln!("Error performing clustering: {}", e),
+}
 ```
 
 ## Configuration
