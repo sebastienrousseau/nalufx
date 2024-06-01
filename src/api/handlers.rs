@@ -118,11 +118,17 @@ async fn predict_cash_flow(
     };
 
     // Calculate the optimal allocation based on predictions
-    let optimal_allocation =
+    let optimal_allocation_result =
         calculate_optimal_allocation(&daily_returns, &cash_flows, predictions.len());
 
-    HttpResponse::Ok().json(CashFlowResponse {
-        predictions,
-        optimal_allocation,
-    })
+    match optimal_allocation_result {
+        Ok(optimal_allocation) => HttpResponse::Ok().json(CashFlowResponse {
+            predictions,
+            optimal_allocation,
+        }),
+        Err(e) => {
+            error!("Error calculating optimal allocation: {}", e);
+            HttpResponse::InternalServerError().body("Error calculating optimal allocation")
+        }
+    }
 }

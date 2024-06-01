@@ -44,34 +44,42 @@ pub(crate) async fn main() {
 
             // Calculate the optimal allocation based on historical data
             let num_days = 3;
-            let optimal_allocation =
+            let optimal_allocation_result =
                 calculate_optimal_allocation(&daily_returns, &cash_flows, num_days);
 
-            // Print the optimal allocation with descriptive information
-            println!("Optimal Allocation:");
-            println!("The optimal allocation represents the recommended distribution of funds for the next {} days.", num_days);
-            println!("Each value in the allocation vector corresponds to the percentage of funds to be allocated to {} for a specific day.", ticker);
-            println!(
-                "The sum of all values in the allocation vector should be close to 1.0 (100%)."
-            );
-            println!("Optimal Allocation: {:?}", optimal_allocation);
+            match optimal_allocation_result {
+                Ok(optimal_allocation) => {
+                    // Print the optimal allocation with descriptive information
+                    println!("Optimal Allocation:");
+                    println!("The optimal allocation represents the recommended distribution of funds for the next {} days.", num_days);
+                    println!("Each value in the allocation vector corresponds to the percentage of funds to be allocated to {} for a specific day.", ticker);
+                    println!(
+                        "The sum of all values in the allocation vector should be close to 1.0 (100%)."
+                    );
+                    println!("Optimal Allocation: {:?}", optimal_allocation);
 
-            // Provide specific recommendations based on the optimal allocation and initial investment
-            println!("Recommendation:");
-            println!("Based on the optimal allocation and your initial investment of ${}, it is recommended to distribute your funds as follows:", initial_investment);
+                    // Provide specific recommendations based on the optimal allocation and initial investment
+                    println!("Recommendation:");
+                    println!("Based on the optimal allocation and your initial investment of ${}, it is recommended to distribute your funds as follows:", initial_investment);
 
-            for (i, &allocation) in optimal_allocation.iter().enumerate() {
-                let allocation_amount = allocation * initial_investment;
-                println!(
-                    "- Day {}: Allocate ${:.2} to {}",
-                    i + 1,
-                    allocation_amount,
-                    ticker
-                );
+                    for (i, &allocation) in optimal_allocation.iter().enumerate() {
+                        let allocation_amount = allocation * initial_investment;
+                        println!(
+                            "- Day {}: Allocate ${:.2} to {}",
+                            i + 1,
+                            allocation_amount,
+                            ticker
+                        );
+                    }
+
+                    println!("Please note that these recommendations are based on the historical data and should be considered as a starting point for your investment strategy.");
+                    println!("It is always advisable to conduct further research and consult with a financial advisor before making any investment decisions.");
+                }
+                Err(e) => {
+                    eprintln!("Error calculating optimal allocation: {}", e);
+                    println!("Please check the input data and try again.");
+                }
             }
-
-            println!("Please note that these recommendations are based on the historical data and should be considered as a starting point for your investment strategy.");
-            println!("It is always advisable to conduct further research and consult with a financial advisor before making any investment decisions.");
         }
         Err(e) => {
             eprintln!("Error fetching data for ticker {}: {}", ticker, e);
