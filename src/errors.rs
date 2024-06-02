@@ -34,6 +34,8 @@ pub enum AllocationError {
     InvalidData,
     OutlierData,
     ForecastingError(String),
+    SentimentAnalysisError(String),
+    ReinforcementLearningError(String),
 }
 
 impl fmt::Display for AllocationError {
@@ -48,6 +50,12 @@ impl fmt::Display for AllocationError {
             AllocationError::OutlierData => write!(f, "Input data contains outliers"),
             AllocationError::ForecastingError(msg) => {
                 write!(f, "Error during time series forecasting: {}", msg)
+            }
+            AllocationError::SentimentAnalysisError(msg) => {
+                write!(f, "Error during sentiment analysis: {}", msg)
+            }
+            AllocationError::ReinforcementLearningError(msg) => {
+                write!(f, "Error during reinforcement learning: {}", msg)
             }
         }
     }

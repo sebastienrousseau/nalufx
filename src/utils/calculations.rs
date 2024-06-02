@@ -79,10 +79,16 @@ pub fn calculate_optimal_allocation(
     };
 
     // Sentiment Analysis
-    let sentiment_scores = analyze_sentiment(num_days)?;
+    let sentiment_scores = match analyze_sentiment(num_days) {
+        Ok(scores) => scores,
+        Err(err) => return Err(AllocationError::SentimentAnalysisError(err)),
+    };
 
     // Reinforcement Learning
-    let optimal_actions = train_reinforcement_learning(num_days)?;
+    let optimal_actions = match train_reinforcement_learning(num_days) {
+        Ok(actions) => actions,
+        Err(err) => return Err(AllocationError::ReinforcementLearningError(err)),
+    };
 
     // Clustering
     let clusters = match perform_clustering(&features) {
@@ -182,19 +188,23 @@ fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, Strin
     Ok(forecast.point)
 }
 
-// Sentiment analysis (simple placeholder)
-fn analyze_sentiment(num_days: usize) -> Result<Vec<f64>, AllocationError> {
-    // Generate random sentiment scores for demonstration
-    let mut rng = rand::thread_rng();
-    let sentiment_scores: Vec<f64> = (0..num_days).map(|_| rng.gen_range(0.0..1.0)).collect();
+// Sentiment analysis using the helper function
+pub fn analyze_sentiment(num_days: usize) -> Result<Vec<f64>, String> {
+    // Call the sentiment analysis helper function
+    let sentiment_scores = match get_sentiment_scores(num_days) {
+        Ok(scores) => scores,
+        Err(err) => return Err(err.to_string()),
+    };
     Ok(sentiment_scores)
 }
 
-// Reinforcement learning (simple placeholder)
-fn train_reinforcement_learning(num_days: usize) -> Result<Vec<f64>, AllocationError> {
-    // Generate random optimal actions for demonstration
-    let mut rng = rand::thread_rng();
-    let optimal_actions: Vec<f64> = (0..num_days).map(|_| rng.gen_range(0.0..1.0)).collect();
+// Reinforcement learning using the helper function
+pub fn train_reinforcement_learning(num_days: usize) -> Result<Vec<f64>, String> {
+    // Call the reinforcement learning helper function
+    let optimal_actions = match get_optimal_actions(num_days) {
+        Ok(actions) => actions,
+        Err(err) => return Err(err.to_string()),
+    };
     Ok(optimal_actions)
 }
 
@@ -211,4 +221,22 @@ fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, AllocationEr
     let clusters = model.predict(&dataset);
     // Convert the clusters to a Vec<usize> and return
     Ok(clusters.to_vec())
+}
+
+// Helper function for sentiment analysis (placeholder)
+fn get_sentiment_scores(num_days: usize) -> Result<Vec<f64>, String> {
+    // Implement the actual sentiment analysis logic here
+    // For demonstration purposes, we'll return random scores
+    let mut rng = rand::thread_rng();
+    let sentiment_scores: Vec<f64> = (0..num_days).map(|_| rng.gen_range(0.0..1.0)).collect();
+    Ok(sentiment_scores)
+}
+
+// Helper function for reinforcement learning (placeholder)
+fn get_optimal_actions(num_days: usize) -> Result<Vec<f64>, String> {
+    // Implement the actual reinforcement learning logic here
+    // For demonstration purposes, we'll return random actions
+    let mut rng = rand::thread_rng();
+    let optimal_actions: Vec<f64> = (0..num_days).map(|_| rng.gen_range(0.0..1.0)).collect();
+    Ok(optimal_actions)
 }

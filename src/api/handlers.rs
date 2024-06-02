@@ -1,10 +1,12 @@
-use crate::api::models::{CashFlowRequest, CashFlowResponse};
-use crate::utils::calculations::calculate_optimal_allocation;
+use crate::{
+    api::models::{CashFlowRequest, CashFlowResponse},
+    utils::calculations::calculate_optimal_allocation,
+};
 use actix_web::{post, web, HttpResponse, Responder};
 use log::{debug, error};
 use reqwest::Client;
 use serde::Deserialize;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::env;
 
 #[derive(Debug, Deserialize)]
@@ -22,6 +24,80 @@ struct OpenAIMessage {
     content: String,
 }
 
+/// Fetches the OpenAI API key from the environment.
+///
+/// Returns the API key as a string if it exists in the environment, or an error message if it doesn't.
+pub fn get_openai_api_key() -> Result<String, &'static str> {
+    env::var("OPENAI_API_KEY").map_err(|_| "OPENAI_API_KEY is not set")
+}
+
+/// Sends a request to the OpenAI API and handles the response.
+///
+/// # Arguments
+///
+/// * `client` - A reference to the HTTP client.
+/// * `api_key` - The OpenAI API key.
+/// * `request_body` - The JSON request body to send to the API.
+///
+/// Returns the response body as a string if the request is successful, or an error message if it fails.
+pub async fn send_openai_request(
+    client: &Client,
+    api_key: &str,
+    request_body: Value,
+) -> Result<String, &'static str> {
+    let response = client
+        .post("https://api.openai.com/v1/chat/completions")
+        .header("Authorization", format!("Bearer {}", api_key))
+        .json(&request_body)
+        .send()
+        .await
+        .map_err(|err| {
+            error!("Error sending request to OpenAI API: {:?}", err);
+            "Error contacting OpenAI API"
+        })?;
+
+    if !response.status().is_success() {
+        error!(
+            "OpenAI API call failed with status: {:?}",
+            response.status()
+        );
+        return Err("OpenAI API call failed");
+    }
+
+    response.text().await.map_err(|err| {
+        error!("Error reading response body: {:?}", err);
+        "Error reading response body"
+    })
+}
+
+/// Parses the OpenAI API response JSON.
+///
+/// # Arguments
+///
+/// * `body` - The response body as a string.
+///
+/// Returns a vector of predicted values if parsing is successful, or an `HttpResponse` with an internal server error if parsing fails.
+pub fn parse_openai_response(body: &str) -> Result<Vec<f64>, HttpResponse> {
+    let openai_response: OpenAIResponse = serde_json::from_str(body).map_err(|err| {
+        error!("Error parsing response JSON: {:?}", err);
+        HttpResponse::InternalServerError().body("Error parsing response JSON")
+    })?;
+
+    let predictions: Vec<f64> = openai_response
+        .choices
+        .iter()
+        .flat_map(|choice| {
+            choice
+                .message
+                .content
+                .split_whitespace()
+                .map(|s| s.parse().unwrap_or_default())
+        })
+        .collect();
+
+    Ok(predictions)
+}
+
 #[post("/predict")]
 async fn predict_cash_flow(
     data: web::Json<CashFlowRequest>,
@@ -31,10 +107,10 @@ async fn predict_cash_flow(
     fund_characteristics: web::Json<Vec<f64>>,
 ) -> impl Responder {
     let client = Client::new();
-    let api_key = match env::var("OPENAI_API_KEY") {
+    let api_key = match get_openai_api_key() {
         Ok(key) => key,
-        Err(_) => {
-            error!("OPENAI_API_KEY is not set");
+        Err(err) => {
+            error!("{}", err);
             return HttpResponse::InternalServerError().body("Internal Server Error");
         }
     };
@@ -62,55 +138,15 @@ async fn predict_cash_flow(
 
     debug!("Request body: {:?}", request_body);
 
-    let response = match client
-        .post("https://api.openai.com/v1/chat/completions")
-        .header("Authorization", format!("Bearer {}", api_key))
-        .json(&request_body)
-        .send()
-        .await
-    {
-        Ok(resp) => resp,
-        Err(err) => {
-            error!("Error sending request to OpenAI API: {:?}", err);
-            return HttpResponse::InternalServerError().body("Error contacting OpenAI API");
-        }
-    };
-
-    if !response.status().is_success() {
-        error!(
-            "OpenAI API call failed with status: {:?}",
-            response.status()
-        );
-        return HttpResponse::InternalServerError().body("OpenAI API call failed");
-    }
-
-    let body = match response.text().await {
+    let body = match send_openai_request(&client, &api_key, request_body).await {
         Ok(body) => body,
-        Err(err) => {
-            error!("Error reading response body: {:?}", err);
-            return HttpResponse::InternalServerError().body("Error reading response body");
-        }
+        Err(err) => return HttpResponse::InternalServerError().body(err),
     };
 
-    let openai_response: OpenAIResponse = match serde_json::from_str(&body) {
-        Ok(json) => json,
-        Err(err) => {
-            error!("Error parsing response JSON: {:?}", err);
-            return HttpResponse::InternalServerError().body("Error parsing response JSON");
-        }
+    let predictions = match parse_openai_response(&body) {
+        Ok(predictions) => predictions,
+        Err(err) => return err,
     };
-
-    let predictions: Vec<f64> = openai_response
-        .choices
-        .iter()
-        .flat_map(|choice| {
-            choice
-                .message
-                .content
-                .split_whitespace()
-                .map(|s| s.parse().unwrap_or_default())
-        })
-        .collect();
 
     // Ensure predictions have a length of 6
     let predictions = if predictions.len() == 6 {
