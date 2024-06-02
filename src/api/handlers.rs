@@ -42,11 +42,12 @@ pub fn get_openai_api_key() -> Result<String, &'static str> {
 /// Returns the response body as a string if the request is successful, or an error message if it fails.
 pub async fn send_openai_request(
     client: &Client,
+    api_url: &str,
     api_key: &str,
     request_body: Value,
 ) -> Result<String, &'static str> {
     let response = client
-        .post("https://api.openai.com/v1/chat/completions")
+        .post(api_url)
         .header("Authorization", format!("Bearer {}", api_key))
         .json(&request_body)
         .send()
@@ -55,7 +56,6 @@ pub async fn send_openai_request(
             error!("Error sending request to OpenAI API: {:?}", err);
             "Error contacting OpenAI API"
         })?;
-
     if !response.status().is_success() {
         error!(
             "OpenAI API call failed with status: {:?}",
@@ -63,12 +63,40 @@ pub async fn send_openai_request(
         );
         return Err("OpenAI API call failed");
     }
-
     response.text().await.map_err(|err| {
         error!("Error reading response body: {:?}", err);
         "Error reading response body"
     })
 }
+// pub async fn send_openai_request(
+//     client: &Client,
+//     api_key: &str,
+//     request_body: Value,
+// ) -> Result<String, &'static str> {
+//     let response = client
+//         .post("https://api.openai.com/v1/chat/completions")
+//         .header("Authorization", format!("Bearer {}", api_key))
+//         .json(&request_body)
+//         .send()
+//         .await
+//         .map_err(|err| {
+//             error!("Error sending request to OpenAI API: {:?}", err);
+//             "Error contacting OpenAI API"
+//         })?;
+
+//     if !response.status().is_success() {
+//         error!(
+//             "OpenAI API call failed with status: {:?}",
+//             response.status()
+//         );
+//         return Err("OpenAI API call failed");
+//     }
+
+//     response.text().await.map_err(|err| {
+//         error!("Error reading response body: {:?}", err);
+//         "Error reading response body"
+//     })
+// }
 
 /// Parses the OpenAI API response JSON.
 ///
@@ -138,7 +166,8 @@ async fn predict_cash_flow(
 
     debug!("Request body: {:?}", request_body);
 
-    let body = match send_openai_request(&client, &api_key, request_body).await {
+    let openai_url = "https://api.openai.com/v1/chat/completions";
+    let body = match send_openai_request(&client, openai_url, &api_key, request_body).await {
         Ok(body) => body,
         Err(err) => return HttpResponse::InternalServerError().body(err),
     };

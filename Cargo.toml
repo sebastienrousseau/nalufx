@@ -42,7 +42,7 @@ debug = true
 # Dependencies are only used for building.
 actix-web = "4.6.0"
 chrono = "0.4.38"
-dotenvy = "0.15.0"
+dotenvy = "0.15.7"
 env_logger = "0.11.3"
 linfa = "0.7.0"
 linfa-clustering = "0.7.0"
@@ -65,6 +65,7 @@ version_check = "0.9.4"
 # Development dependencies are only used for testing and building.
 # criterion = "0.5.1"
 actix-rt = "2.9.0"
+wiremock = "0.6.0"
 
 [lib]
 # Library configuration.
