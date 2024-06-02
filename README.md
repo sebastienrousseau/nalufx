@@ -1,9 +1,8 @@
-<img src="https://kura.pro/nalufx/images/logos/nalufx.svg"
-alt="NaluFX (NFX) logo" height="66" width="66" align="right" />
+<img src="https://kura.pro/nalufx/images/logos/nalufx.svg" alt="NaluFX (NFX) logo" height="66" width="66" align="right" />
 
 # NaluFX (NFX)
 
-A Rust library that implements financial models, data fetching, and processing for cash flow predictions with a simple, readable output format.
+A Rust library designed to optimize cash allocation across complex fund structures using AI-driven predictions and suggestions. It implements advanced financial models, data fetching, and processing for enhanced cash flow management.
 
 [![Made With Love][made-with-rust]][05]
 [![Crates.io][crates-badge]][07]
@@ -15,18 +14,19 @@ A Rust library that implements financial models, data fetching, and processing f
 
 ## Overview
 
-NaluFX (NFX) is a Rust library that provides tools for financial modeling, data fetching, and processing, with a focus on cash flow predictions. It offers APIs and various helper macros to simplify common financial tasks.
+NaluFX (NFX) is a Rust library that provides sophisticated tools for financial modelling, data fetching, and processing, with a focus on optimizing cash allocation across complex fund structures. It leverages AI-driven predictions and suggestions to enhance decision-making processes.
 
 ## Features
 
-- Cash flow prediction models
+- Advanced cash flow prediction models
 - Data fetching from multiple sources
 - Data processing and transformation utilities
 - Structured and easy-to-parse output formats
 - Time series forecasting
 - Sentiment analysis
-- Reinforcement learning
-- Clustering using K-means
+- Reinforcement learning for dynamic decision-making
+- Clustering using K-means for data segmentation
+- AI-driven suggestions for cash allocation optimization
 
 ## Installation
 
@@ -77,215 +77,19 @@ let response: CashFlowResponse = nalufx::handlers::predict_cash_flows(request).u
 println!("Predictions: {:?}", response.predictions);
 ```
 
-### Optimal Allocation Calculation
+### AI-Driven Cash Allocation Suggestions
 
 ```rust
-use nalufx::utils::calculations::calculate_optimal_allocation;
+use nalufx::services::handlers::{AllocationRequest, AllocationResponse};
 
-let daily_returns = vec![0.01, 0.02, -0.01, 0.03];
-let cash_flows = vec![100.0, 200.0, 150.0, 250.0];
-let market_indices = vec![1000.0, 1010.0, 1005.0, 1015.0];
-let fund_characteristics = vec![0.8, 0.9, 0.85, 0.95];
-let num_days = 4;
-
-match calculate_optimal_allocation(&daily_returns, &cash_flows, &market_indices, &fund_characteristics, num_days) {
-    Ok(result) => println!("Optimal allocation: {:?}", result),
-    Err(e) => eprintln!("Error calculating optimal allocation: {}", e),
-}
-```
-
-### Clustering
-
-```rust
-use ndarray::array;
-use nalufx::utils::calculations::perform_clustering;
-
-let features = array![[0.01, 100.0], [0.02, 200.0], [-0.01, 150.0], [0.03, 250.0]];
-match perform_clustering(&features) {
-    Ok(clusters) => println!("Clusters: {:?}", clusters),
-    Err(e) => eprintln!("Error performing clustering: {}", e),
-}
-```
-
-### Example Script
-
-Here's an example of fetching historical data, calculating optimal allocation, and printing the recommendations.
-
-```rust
-use chrono::{TimeZone, Utc};
-use nalufx::{
-    services::{
-        fetch_data::fetch_data,
-        processing::{calculate_cash_flows, calculate_daily_returns},
-    },
-    utils::calculations::calculate_optimal_allocation,
+let allocation_request = AllocationRequest {
+    fund_data: vec![/* Your fund data here */],
+    market_conditions: vec![/* Current market conditions */],
 };
 
-// Custom function to format float as currency
-fn format_currency(value: f64) -> String {
-    let int_value = (value * 100.0).round() as i64; // Convert to integer cents
-    let dollars = int_value / 100;
-    let cents = (int_value % 100).abs(); // Absolute value for cents
-    let formatted_dollars = format_dollars(dollars);
-    format!("${}.{:02}", formatted_dollars, cents)
-}
+let allocation_response: AllocationResponse = nalufx::handlers::suggest_allocations(allocation_request).unwrap();
 
-// Helper function to format the dollar amount with commas
-fn format_dollars(dollars: i64) -> String {
-    let mut s = dollars.to_string();
-    let len = s.len();
-    if len > 3 {
-        let mut pos = len % 3;
-        if pos == 0 {
-            pos = 3;
-        }
-        while pos < len {
-            s.insert(pos, ',');
-            pos += 4;
-        }
-    }
-    s
-}
-
-#[tokio::main]
-pub(crate) async fn main() {
-    // Define the ticker symbol and initial investment amount
-    let ticker = "SPY";
-    let initial_investment = 100000.0;
-
-    // Fetch historical closing prices for SPY
-    match fetch_data(ticker, None, None).await {
-        Ok(closes) => {
-            // Calculate daily returns from closing prices
-            let daily_returns = calculate_daily_returns(&closes);
-
-            // Calculate cash flows based on daily returns and initial investment
-            let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
-
-            // Fetch or generate market indices data
-            let market_indices = vec![1000.0, 1010.0, 1005.0, 1015.0]; // Replace with actual data
-            println!("\n--- Market Overview ---\n");
-            println!(
-                "The Market Indices represent key points of market performance during the period:\n"
-            );
-            for (i, value) in market_indices.iter().enumerate() {
-                println!("- Index Point {}: {}", i + 1, format_currency(*value));
-            }
-
-            // Fetch or generate fund characteristics data
-            let fund_characteristics = vec![0.8, 0.9, 0.85, 0.95]; // Replace with actual data
-            println!(
-                "\nThe Fund Characteristics represent key attributes of the fund during the period:\n"
-            );
-            for (i, value) in fund_characteristics.iter().enumerate() {
-                println!("- Attribute {}: {:.2}", i + 1, value);
-            }
-
-            // Determine the minimum length of all input slices
-            let min_length = daily_returns
-                .len()
-                .min(cash_flows.len())
-                .min(market_indices.len())
-                .min(fund_characteristics.len());
-
-            // Truncate all slices to the minimum length
-            let daily_returns = &daily_returns[..min_length];
-            let cash_flows = &cash_flows[..min_length];
-            let market_indices = &market_indices[..min_length];
-            let fund_characteristics = &fund_characteristics[..min_length];
-
-            // Calculate the optimal allocation based on truncated input slices
-            let optimal_allocation_result = calculate_optimal_allocation(
-                daily_returns,
-                cash_flows,
-                market_indices,
-                fund_characteristics,
-                min_length,
-            );
-
-            match optimal_allocation_result {
-                Ok(mut optimal_allocation) => {
-                    // Filter out negative allocations and normalize the rest
-                    optimal_allocation = optimal_allocation
-                        .into_iter()
-                        .map(|alloc| if alloc < 0.0 { 0.0 } else { alloc })
-                        .collect();
-                    let total_allocation: f64 = optimal_allocation.iter().sum();
-                    optimal_allocation = optimal_allocation
-                        .into_iter()
-                        .map(|alloc| alloc / total_allocation)
-                        .collect();
-
-                    // Print the optimal allocation with descriptive information
-                    println!("\n--- Optimal Allocation Report ---\n");
-                    println!(
-                        "The optimal allocation represents the recommended distribution of funds for the next {} days.",
-                        min_length
-                    );
-                    println!(
-                        "Each value in the allocation vector corresponds to the percentage of funds to be allocated to {} for a specific day.",
-                        ticker
-                    );
-                    println!("The sum of all values in the allocation vector should be close to 1.0 (100%).");
-                    println!("\n- Optimal Allocation: {:?}", optimal_allocation);
-
-                    // Provide specific recommendations based on the optimal allocation and initial investment
-                    println!("\n--- Investment Recommendations ---\n");
-                    println!(
-                        "Based on the optimal allocation and your initial investment of {}, it is recommended to distribute your funds as follows:\n",
-                        format_currency(initial_investment)
-                    );
-
-                    let today = Utc::now();
-                    for (i, &allocation) in optimal_allocation.iter().enumerate() {
-                        let allocation_amount = allocation * initial_investment;
-                        let allocation_date = today + chrono::Duration::days(i as i64);
-                        let allocation_percentage = allocation * 100.0;
-                        println!(
-                            "- Day {}: {} - Allocate {} ({:.2}%) to {}",
-                            i + 1,
-                            allocation_date.format("%Y-%m-%d"),
-                            format_currency(allocation_amount),
-                            allocation_percentage,
-                            ticker
-                        );
-                    }
-
-
-
-                    println!("\n--- Disclaimer ---\n");
-                    println!("These recommendations are based on historical data and should be considered as a starting point for your investment strategy.");
-                    println!("Market conditions can change rapidly, and past performance is not indicative of future results.");
-                    println!("It is always advisable to conduct further research and consult with a financial advisor before making any investment decisions.\n");
-                }
-                Err(e) => {
-                    eprintln!("Error calculating optimal allocation: {}", e);
-                    println!("Please check the input data and try again.");
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("Error fetching data for ticker {}: {}", ticker, e);
-        }
-    }
-}
-```
-
-## Configuration
-
-By default, NaluFX (NFX) uses a set of built-in configurations. You can customize configurations by setting environment variables or modifying configuration files.
-
-## Error Handling
-
-Errors can occur during data fetching, processing, or prediction operations. The library uses Rust's `Result` type to indicate success or failure. You should handle potential errors appropriately in your code.
-
-```rust
-use nalufx::services::fetch_data::fetch_cash_flow_data;
-
-match fetch_cash_flow_data("some_data_source") {
-    Ok(data) => println!("Data fetched successfully"),
-    Err(e) => eprintln!("Error fetching data: {}", e),
-}
+println!("Allocation Suggestions: {:?}", allocation_response.suggestions);
 ```
 
 ## Examples
@@ -315,7 +119,7 @@ Unless you explicitly state otherwise, any contribution intentionally submitted 
 
 A special thank you goes to the [Rust Reddit](https://www.reddit.com/r/rust/) community for providing a lot of useful suggestions on how to improve this project.
 
-[00]: https://rustlogs.com
+[00]: https://nalufx.com
 [01]: http://www.apache.org/licenses/LICENSE-2.0
 [02]: http://opensource.org/licenses/MIT
 [05]: https://github.com/sebastienrousseau/nalufx/graphs/contributors
