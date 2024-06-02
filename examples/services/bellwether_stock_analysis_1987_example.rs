@@ -6,14 +6,30 @@ use nalufx::{
     },
     utils::calculations::calculate_optimal_allocation,
 };
-use num_format::{Locale, ToFormattedString};
 
 // Custom function to format float as currency
 fn format_currency(value: f64) -> String {
     let int_value = (value * 100.0).round() as i64; // Convert to integer cents
     let dollars = int_value / 100;
     let cents = (int_value % 100).abs(); // Absolute value for cents
-    format!("${}.{:02}", dollars.to_formatted_string(&Locale::en), cents)
+    let formatted_dollars = format_dollars(dollars);
+    format!("${}.{:02}", formatted_dollars, cents)
+}
+
+fn format_dollars(dollars: i64) -> String {
+    let mut s = dollars.to_string();
+    let len = s.len();
+    if len > 3 {
+        let mut pos = len % 3;
+        if pos == 0 {
+            pos = 3;
+        }
+        while pos < len {
+            s.insert(pos, ',');
+            pos += 4;
+        }
+    }
+    s
 }
 
 #[tokio::main]
@@ -34,12 +50,16 @@ pub(crate) async fn main() {
             // Calculate cash flows based on daily returns and initial investment
             let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
 
-            // Fetch or generate market indices data for the specified date range
+            // Generate more market indices data for the specified date range
             let market_indices = vec![
                 (start_date, 1000.0),
                 (start_date + chrono::Duration::days(30), 1010.0),
                 (start_date + chrono::Duration::days(60), 1005.0),
                 (start_date + chrono::Duration::days(90), 1015.0),
+                (start_date + chrono::Duration::days(120), 1020.0),
+                (start_date + chrono::Duration::days(150), 1030.0),
+                (start_date + chrono::Duration::days(180), 1025.0),
+                (start_date + chrono::Duration::days(210), 1040.0),
             ]; // Replace with actual data
             println!("\n--- Market Overview ---\n");
             println!(
@@ -49,12 +69,16 @@ pub(crate) async fn main() {
                 println!("- {}: {}", date.format("%Y-%m-%d"), format_currency(*value));
             }
 
-            // Fetch or generate fund characteristics data for the specified date range
+            // Generate more fund characteristics data for the specified date range
             let fund_characteristics = vec![
                 (start_date, 0.8),
                 (start_date + chrono::Duration::days(30), 0.9),
                 (start_date + chrono::Duration::days(60), 0.85),
                 (start_date + chrono::Duration::days(90), 0.95),
+                (start_date + chrono::Duration::days(120), 0.88),
+                (start_date + chrono::Duration::days(150), 0.92),
+                (start_date + chrono::Duration::days(180), 0.87),
+                (start_date + chrono::Duration::days(210), 0.93),
             ]; // Replace with actual data
             println!(
                 "\nThe Fund Characteristics represent key attributes of the fund during the period:\n"

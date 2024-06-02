@@ -1,16 +1,11 @@
+use augurs_ets::AutoETS;
+
 use crate::errors::AllocationError;
 use linfa::prelude::Predict as LinfaPredict;
 use linfa::prelude::*;
 use linfa_clustering::KMeans;
 use ndarray::prelude::*;
-use prophet::topology::Topology;
-use prophet::{Activation, Criterion, Predict, Sample, Scheduling};
 use rand::Rng;
-
-/// Converts prophet::ErrorKind to String
-fn error_kind_to_string(err: prophet::ErrorKind) -> String {
-    format!("{:?}", err)
-}
 
 /// Calculates the optimal allocation based on daily returns and cash flows.
 ///
@@ -76,11 +71,11 @@ pub fn calculate_optimal_allocation(
     // Time Series Forecasting
     let forecasted_returns = match forecast_time_series(daily_returns, num_days) {
         Ok(returns) => returns,
-        Err(err) => return Err(AllocationError::ForecastingError(error_kind_to_string(err))),
+        Err(err) => return Err(AllocationError::ForecastingError(err)),
     };
     let forecasted_cash_flows = match forecast_time_series(cash_flows, num_days) {
         Ok(cash_flows) => cash_flows,
-        Err(err) => return Err(AllocationError::ForecastingError(error_kind_to_string(err))),
+        Err(err) => return Err(AllocationError::ForecastingError(err)),
     };
 
     // Sentiment Analysis
@@ -95,14 +90,26 @@ pub fn calculate_optimal_allocation(
         Err(err) => return Err(AllocationError::ClusteringError(err.to_string())),
     };
 
+    // Calculate averages
+    let avg_daily_return = daily_returns.iter().sum::<f64>() / daily_returns.len() as f64;
+    let avg_cash_flow = cash_flows.iter().sum::<f64>() / cash_flows.len() as f64;
+
     // Initialize predictions vector
     let mut predictions = Vec::with_capacity(num_days);
 
     // Calculate predictions in one pass
     for day in 1..=num_days {
-        // Use forecasted returns and cash flows instead of average
-        let predicted_return = forecasted_returns.get(day - 1).cloned().unwrap_or(0.0);
-        let predicted_cash_flow = forecasted_cash_flows.get(day - 1).cloned().unwrap_or(0.0);
+        let predicted_return = if day <= forecasted_returns.len() {
+            forecasted_returns[day - 1]
+        } else {
+            avg_daily_return * day as f64
+        };
+
+        let predicted_cash_flow = if day <= forecasted_cash_flows.len() {
+            forecasted_cash_flows[day - 1]
+        } else {
+            avg_cash_flow * day as f64
+        };
 
         // Check if the day index is within the valid range
         if day <= sentiment_scores.len() && day <= optimal_actions.len() && day <= clusters.len() {
@@ -167,35 +174,12 @@ fn extract_features(
     Ok(features)
 }
 
-// Time series forecasting (simple linear model)
-fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, prophet::ErrorKind> {
-    // Prepare the training samples
-    let train_samples: Vec<Sample> = data
-        .iter()
-        .enumerate()
-        .map(|(i, &value)| Sample::new(vec![i as f32], vec![value as f32]))
-        .collect();
-
-    // Create the topology for the neural network
-    let top = Topology::input(1) // has one input neuron
-        .layer(5, Activation::Tanh) // with 5 neurons in the hidden layer
-        .output(1, Activation::Tanh); // and 1 neuron in the output layer
-
-    // Train the neural network
-    let mut net = top
-        .train(train_samples)
-        .learn_rate(0.1)
-        .learn_momentum(0.5)
-        .scheduling(Scheduling::Random) // Use random sample scheduling
-        .criterion(Criterion::Iterations(1000))
-        .go()?;
-
-    // Generate forecasts
-    let forecasts: Vec<f64> = (data.len()..data.len() + num_days)
-        .map(|i| net.predict(&[i as f32])[0] as f64)
-        .collect();
-
-    Ok(forecasts)
+// Time series forecasting using augurs-ets
+fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, String> {
+    let mut search = AutoETS::new(1, "ZZN").map_err(|e| e.to_string())?;
+    let model = search.fit(data).map_err(|e| e.to_string())?;
+    let forecast = model.predict(num_days, 0.95);
+    Ok(forecast.point)
 }
 
 // Sentiment analysis (simple placeholder)

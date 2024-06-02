@@ -6,14 +6,31 @@ use nalufx::{
     },
     utils::calculations::calculate_optimal_allocation,
 };
-use num_format::{Locale, ToFormattedString};
 
 // Custom function to format float as currency
 fn format_currency(value: f64) -> String {
     let int_value = (value * 100.0).round() as i64; // Convert to integer cents
     let dollars = int_value / 100;
     let cents = (int_value % 100).abs(); // Absolute value for cents
-    format!("${}.{:02}", dollars.to_formatted_string(&Locale::en), cents)
+    let formatted_dollars = format_dollars(dollars);
+    format!("${}.{:02}", formatted_dollars, cents)
+}
+
+// Helper function to format the dollar amount with commas
+fn format_dollars(dollars: i64) -> String {
+    let mut s = dollars.to_string();
+    let len = s.len();
+    if len > 3 {
+        let mut pos = len % 3;
+        if pos == 0 {
+            pos = 3;
+        }
+        while pos < len {
+            s.insert(pos, ',');
+            pos += 4;
+        }
+    }
+    s
 }
 
 #[tokio::main]
@@ -31,23 +48,41 @@ pub(crate) async fn main() {
             // Calculate cash flows based on daily returns and initial investment
             let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
 
-            // Fetch or generate market indices data
-            let market_indices = vec![1000.0, 1010.0, 1005.0, 1015.0]; // Replace with actual data
+            // Generate more market indices data
+            let market_indices = vec![
+                (Utc::now() - chrono::Duration::days(90), 1000.0),
+                (Utc::now() - chrono::Duration::days(60), 1010.0),
+                (Utc::now() - chrono::Duration::days(30), 1005.0),
+                (Utc::now(), 1015.0),
+                (Utc::now() + chrono::Duration::days(30), 1020.0),
+                (Utc::now() + chrono::Duration::days(60), 1030.0),
+                (Utc::now() + chrono::Duration::days(90), 1025.0),
+                (Utc::now() + chrono::Duration::days(120), 1040.0),
+            ]; // Replace with actual data
             println!("\n--- Market Overview ---\n");
             println!(
                 "The Market Indices represent key points of market performance during the period:\n"
             );
-            for (i, value) in market_indices.iter().enumerate() {
-                println!("- Index Point {}: {}", i + 1, format_currency(*value));
+            for (date, value) in &market_indices {
+                println!("- {}: {}", date.format("%Y-%m-%d"), format_currency(*value));
             }
 
-            // Fetch or generate fund characteristics data
-            let fund_characteristics = vec![0.8, 0.9, 0.85, 0.95]; // Replace with actual data
+            // Generate more fund characteristics data
+            let fund_characteristics = vec![
+                (Utc::now() - chrono::Duration::days(90), 0.8),
+                (Utc::now() - chrono::Duration::days(60), 0.9),
+                (Utc::now() - chrono::Duration::days(30), 0.85),
+                (Utc::now(), 0.95),
+                (Utc::now() + chrono::Duration::days(30), 0.88),
+                (Utc::now() + chrono::Duration::days(60), 0.92),
+                (Utc::now() + chrono::Duration::days(90), 0.87),
+                (Utc::now() + chrono::Duration::days(120), 0.93),
+            ]; // Replace with actual data
             println!(
                 "\nThe Fund Characteristics represent key attributes of the fund during the period:\n"
             );
-            for (i, value) in fund_characteristics.iter().enumerate() {
-                println!("- Attribute {}: {:.2}", i + 1, value);
+            for (date, value) in &fund_characteristics {
+                println!("- {}: {:.2}", date.format("%Y-%m-%d"), value);
             }
 
             // Determine the minimum length of all input slices
@@ -60,7 +95,12 @@ pub(crate) async fn main() {
             // Truncate all slices to the minimum length
             let daily_returns = &daily_returns[..min_length];
             let cash_flows = &cash_flows[..min_length];
+            let market_indices: Vec<f64> = market_indices.iter().map(|&(_, value)| value).collect();
             let market_indices = &market_indices[..min_length];
+            let fund_characteristics: Vec<f64> = fund_characteristics
+                .iter()
+                .map(|&(_, value)| value)
+                .collect();
             let fund_characteristics = &fund_characteristics[..min_length];
 
             // Calculate the optimal allocation based on truncated input slices

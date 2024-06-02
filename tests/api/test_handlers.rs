@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use actix_web::{http, test, App};
-    use dotenv::dotenv;
+    use dotenvy::dotenv;
     use nalufx::api::handlers::predict_cash_flow;
     use serde_json::json;
 

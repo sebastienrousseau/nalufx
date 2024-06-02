@@ -1,5 +1,5 @@
 use actix_web::{App, HttpServer};
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use env_logger;
 use nalufx::api::handlers::predict_cash_flow;
 use nalufx::config::Config;
