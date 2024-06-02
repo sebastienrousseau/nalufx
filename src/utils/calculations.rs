@@ -10,6 +10,8 @@ use rand::Rng;
 ///
 /// * `daily_returns` - A slice of daily returns.
 /// * `cash_flows` - A slice of cash flows.
+/// * `market_indices` - A slice of market indices.
+/// * `fund_characteristics` - A slice of fund characteristics.
 /// * `num_days` - The number of days to generate predictions for.
 ///
 /// # Returns
@@ -25,6 +27,8 @@ use rand::Rng;
 pub fn calculate_optimal_allocation(
     daily_returns: &[f64],
     cash_flows: &[f64],
+    market_indices: &[f64],
+    fund_characteristics: &[f64],
     num_days: usize,
 ) -> Result<Vec<f64>, AllocationError> {
     // Check if input slices have the same length
@@ -54,7 +58,12 @@ pub fn calculate_optimal_allocation(
     }
 
     // Feature Engineering
-    let features = extract_features(daily_returns, cash_flows)?;
+    let features = extract_features(
+        daily_returns,
+        cash_flows,
+        market_indices,
+        fund_characteristics,
+    )?;
 
     // Time Series Forecasting
     let _forecasted_returns = forecast_time_series(daily_returns, num_days)?;
@@ -122,15 +131,28 @@ pub fn calculate_optimal_allocation(
 fn extract_features(
     daily_returns: &[f64],
     cash_flows: &[f64],
-    // Add additional features as needed
+    market_indices: &[f64],
+    fund_characteristics: &[f64],
 ) -> Result<Array2<f64>, AllocationError> {
     let n = daily_returns.len();
-    let mut features = Array2::<f64>::zeros((n, 2)); // Adjust the number of columns based on additional features
+    if n != cash_flows.len() || n != market_indices.len() || n != fund_characteristics.len() {
+        return Err(AllocationError::InputMismatch);
+    }
+
+    let mut features = Array2::<f64>::zeros((n, 4));
     for i in 0..n {
         features[[i, 0]] = daily_returns[i];
         features[[i, 1]] = cash_flows[i];
-        // Add additional feature calculations
+        features[[i, 2]] = market_indices[i];
+        features[[i, 3]] = fund_characteristics[i];
     }
+
+    // Normalize the features
+    let mean = features.mean_axis(Axis(0)).unwrap();
+    let std_dev = features.std_axis(Axis(0), 0.0);
+    features -= &mean;
+    features /= &std_dev;
+
     Ok(features)
 }
 

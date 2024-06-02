@@ -27,6 +27,8 @@ async fn predict_cash_flow(
     data: web::Json<CashFlowRequest>,
     daily_returns: web::Json<Vec<f64>>,
     cash_flows: web::Json<Vec<f64>>,
+    market_indices: web::Json<Vec<f64>>,
+    fund_characteristics: web::Json<Vec<f64>>,
 ) -> impl Responder {
     let client = Client::new();
     let api_key = match env::var("OPENAI_API_KEY") {
@@ -118,8 +120,13 @@ async fn predict_cash_flow(
     };
 
     // Calculate the optimal allocation based on predictions
-    let optimal_allocation_result =
-        calculate_optimal_allocation(&daily_returns, &cash_flows, predictions.len());
+    let optimal_allocation_result = calculate_optimal_allocation(
+        &daily_returns,
+        &cash_flows,
+        &market_indices,
+        &fund_characteristics,
+        predictions.len(),
+    );
 
     match optimal_allocation_result {
         Ok(optimal_allocation) => HttpResponse::Ok().json(CashFlowResponse {

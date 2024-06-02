@@ -7,21 +7,6 @@ use nalufx::{
     utils::calculations::calculate_optimal_allocation,
 };
 
-/// The main function that demonstrates the usage of the nalufx library for a bellwether stock analysis.
-///
-/// A bellwether stock is a stock that is considered to be a leading indicator of the overall market or economy.
-/// The status of a bellwether stock may change over time, and well-established companies in an industry are often considered as bellwethers.
-///
-/// This function performs the following steps:
-/// 1. Initializes the logger using `env_logger`.
-/// 2. Defines the ticker symbol for a bellwether stock (e.g., "XYZ") and the initial investment amount.
-/// 3. Fetches historical closing prices for the bellwether stock using `fetch_data`, considering the year 1987 as a significant period.
-/// 4. Calculates daily returns from the closing prices using `calculate_daily_returns`.
-/// 5. Calculates cash flows based on the daily returns and initial investment using `calculate_cash_flows`.
-/// 6. Calculates the optimal allocation based on the historical data using `calculate_optimal_allocation`.
-/// 7. Prints the results, including the recommended allocation of funds for each day, or an error message if fetching data fails.
-///
-/// ```
 #[tokio::main]
 pub(crate) async fn main() {
     // Define the ticker symbol for a bellwether stock and the initial investment amount
@@ -47,10 +32,23 @@ pub(crate) async fn main() {
             let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
             println!("Cash Flows for {} in 1987: {:?}", ticker, cash_flows);
 
+            // Fetch or generate market indices data for the specified date range
+            let market_indices = vec![1000.0, 1010.0, 1005.0, 1015.0]; // Replace with actual data
+            println!("Market Indices in 1987: {:?}", market_indices);
+
+            // Fetch or generate fund characteristics data for the specified date range
+            let fund_characteristics = vec![0.8, 0.9, 0.85, 0.95]; // Replace with actual data
+            println!("Fund Characteristics in 1987: {:?}", fund_characteristics);
+
             // Calculate the optimal allocation based on historical data
             let num_days = 3;
-            let optimal_allocation_result =
-                calculate_optimal_allocation(&daily_returns, &cash_flows, num_days);
+            let optimal_allocation_result = calculate_optimal_allocation(
+                &daily_returns,
+                &cash_flows,
+                &market_indices,
+                &fund_characteristics,
+                num_days,
+            );
 
             match optimal_allocation_result {
                 Ok(optimal_allocation) => {
