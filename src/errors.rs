@@ -33,6 +33,7 @@ pub enum AllocationError {
     ClusteringError(String),
     InvalidData,
     OutlierData,
+    ForecastingError(String),
 }
 
 impl fmt::Display for AllocationError {
@@ -45,6 +46,9 @@ impl fmt::Display for AllocationError {
                 write!(f, "Input data contains missing or invalid values")
             }
             AllocationError::OutlierData => write!(f, "Input data contains outliers"),
+            AllocationError::ForecastingError(msg) => {
+                write!(f, "Error during time series forecasting: {}", msg)
+            }
         }
     }
 }
