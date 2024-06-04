@@ -209,7 +209,7 @@ pub fn train_reinforcement_learning(num_days: usize) -> Result<Vec<f64>, String>
 }
 
 // Clustering using K-means with hyperparameter tuning
-fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, AllocationError> {
+pub fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, AllocationError> {
     // Convert features to a Dataset
     let dataset = Dataset::from(features.clone());
     // Create the KMeans model with 2 clusters

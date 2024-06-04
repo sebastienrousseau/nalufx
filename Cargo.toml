@@ -42,6 +42,7 @@ debug = true
 # Dependencies are only used for building.
 actix-web = "4.6.0"
 chrono = "0.4.38"
+csv = "1.3.0"
 dotenvy = "0.15.7"
 env_logger = "0.11.3"
 linfa = "0.7.0"

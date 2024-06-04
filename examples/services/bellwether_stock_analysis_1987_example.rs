@@ -1,3 +1,16 @@
+//! # Bellwether Stock Analysis Example
+//!
+//! This example demonstrates the analysis of a bellwether stock using historical data, market indices, fund characteristics, and advanced data analysis techniques.
+//!
+//! Usage:
+//!
+//! 1. Run the code using `cargo run --example bellwether_stock_analysis_1987_example`.
+//! 2. Enter the ticker symbol for a bellwether stock when prompted.
+//! 3. Enter the initial investment amount when prompted.
+//! 4. Enter the start date (YYYY-MM-DD) for the analysis period when prompted.
+//! 5. Enter the end date (YYYY-MM-DD) for the analysis period when prompted.
+//! 6. The code will fetch historical data, perform analysis, and generate a report with investment recommendations.
+//!
 use chrono::{TimeZone, Utc};
 use nalufx::{
     services::{
@@ -8,6 +21,7 @@ use nalufx::{
         analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
     },
 };
+use std::io;
 
 // Custom function to format float as currency
 fn format_currency(value: f64) -> String {
@@ -34,18 +48,93 @@ fn format_dollars(dollars: i64) -> String {
     s
 }
 
+// Function to get user input and validate it
+fn get_input(prompt: &str) -> String {
+    println!("{}", prompt);
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read line");
+    input.trim().to_string()
+}
+
+// Function to validate if the input is a positive float
+fn validate_positive_float(input: &str) -> Result<f64, &str> {
+    match input.parse::<f64>() {
+        Ok(value) if value > 0.0 => Ok(value),
+        _ => Err("Please enter a valid positive number."),
+    }
+}
+
+// Function to validate if the input is non-empty and alphanumeric
+fn validate_ticker(input: &str) -> Result<&str, &str> {
+    if input.chars().all(|c| c.is_alphanumeric()) && !input.is_empty() {
+        Ok(input)
+    } else {
+        Err("Please enter a valid ticker symbol (alphanumeric).")
+    }
+}
+
+// Function to validate if the input is a valid date in the format YYYY-MM-DD
+fn validate_date(input: &str) -> Result<chrono::DateTime<Utc>, &str> {
+    match chrono::NaiveDate::parse_from_str(input, "%Y-%m-%d") {
+        Ok(date) => Ok(Utc
+            .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
+            .unwrap()),
+        _ => Err("Please enter a valid date in the format YYYY-MM-DD."),
+    }
+}
+
 #[tokio::main]
 pub(crate) async fn main() {
-    // Define the ticker symbol for a bellwether stock and the initial investment amount
-    let ticker = "AAPL";
-    let initial_investment = 100000.0;
+    // Get user input for ticker, initial investment amount, start date, and end date
+    let ticker_input = get_input("Enter the ticker symbol for a bellwether stock:");
+    let ticker = match validate_ticker(&ticker_input) {
+        Ok(symbol) => symbol,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return;
+        }
+    };
 
-    let start_date = Utc.with_ymd_and_hms(1987, 1, 1, 0, 0, 0).unwrap();
-    let end_date = Utc::now();
+    let initial_investment_input = get_input("Enter the initial investment amount:");
+    let initial_investment = match validate_positive_float(&initial_investment_input) {
+        Ok(value) => value,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return;
+        }
+    };
 
-    // Fetch historical closing prices for the bellwether stock, considering the year 1987 to present
+    let start_date_input = get_input("Enter the start date (YYYY-MM-DD):");
+    let start_date = match validate_date(&start_date_input) {
+        Ok(date) => date,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return;
+        }
+    };
+
+    let end_date_input = get_input("Enter the end date (YYYY-MM-DD):");
+    let end_date = match validate_date(&end_date_input) {
+        Ok(date) => date,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return;
+        }
+    };
+
+    // Fetch historical closing prices for the bellwether stock, considering the specified date range
     match fetch_data(ticker, Some(start_date), Some(end_date)).await {
         Ok(closes) => {
+            if closes.is_empty() {
+                eprintln!(
+                    "No closing prices found for ticker {} in the specified date range",
+                    ticker
+                );
+                return;
+            }
+
             // Calculate daily returns from closing prices
             let daily_returns = calculate_daily_returns(&closes);
 
@@ -62,7 +151,7 @@ pub(crate) async fn main() {
                 (start_date + chrono::Duration::days(150), 1030.0),
                 (start_date + chrono::Duration::days(180), 1025.0),
                 (start_date + chrono::Duration::days(210), 1040.0),
-            ]; // Replace with actual data
+            ];
             println!("\n--- Market Overview ---\n");
             println!(
                 "The Market Indices represent key points of market performance during the period:\n"
@@ -84,7 +173,7 @@ pub(crate) async fn main() {
                 (start_date + chrono::Duration::days(150), 0.92),
                 (start_date + chrono::Duration::days(180), 0.87),
                 (start_date + chrono::Duration::days(210), 0.93),
-            ]; // Replace with actual data
+            ];
             println!(
                 "\nThe Fund Characteristics represent key attributes of the fund during the period:\n"
             );
@@ -130,6 +219,10 @@ pub(crate) async fn main() {
                         .map(|alloc| if alloc < 0.0 { 0.0 } else { alloc })
                         .collect();
                     let total_allocation: f64 = optimal_allocation.iter().sum();
+                    if total_allocation == 0.0 {
+                        eprintln!("Error: Total allocation is zero for ticker {}", ticker);
+                        return;
+                    }
                     optimal_allocation = optimal_allocation
                         .into_iter()
                         .map(|alloc| alloc / total_allocation)
@@ -147,11 +240,16 @@ pub(crate) async fn main() {
                     );
                     println!("The sum of all values in the allocation vector should be close to 1.0 (100%).");
                     println!("\n- Optimal Allocation: {:?}", optimal_allocation);
-                    // Include a note about visualization (optional)
                     println!("*Visualization*: (Include a pie chart or bar graph here)\n");
 
                     // Sentiment Analysis Results
-                    let sentiment_scores = analyze_sentiment(min_length).unwrap();
+                    let sentiment_scores = match analyze_sentiment(min_length) {
+                        Ok(scores) => scores,
+                        Err(e) => {
+                            eprintln!("Error in sentiment analysis for ticker {}: {}", ticker, e);
+                            Vec::new()
+                        }
+                    };
                     println!("\n--- Sentiment Analysis Results ---\n");
                     println!("The sentiment scores represent the market sentiment for each day in the allocation period:");
                     println!("Sentiment analysis is conducted using natural language processing algorithms to gauge market sentiment based on various data sources, including news articles, social media, and analyst reports.");
@@ -166,7 +264,16 @@ pub(crate) async fn main() {
                     );
 
                     // Reinforcement Learning Results
-                    let optimal_actions = train_reinforcement_learning(min_length).unwrap();
+                    let optimal_actions = match train_reinforcement_learning(min_length) {
+                        Ok(actions) => actions,
+                        Err(e) => {
+                            eprintln!(
+                                "Error in reinforcement learning for ticker {}: {}",
+                                ticker, e
+                            );
+                            Vec::new()
+                        }
+                    };
                     println!("\n--- Reinforcement Learning Results ---\n");
                     println!("The optimal actions represent the recommended actions for each day in the allocation period:");
                     println!("Reinforcement learning is a cutting-edge machine learning technique that learns optimal decision-making strategies through trial and error.");
@@ -210,8 +317,10 @@ pub(crate) async fn main() {
                     println!("It is always advisable to conduct further research and consult with a financial advisor before making any investment decisions.\n");
                 }
                 Err(e) => {
-                    eprintln!("Error calculating optimal allocation: {}", e);
-                    println!("Please check the input data and try again.");
+                    eprintln!(
+                        "Error calculating optimal allocation for ticker {}: {}",
+                        ticker, e
+                    );
                 }
             }
         }
