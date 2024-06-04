@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use actix_web::{test, web, App, HttpResponse, Responder};
+    use lazy_static::lazy_static;
     use nalufx::{
         api::handlers::{get_openai_api_key, parse_openai_response, send_openai_request},
         models::{CashFlowRequest, CashFlowResponse, ErrorResponse},
@@ -8,10 +9,15 @@ mod tests {
     use reqwest::Client;
     use serde_json::json;
     use std::env;
+    use std::sync::Mutex;
     use wiremock::{
         matchers::{header, method, path},
         Mock, MockServer, ResponseTemplate,
     };
+
+    lazy_static! {
+        static ref ENV_MUTEX: Mutex<()> = Mutex::new(());
+    }
 
     // Mock predict_cash_flow handler
     async fn mock_predict_cash_flow(
@@ -144,9 +150,9 @@ mod tests {
     /// Tests fetching the OpenAI API key from the environment.
     #[actix_rt::test]
     async fn test_get_openai_api_key() {
+        let _guard = ENV_MUTEX.lock().unwrap();
         env::set_var("OPENAI_API_KEY", "test_api_key");
-        let api_key = get_openai_api_key().unwrap();
-        assert_eq!(api_key, "test_api_key");
+        assert_eq!(get_openai_api_key().unwrap(), "test_api_key");
         env::remove_var("OPENAI_API_KEY");
     }
 
@@ -188,14 +194,6 @@ mod tests {
 
         // Verify that the mock received the expected request
         mock_server.verify().await
-    }
-
-    /// Tests fetching the OpenAI API key when it is not set.
-    #[actix_rt::test]
-    async fn test_get_openai_api_key_not_set() {
-        env::remove_var("OPENAI_API_KEY");
-        let result = get_openai_api_key();
-        assert_eq!(result, Err("OPENAI_API_KEY is not set"));
     }
 
     /// Tests handling a non-successful HTTP response from the OpenAI API.

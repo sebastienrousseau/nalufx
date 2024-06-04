@@ -54,6 +54,7 @@ rand = "0.8.5"
 reqwest = { version = "0.12.4", features = ["json"] }
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
+thiserror = "1.0.61"
 time = "0.3.36"
 tokio = { version = "1.38.0", features = ["full"] }
 tokio-test = "0.4.4"
@@ -66,6 +67,7 @@ version_check = "0.9.4"
 # Development dependencies are only used for testing and building.
 # criterion = "0.5.1"
 actix-rt = "2.9.0"
+lazy_static = "1.4.0"
 wiremock = "0.6.0"
 
 [lib]

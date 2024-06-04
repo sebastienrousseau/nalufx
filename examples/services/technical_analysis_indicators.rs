@@ -285,7 +285,7 @@ async fn generate_technical_analysis_report(
         * **Lump Sum Strategy:** For investors seeking one or two cash lump sums at their target retirement age and beyond.
         * For each strategy, outline specific stock recommendations, entry/exit points, and risk management considerations.
 
-6. **Disclaimer:** 
+6. **Disclaimer:**
     * Emphasize that this report is for informational purposes only and does not constitute financial advice.
     * Encourage readers to conduct their own research and consult with financial advisors before making investment decisions.
 
@@ -383,7 +383,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(prices) => prices,
         Err(e) => {
             eprintln!("Error fetching historical data: {}", e);
-            return Err(NaluFxError::new("Failed to fetch historical data").into());
+            return Err(NaluFxError::ForecastingError(
+                "Failed to fetch historical data".to_string(),
+            )
+            .into());
         }
     };
 
@@ -422,7 +425,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(report) => report,
         Err(err) => {
             eprintln!("Error: {}", err);
-            return Err(NaluFxError::new("Failed to generate technical analysis report").into());
+            return Err(NaluFxError::ReinforcementLearningError(
+                "Failed to generate technical analysis report".to_string(),
+            )
+            .into());
         }
     };
 

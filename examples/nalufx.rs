@@ -2,5 +2,5 @@
 pub mod services;
 
 pub(crate) fn main() {
-    services::main();
+    let _ = services::main();
 }

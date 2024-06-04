@@ -1,64 +1,85 @@
-use std::error::Error;
-use std::fmt;
+use thiserror::Error;
 
-#[derive(Debug)]
-pub struct NaluFxError {
-    details: String,
-}
-
-impl NaluFxError {
-    pub fn new(msg: &str) -> NaluFxError {
-        NaluFxError {
-            details: msg.to_string(),
-        }
-    }
-}
-
-impl fmt::Display for NaluFxError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.details)
-    }
-}
-
-impl Error for NaluFxError {
-    fn description(&self) -> &str {
-        &self.details
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum AllocationError {
-    InputMismatch,
-    EmptyInput,
+/// Represents an error that can occur in the NaluFx library.
+#[derive(Debug, Error)]
+pub enum NaluFxError {
+    /// An error occurred during clustering.
+    #[error("Error during clustering: {0}")]
     ClusteringError(String),
-    InvalidData,
-    OutlierData,
+
+    /// An error occurred during time series forecasting.
+    #[error("Error during time series forecasting: {0}")]
     ForecastingError(String),
+
+    /// An error occurred during sentiment analysis.
+    #[error("Error during sentiment analysis: {0}")]
     SentimentAnalysisError(String),
+
+    /// An error occurred during reinforcement learning.
+    #[error("Error during reinforcement learning: {0}")]
+    ReinforcementLearningError(String),
+
+    /// The input slices must have the same length.
+    #[error("Input slices must have the same length")]
+    InputMismatch,
+
+    /// The input slices cannot be empty.
+    #[error("Input slices cannot be empty")]
+    EmptyInput,
+
+    /// The input data contains missing or invalid values.
+    #[error("Input data contains missing or invalid values")]
+    InvalidData,
+
+    /// An error occurred while reading user input.
+    #[error("Error reading user input: {0}")]
+    InputError(#[from] std::io::Error),
+
+    /// An invalid option was selected.
+    #[error("Invalid option. Please enter a number between 1 and 4.")]
+    InvalidOption,
+
+    /// The input data contains outliers.
+    #[error("Input data contains outliers")]
+    OutlierData,
+
+    /// An error occurred during technical analysis.
+    #[error("Error during technical analysis: {0}")]
+    TechnicalAnalysisError(String),
+}
+
+/// Represents an error that can occur during allocation.
+#[derive(Debug, Error, PartialEq)]
+pub enum AllocationError {
+    /// The input slices must have the same length.
+    #[error("Input slices must have the same length")]
+    InputMismatch,
+
+    /// The input slices cannot be empty.
+    #[error("Input slices cannot be empty")]
+    EmptyInput,
+
+    /// An error occurred during clustering.
+    #[error("Error during clustering: {0}")]
+    ClusteringError(String),
+
+    /// The input data contains missing or invalid values.
+    #[error("Input data contains missing or invalid values")]
+    InvalidData,
+
+    /// The input data contains outliers.
+    #[error("Input data contains outliers")]
+    OutlierData,
+
+    /// An error occurred during time series forecasting.
+    #[error("Error during time series forecasting: {0}")]
+    ForecastingError(String),
+
+    /// An error occurred during sentiment analysis.
+    #[error("Error during sentiment analysis: {0}")]
+    SentimentAnalysisError(String),
+
+    /// An error occurred during reinforcement learning.
+    #[error("Error during reinforcement learning: {0}")]
     ReinforcementLearningError(String),
 }
-
-impl fmt::Display for AllocationError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            AllocationError::InputMismatch => write!(f, "Input slices must have the same length"),
-            AllocationError::EmptyInput => write!(f, "Input slices cannot be empty"),
-            AllocationError::ClusteringError(msg) => write!(f, "Error during clustering: {}", msg),
-            AllocationError::InvalidData => {
-                write!(f, "Input data contains missing or invalid values")
-            }
-            AllocationError::OutlierData => write!(f, "Input data contains outliers"),
-            AllocationError::ForecastingError(msg) => {
-                write!(f, "Error during time series forecasting: {}", msg)
-            }
-            AllocationError::SentimentAnalysisError(msg) => {
-                write!(f, "Error during sentiment analysis: {}", msg)
-            }
-            AllocationError::ReinforcementLearningError(msg) => {
-                write!(f, "Error during reinforcement learning: {}", msg)
-            }
-        }
-    }
-}
-
-impl Error for AllocationError {}
