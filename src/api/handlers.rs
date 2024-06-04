@@ -3,6 +3,7 @@ use crate::{
     utils::calculations::calculate_optimal_allocation,
 };
 use actix_web::{post, web, HttpResponse, Responder};
+use dotenvy::dotenv;
 use log::{debug, error};
 use reqwest::Client;
 use serde::Deserialize;
@@ -10,25 +11,37 @@ use serde_json::{json, Value};
 use std::env;
 
 #[derive(Debug, Deserialize)]
-struct OpenAIResponse {
-    choices: Vec<OpenAIChoice>,
+pub struct OpenAIResponse {
+    /// The choices made by the model.
+    pub choices: Vec<OpenAIChoice>,
 }
 
 #[derive(Debug, Deserialize)]
-struct OpenAIChoice {
-    message: OpenAIMessage,
+pub struct OpenAIChoice {
+    /// The content of the choice.
+    pub message: OpenAIMessage,
 }
 
 #[derive(Debug, Deserialize)]
-struct OpenAIMessage {
-    content: String,
+pub struct OpenAIMessage {
+    pub content: String,
 }
 
-/// Fetches the OpenAI API key from the environment.
+/// Fetches the OpenAI API key from the environment or the .env file.
 ///
-/// Returns the API key as a string if it exists in the environment, or an error message if it doesn't.
+/// Returns the API key as a string if it exists in the environment or the .env file, or an error message if it doesn't.
 pub fn get_openai_api_key() -> Result<String, &'static str> {
-    env::var("OPENAI_API_KEY").map_err(|_| "OPENAI_API_KEY is not set")
+    // First, try to read the API key from the environment variables
+    if let Ok(key) = env::var("OPENAI_API_KEY") {
+        return Ok(key);
+    }
+
+    // If the API key is not found in the environment variables, try to read it from the .env file
+    dotenv().ok();
+    match env::var("OPENAI_API_KEY") {
+        Ok(key) => Ok(key),
+        Err(_) => Err("OPENAI_API_KEY is not set in the environment or the .env file"),
+    }
 }
 
 /// Sends a request to the OpenAI API and handles the response.

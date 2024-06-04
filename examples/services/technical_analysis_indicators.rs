@@ -1,9 +1,9 @@
 //! Technical Analysis Indicators
 //!
 //! This example demonstrates how to fetch historical stock data, calculate technical indicators,
-//! and generate a comprehensive technical analysis report for a user-specified stock.
+//! and generate a comprehensive technical analysis report for a user-specified stock using OpenAI.
 //! The code fetches historical closing prices for the stock, calculates various technical indicators,
-//! and provides interpretations based on the indicator values.
+//! and sends the data to the OpenAI API to generate interpretations and recommendations.
 //! The results are presented in a detailed report format.
 //!
 //! Usage:
@@ -21,24 +21,10 @@ use chrono::NaiveDate;
 use chrono::{TimeZone, Utc};
 use std::io;
 
+use nalufx::api::handlers::{get_openai_api_key, send_openai_request};
 use nalufx::errors::NaluFxError;
 use nalufx::services::fetch_data::fetch_data;
-
-/// Calculates the simple moving average (SMA) for the given data and window size.
-///
-/// # Arguments
-///
-/// * `data` - The slice of price data.
-/// * `window` - The window size for the SMA calculation.
-///
-/// # Returns
-///
-/// A vector of SMA values.
-fn calculate_sma(data: &[f64], window: usize) -> Vec<f64> {
-    data.windows(window)
-        .map(|slice| slice.iter().sum::<f64>() / slice.len() as f64)
-        .collect()
-}
+use serde_json::json;
 
 /// Calculates the relative strength index (RSI) for the given data and window size.
 ///
@@ -49,28 +35,39 @@ fn calculate_sma(data: &[f64], window: usize) -> Vec<f64> {
 ///
 /// # Returns
 ///
-/// A vector of RSI values.
+/// A vector containing the RSI values.
 fn calculate_rsi(data: &[f64], window: usize) -> Vec<f64> {
-    let gains: Vec<f64> = data
-        .windows(2)
-        .map(|pair| (pair[1] - pair[0]).max(0.0))
-        .collect();
-    let losses: Vec<f64> = data
-        .windows(2)
-        .map(|pair| (pair[0] - pair[1]).max(0.0))
-        .collect();
+    let mut rsi = Vec::with_capacity(data.len());
+    let mut gains = 0.0;
+    let mut losses = 0.0;
 
-    let avg_gain = calculate_sma(&gains, window);
-    let avg_loss = calculate_sma(&losses, window);
+    // Calculate initial gains and losses
+    for i in 1..=window {
+        let change = data[i] - data[i - 1];
+        if change > 0.0 {
+            gains += change;
+        } else {
+            losses -= change;
+        }
+    }
 
-    let rs: Vec<f64> = avg_gain
-        .iter()
-        .zip(avg_loss.iter())
-        .map(|(g, l)| g / l)
-        .collect();
-    rs.into_iter()
-        .map(|rs| 100.0 - (100.0 / (1.0 + rs)))
-        .collect()
+    rsi.push(100.0 - (100.0 / (1.0 + (gains / losses))));
+
+    // Calculate the rest of the RSI values
+    for i in (window + 1)..data.len() {
+        let change = data[i] - data[i - 1];
+        if change > 0.0 {
+            gains = (gains * (window as f64 - 1.0) + change) / window as f64;
+            losses = (losses * (window as f64 - 1.0)) / window as f64;
+        } else {
+            gains = (gains * (window as f64 - 1.0)) / window as f64;
+            losses = (losses * (window as f64 - 1.0) - change) / window as f64;
+        }
+
+        rsi.push(100.0 - (100.0 / (1.0 + (gains / losses))));
+    }
+
+    rsi
 }
 
 /// Prompts the user for input and returns the user's response.
@@ -142,18 +139,18 @@ fn calculate_ema(data: &[f64], window: usize) -> Vec<f64> {
     ema
 }
 
-/// Calculates the moving average convergence divergence (MACD) for the given data and window sizes.
+/// Calculates the moving average convergence divergence (MACD) for the given data.
 ///
 /// # Arguments
 ///
 /// * `data` - The slice of price data.
 /// * `short_window` - The short window size for the MACD calculation.
 /// * `long_window` - The long window size for the MACD calculation.
-/// * `signal_window` - The signal window size for the MACD calculation.
+/// * `signal_window` - The window size for the signal line calculation.
 ///
 /// # Returns
 ///
-/// A tuple containing the MACD values, signal values, and histogram values.
+/// A tuple containing the MACD values, signal line values, and histogram values.
 fn calculate_macd(
     data: &[f64],
     short_window: usize,
@@ -171,7 +168,11 @@ fn calculate_macd(
 
     let signal = calculate_ema(&macd, signal_window);
 
-    let histogram: Vec<f64> = macd.iter().zip(signal.iter()).map(|(m, s)| m - s).collect();
+    let histogram: Vec<f64> = macd
+        .iter()
+        .zip(signal.iter())
+        .map(|(macd_val, signal_val)| macd_val - signal_val)
+        .collect();
 
     (macd, signal, histogram)
 }
@@ -209,6 +210,112 @@ fn identify_support_resistance(data: &[f64], window: usize) -> (Vec<f64>, Vec<f6
     }
 
     (support, resistance)
+}
+
+/// Generates a professional technical analysis report using the OpenAI API.
+///
+/// # Arguments
+///
+/// * `closing_prices` - The slice of historical closing prices.
+/// * `ema` - The calculated Exponential Moving Average (EMA) values.
+/// * `rsi` - The calculated Relative Strength Index (RSI) values.
+/// * `macd` - The calculated Moving Average Convergence Divergence (MACD) values.
+/// * `macd_signal` - The calculated MACD signal values.
+/// * `macd_histogram` - The calculated MACD histogram values.
+/// * `support_levels` - The identified support levels.
+/// * `resistance_levels` - The identified resistance levels.
+///
+/// Returns the generated report as a string.
+async fn generate_technical_analysis_report(
+    closing_prices: &[f64],
+    ema: &[f64],
+    rsi: &[f64],
+    macd: &[f64],
+    macd_signal: &[f64],
+    macd_histogram: &[f64],
+    support_levels: &[f64],
+    resistance_levels: &[f64],
+) -> Result<String, &'static str> {
+    let client = reqwest::Client::new();
+    let api_key = match get_openai_api_key() {
+        Ok(key) => key,
+        Err(err) => {
+            eprintln!("{}", err);
+            return Err("Failed to get OpenAI API key");
+        }
+    };
+
+    let request_body = json!({
+        "model": "gpt-3.5-turbo",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a highly skilled financial analyst working for a reputable investment firm. Your task is to generate a comprehensive technical analysis report for a portfolio of stocks. The report should be written in a professional tone, similar to reports published by Bloomberg or other leading financial institutions. Provide detailed data-driven insights, quantitative analysis, and actionable recommendations. Please use the following structure:"
+            },
+            {
+                "role": "user",
+                "content": format!(
+                    "
+1. **Executive Summary:** Provide a concise summary of the key findings and recommendations.
+
+2. **Market Overview:**
+    * Analyze the overall market and economic conditions during the analysis period.
+    * Discuss relevant macroeconomic factors, industry trends, and geopolitical events.
+
+3. **Portfolio Performance:**
+    * Closing Prices: {:?}
+    * EMA Values: {:?}
+    * RSI Values: {:?}
+    * MACD Values: {:?}
+    * MACD Signal: {:?}
+    * MACD Histogram: {:?}
+    * Analyze the performance of each stock in the portfolio, including closing prices, trend analysis (based on EMA), momentum analysis (based on RSI), and convergence/divergence analysis (based on MACD). 
+    * Explicitly mention the calculated values for each indicator.
+
+4. **Risk Assessment:**
+    * Support Levels: {:?}
+    * Resistance Levels: {:?}
+    * Identify potential support and resistance levels for each stock.
+    * Discuss the implications for risk management strategies, such as setting appropriate stop-loss and take-profit levels.
+
+5. **Investment Strategies:**
+    * Based on the technical analysis, provide recommendations for the following investment strategies:
+        * **Flexible Income Strategy:** For investors seeking a flexible income stream (e.g., using drawdown income) at their target retirement age and beyond.
+        * **Annuity Purchase Strategy:** For investors aiming to purchase a regular income (annuity) from an insurance company at their target retirement age and beyond.
+        * **Lump Sum Strategy:** For investors seeking one or two cash lump sums at their target retirement age and beyond.
+        * For each strategy, outline specific stock recommendations, entry/exit points, and risk management considerations.
+
+6. **Disclaimer:** 
+    * Emphasize that this report is for informational purposes only and does not constitute financial advice.
+    * Encourage readers to conduct their own research and consult with financial advisors before making investment decisions.
+
+Please ensure that the report is well-structured, easy to understand, and adheres to industry-standard formatting and terminology.
+                ", closing_prices, ema, rsi, macd, macd_signal, macd_histogram, support_levels, resistance_levels
+                )
+            }
+        ],
+        "max_tokens": 1500,
+    });
+
+    let openai_url = "https://api.openai.com/v1/chat/completions";
+    let response = match send_openai_request(&client, openai_url, &api_key, request_body).await {
+        Ok(response) => response,
+        Err(err) => return Err(err),
+    };
+
+    let openai_response: nalufx::api::handlers::OpenAIResponse = serde_json::from_str(&response)
+        .map_err(|err| {
+            eprintln!("Error parsing response JSON: {:?}", err);
+            "Error parsing response JSON"
+        })?;
+
+    let generated_text = openai_response
+        .choices
+        .first()
+        .and_then(|choice| Some(choice.message.content.clone()))
+        .ok_or("No content found in response")?;
+
+    Ok(generated_text)
 }
 
 /// The main function that drives the execution of the technical analysis report generation.
@@ -281,7 +388,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // Calculate technical indicators
-    let ema_window = 50; // Change the window size as desired
+    let ema_window = 50;
     let rsi_window = 14;
     let macd_short_window = 12;
     let macd_long_window = 26;
@@ -300,27 +407,56 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         identify_support_resistance(&closing_prices, support_resistance_window);
 
     // Generate the professional technical analysis report
-    println!("\n--- Professional Technical Analysis Report ---");
+    let report = match generate_technical_analysis_report(
+        &closing_prices,
+        &ema,
+        &rsi,
+        &macd,
+        &macd_signal,
+        &macd_histogram,
+        &support_levels,
+        &resistance_levels,
+    )
+    .await
+    {
+        Ok(report) => report,
+        Err(err) => {
+            eprintln!("Error: {}", err);
+            return Err(NaluFxError::new("Failed to generate technical analysis report").into());
+        }
+    };
+
+    println!("\n--- Professional Technical Analysis Report ---\n");
     println!("Ticker: {}", ticker);
     println!(
         "Period: {} to {}",
         start_date.unwrap().format("%Y-%m-%d"),
         end_date.unwrap().format("%Y-%m-%d")
     );
-    println!("\n--- Price Analysis ---");
-    println!("Closing Prices: {:?}", closing_prices);
-    println!("Support Levels: {:?}", support_levels);
-    println!("Resistance Levels: {:?}", resistance_levels);
 
-    println!("\n--- Trend Analysis ---");
+    // Print the data sections
+    println!("\n--- Price Analysis ---\n");
+    println!("Closing Prices: {:?}", closing_prices);
+    if support_levels.is_empty() {
+        println!("Support Levels: No support levels identified in the provided data.");
+    } else {
+        println!("Support Levels: {:?}", support_levels);
+    }
+    if resistance_levels.is_empty() {
+        println!("Resistance Levels: No resistance levels identified in the provided data.");
+    } else {
+        println!("Resistance Levels: {:?}", resistance_levels);
+    }
+
+    println!("\n--- Trend Analysis ---\n");
     println!("Exponential Moving Average (EMA) - Window: {}", ema_window);
     println!("EMA Values: {:?}", ema);
 
-    println!("\n--- Momentum Analysis ---");
+    println!("\n--- Momentum Analysis ---\n");
     println!("Relative Strength Index (RSI) - Window: {}", rsi_window);
     println!("RSI Values: {:?}", rsi);
 
-    println!("\n--- Convergence/Divergence Analysis ---");
+    println!("\n--- Convergence/Divergence Analysis ---\n");
     println!(
         "Moving Average Convergence Divergence (MACD) - Short Window: {}, Long Window: {}, Signal Window: {}",
         macd_short_window, macd_long_window, macd_signal_window
@@ -329,73 +465,9 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("MACD Signal: {:?}", macd_signal);
     println!("MACD Histogram: {:?}", macd_histogram);
 
-    // Provide advanced technical analysis interpretations
-    println!("\n--- Advanced Technical Analysis Interpretations ---");
-    println!("Trend Interpretation:");
-    if let (Some(&last_price), Some(&last_sma), Some(&last_ema)) =
-        (closing_prices.last(), ema.last(), ema.last())
-    {
-        if last_price > last_sma && last_price > last_ema {
-            println!(
-                "- The stock is in a strong bullish trend, with the price above both SMA and EMA."
-            );
-        } else if last_price < last_sma && last_price < last_ema {
-            println!(
-                "- The stock is in a strong bearish trend, with the price below both SMA and EMA."
-            );
-        } else {
-            println!("- The stock is in a neutral trend, with mixed signals from SMA and EMA.");
-        }
-    }
-
-    println!("\nMomentum Interpretation:");
-    if let Some(&last_rsi) = rsi.last() {
-        if last_rsi > 70.0 {
-            println!("- The RSI is above 70, indicating that the stock is overbought and may be due for a price correction.");
-        } else if last_rsi < 30.0 {
-            println!("- The RSI is below 30, indicating that the stock is oversold and may be due for a price rebound.");
-        } else {
-            println!("- The RSI is between 30 and 70, suggesting neutral momentum.");
-        }
-    }
-
-    println!("\nConvergence/Divergence Interpretation:");
-    if let (Some(&last_macd), Some(&last_signal)) = (macd.last(), macd_signal.last()) {
-        if last_macd > last_signal {
-            println!("- The MACD is above the signal line, indicating a bullish trend.");
-        } else if last_macd < last_signal {
-            println!("- The MACD is below the signal line, indicating a bearish trend.");
-        } else {
-            println!(
-                "- The MACD and signal line are converging, suggesting a potential trend change."
-            );
-        }
-    }
-
-    // Provide specific recommendations based on the technical analysis
-    println!("\n--- Professional Recommendations ---");
-    if let (Some(&last_price), Some(&last_sma), Some(&last_rsi)) =
-        (closing_prices.last(), ema.last(), rsi.last())
-    {
-        if last_price > last_sma && last_rsi < 70.0 {
-            println!("- Strong Buy: The stock is in a bullish trend and has a healthy momentum. Consider opening a long position.");
-        } else if last_price < last_sma && last_rsi > 30.0 {
-            println!("- Strong Sell: The stock is in a bearish trend and has a weak momentum. Consider opening a short position.");
-        } else {
-            println!("- Hold: The technical indicators suggest a neutral outlook. Monitor the stock for further developments.");
-        }
-    }
-
-    println!("\n--- Risk Management ---");
-    println!("- Set appropriate stop-loss and take-profit levels based on the identified support and resistance levels.");
-    println!("- Diversify your portfolio to manage overall risk exposure.");
-    println!("- Regularly monitor the stock's performance and adjust your positions accordingly.");
-
-    println!("\n--- Disclaimer ---");
-    println!("This technical analysis report is provided for informational purposes only and should not be considered as investment advice.");
-    println!("The analysis is based on historical data and past performance, which is not indicative of future results.");
-    println!("Always conduct thorough research, consider your investment objectives, and consult with a professional financial advisor before making any investment decisions.");
-    println!("The authors and providers of this report shall not be held liable for any investment decisions made based on the information provided.");
+    // Print the OpenAI-generated report
+    println!("\n--- Advanced Technical Analysis Interpretations ---\n");
+    println!("{}", report);
 
     Ok(())
 }
