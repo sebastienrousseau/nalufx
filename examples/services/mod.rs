@@ -1,5 +1,6 @@
 pub mod bellwether_stock_analysis_1987_example;
 pub mod diversified_etf_portfolio_optimization;
+pub mod factor_investing_stock_ranking;
 pub mod fetch_data_example;
 pub mod generate_market_analysis_report;
 pub mod logger;
@@ -18,7 +19,8 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
     println!("3. Fetch Stock Data");
     println!("4. Generate Technical Analysis");
     println!("5. Generate Market Analysis Report");
-    println!("6. Exit");
+    println!("6. Factor Investing Stock Ranking");
+    println!("0. Exit");
     println!("Enter the number of the example you want to run: ");
 
     // Read the user's input
@@ -41,6 +43,12 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
         }
         Ok(5) => generate_market_analysis_report::main(),
         Ok(6) => {
+            if let Err(e) = factor_investing_stock_ranking::main() {
+                eprintln!("Error during factor investing stock ranking: {}", e);
+                return Err(NaluFxError::ClusteringError(format!("{}", e)));
+            }
+        }
+        Ok(0) => {
             println!("Exiting...");
             return Ok(());
         }
