@@ -49,7 +49,6 @@ struct StockData {
 /// Represents the factor scores of a stock.
 #[derive(Debug)]
 #[allow(dead_code)]
-#[derive(Debug)]
 struct FactorScores {
     symbol: String,
     currency: String,
