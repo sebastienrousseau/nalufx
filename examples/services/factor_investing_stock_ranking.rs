@@ -1,8 +1,6 @@
-//! Stock Ranking System based on Factor Investing (Yahoo Finance API)
+//! # Stock Ranking System based on Factor Investing (Yahoo Finance API)
 //!
-//! File: factor_investing_stock_ranking.rs
-//!
-//! This example demonstrates how to fetch financial data for a list of stocks using the Yahoo Finance API,
+//! This module demonstrates how to fetch financial data for a list of stocks using the Yahoo Finance API,
 //! calculate various factors, and generate a ranking based on the factor scores. The factors considered
 //! in this example include:
 //!
@@ -14,21 +12,22 @@
 //! The code fetches the required financial data, calculates the factor scores, and generates a ranked list
 //! of stocks based on the weighted average of the factor scores. The ranking is presented in a tabular format.
 //!
-//! Usage:
+//! # Usage
+//!
 //! 1. Run the code using `cargo run --example factor_investing_stock_ranking`.
 //! 2. Enter the list of stock ticker symbols (comma-separated) when prompted.
 //! 3. The code will fetch the financial data, calculate the factor scores, and display the ranked list of stocks.
 //!
 
+// Imports and module declarations...
 use chrono::DateTime;
 use log::{error, info};
 use reqwest::{header, Client};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
-use std::f64;
-use std::io;
+use std::{collections::HashMap, f64, io};
 
+/// Represents the financial data of a stock.
 #[derive(Debug, Serialize, Deserialize)]
 struct StockData {
     symbol: String,
@@ -47,6 +46,8 @@ struct StockData {
     date_end_period: String,
 }
 
+/// Represents the factor scores of a stock.
+#[derive(Debug)]
 #[allow(dead_code)]
 #[derive(Debug)]
 struct FactorScores {
@@ -63,6 +64,15 @@ struct FactorScores {
     date_end_period: String,
 }
 
+/// Prompts the user for input and returns the entered value as a string.
+///
+/// # Arguments
+///
+/// * `prompt` - The prompt message to display to the user.
+///
+/// # Returns
+///
+/// The user's input as a string.
 fn get_input(prompt: &str) -> String {
     println!("{}", prompt);
     let mut input = String::new();
@@ -72,6 +82,16 @@ fn get_input(prompt: &str) -> String {
     input.trim().to_string()
 }
 
+/// Validates a stock ticker symbol.
+///
+/// # Arguments
+///
+/// * `input` - The ticker symbol to validate.
+///
+/// # Returns
+///
+/// * `Ok(&str)` - The validated ticker symbol.
+/// * `Err(&str)` - An error message if the ticker symbol is invalid.
 fn validate_ticker(input: &str) -> Result<&str, &str> {
     if input.chars().all(|c| c.is_alphanumeric()) && !input.is_empty() {
         Ok(input)
@@ -80,6 +100,16 @@ fn validate_ticker(input: &str) -> Result<&str, &str> {
     }
 }
 
+/// Fetches stock data for the given stock symbols from the Yahoo Finance API.
+///
+/// # Arguments
+///
+/// * `symbols` - A slice of stock ticker symbols.
+///
+/// # Returns
+///
+/// * `Ok(Vec<StockData>)` - A vector of `StockData` structs containing the fetched financial data.
+/// * `Err(reqwest::Error)` - An error if the API request fails.
 async fn fetch_stock_data(symbols: &[String]) -> Result<Vec<StockData>, reqwest::Error> {
     let mut headers = header::HeaderMap::new();
     headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
@@ -150,6 +180,16 @@ async fn fetch_stock_data(symbols: &[String]) -> Result<Vec<StockData>, reqwest:
     Ok(stock_data)
 }
 
+/// Calculates the 12-month momentum for a stock.
+///
+/// # Arguments
+///
+/// * `result` - The JSON value containing the stock data.
+///
+/// # Returns
+///
+/// * `Some((f64, f64, f64, String, String))` - A tuple containing the momentum, start price, end price, start date, and end date.
+/// * `None` - If the calculation fails or the required data is missing.
 fn calculate_momentum_12m(result: &Value) -> Option<(f64, f64, f64, String, String)> {
     if let (Some(timestamps), Some(closes)) = (
         result["timestamp"].as_array(),
@@ -189,6 +229,15 @@ fn calculate_momentum_12m(result: &Value) -> Option<(f64, f64, f64, String, Stri
     None
 }
 
+/// Calculates the factor scores for the given stock data.
+///
+/// # Arguments
+///
+/// * `stock_data` - A slice of `StockData` structs.
+///
+/// # Returns
+///
+/// A vector of `FactorScores` structs containing the calculated factor scores.
 fn calculate_factor_scores(stock_data: &[StockData]) -> Vec<FactorScores> {
     let mut factor_scores = Vec::new();
     let mut value_scores = Vec::new();
@@ -277,6 +326,16 @@ fn calculate_factor_scores(stock_data: &[StockData]) -> Vec<FactorScores> {
     factor_scores
 }
 
+/// Fetches the last quarter's stock price data for the given stock symbols from the Yahoo Finance API.
+///
+/// # Arguments
+///
+/// * `symbols` - A slice of stock ticker symbols.
+///
+/// # Returns
+///
+/// * `Ok(HashMap<String, f64>)` - A hash map mapping stock symbols to their last quarter's price.
+/// * `Err(reqwest::Error)` - An error if the API request fails.
 async fn fetch_last_quarter_data(
     symbols: &[String],
 ) -> Result<HashMap<String, f64>, reqwest::Error> {
@@ -324,10 +383,21 @@ async fn fetch_last_quarter_data(
     Ok(last_quarter_data)
 }
 
+/// Ranks the stocks based on their composite factor scores.
+///
+/// # Arguments
+///
+/// * `factor_scores` - A mutable slice of `FactorScores` structs.
 fn rank_stocks(factor_scores: &mut [FactorScores]) {
     factor_scores.sort_by(|a, b| b.composite_score.partial_cmp(&a.composite_score).unwrap());
 }
 
+/// Generates a stock ranking report based on the factor scores and last quarter's data.
+///
+/// # Arguments
+///
+/// * `factor_scores` - A slice of `FactorScores` structs.
+/// * `last_quarter_data` - A hash map mapping stock symbols to their last quarter's price.
 fn generate_report(factor_scores: &[FactorScores], last_quarter_data: &HashMap<String, f64>) {
     println!("\n## Stock Ranking Report Based on Factor Investing");
 
@@ -414,6 +484,12 @@ fn generate_report(factor_scores: &[FactorScores], last_quarter_data: &HashMap<S
     println!("- **Equity size**: Considers the market capitalization of the company.\n");
 }
 
+/// The main function of the stock ranking system.
+///
+/// # Returns
+///
+/// * `Ok(())` - If the program executes successfully.
+/// * `Err(Box<dyn std::error::Error>)` - If an error occurs during execution.
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let symbols_input = get_input("Enter the stock ticker symbols (comma-separated):");
