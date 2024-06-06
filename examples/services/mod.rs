@@ -5,6 +5,7 @@ pub mod factor_investing_stock_ranking;
 pub mod fetch_data_example;
 pub mod generate_market_analysis_report;
 pub mod logger;
+pub mod risk_parity_portfolio_optimization;
 pub mod technical_analysis_indicators;
 
 use nalufx::errors::NaluFxError;
@@ -22,6 +23,7 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
     println!("5. Generate Market Analysis Report");
     println!("6. Factor Investing Stock Ranking");
     println!("7. ESG Portfolio Optimization");
+    println!("8. Risk Parity Portfolio Optimization");
     println!("0. Exit");
     println!("Enter the number of the example you want to run: ");
 
@@ -53,6 +55,12 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
         Ok(7) => {
             if let Err(e) = esg_portfolio_optimization::main() {
                 eprintln!("Error during ESG portfolio optimization: {}", e);
+                return Err(NaluFxError::PortfolioOptimizationError(format!("{}", e)));
+            }
+        }
+        Ok(8) => {
+            if let Err(e) = risk_parity_portfolio_optimization::main() {
+                eprintln!("Error during risk parity portfolio optimization: {}", e);
                 return Err(NaluFxError::PortfolioOptimizationError(format!("{}", e)));
             }
         }

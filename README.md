@@ -100,6 +100,34 @@ NaluFX comes with a set of examples that you can use to get started. The example
 cargo run --example nalufx
 ```
 
+### Bellwether Stock Analysis (1987)
+
+- Analyze the performance of a bellwether stock during a significant historical period (e.g., the 1987 market crash).
+
+### Diversified ETF Portfolio Optimization
+
+- Optimize a portfolio of diversified ETFs based on historical performance and risk factors.
+
+### ESG Portfolio Optimization
+
+- Optimize a portfolio with a strong emphasis on environmental, social, and governance (ESG) factors.
+
+### Factor Investing Stock Ranking
+
+- Rank stocks based on various investing factors such as value, momentum, and quality.
+
+### Fetch Data Example
+
+- Demonstrate how to fetch financial data from an API or a data source.
+
+### Generate Market Analysis Report
+
+- Generate a comprehensive market analysis report based on various financial metrics and indicators.
+
+### Technical Analysis Indicators
+
+- Implement and analyze various technical analysis indicators such as moving averages, RSI, MACD, etc.
+
 ## Semantic Versioning Policy
 
 For transparency into our release cycle and in striving to maintain backward compatibility, `NaluFX` follows [semantic versioning][06].
