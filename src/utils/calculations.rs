@@ -69,31 +69,28 @@ pub fn calculate_optimal_allocation(
     )?;
 
     // Time Series Forecasting
-    let forecasted_returns = match forecast_time_series(daily_returns, num_days) {
-        Ok(returns) => returns,
-        Err(err) => return Err(AllocationError::ForecastingError(err)),
-    };
-    let forecasted_cash_flows = match forecast_time_series(cash_flows, num_days) {
-        Ok(cash_flows) => cash_flows,
-        Err(err) => return Err(AllocationError::ForecastingError(err)),
-    };
+    let forecasted_returns =
+        forecast_time_series(daily_returns, num_days).map_err(AllocationError::ForecastingError)?;
+    let forecasted_cash_flows =
+        forecast_time_series(cash_flows, num_days).map_err(AllocationError::ForecastingError)?;
 
     // Sentiment Analysis
-    let sentiment_scores = match analyze_sentiment(num_days) {
-        Ok(scores) => scores,
-        Err(err) => return Err(AllocationError::SentimentAnalysisError(err)),
-    };
+    let sentiment_scores =
+        analyze_sentiment(num_days).map_err(AllocationError::SentimentAnalysisError)?;
 
     // Reinforcement Learning
-    let optimal_actions = match train_reinforcement_learning(num_days) {
-        Ok(actions) => actions,
-        Err(err) => return Err(AllocationError::ReinforcementLearningError(err)),
-    };
+    let optimal_actions = train_reinforcement_learning(num_days)
+        .map_err(AllocationError::ReinforcementLearningError)?;
 
     // Clustering
     let clusters = match perform_clustering(&features) {
         Ok(clusters) => clusters,
-        Err(err) => return Err(AllocationError::ClusteringError(err.to_string())),
+        Err(err) => {
+            eprintln!("Error during clustering: {}", err);
+            // Handle the clustering error by assigning a default value or using an alternative strategy
+            // For example, you can assign a default cluster value of 0 to all data points
+            vec![0; num_days]
+        }
     };
 
     // Calculate averages
@@ -121,14 +118,14 @@ pub fn calculate_optimal_allocation(
         if day <= sentiment_scores.len() && day <= optimal_actions.len() && day <= clusters.len() {
             let sentiment_score = sentiment_scores[day - 1];
             let optimal_action = optimal_actions[day - 1];
-            let cluster = clusters[day - 1];
+            let cluster = clusters[day - 1] as f64;
 
             // Incorporate sentiment score, optimal action, and cluster into the prediction
             let prediction = predicted_return
                 * predicted_cash_flow
                 * sentiment_score
                 * optimal_action
-                * (cluster as f64 + 1.0);
+                * (cluster + 1.0);
             predictions.push(prediction);
         } else {
             // If the day index is out of range, use default values
@@ -142,7 +139,7 @@ pub fn calculate_optimal_allocation(
 
     // Handle the case where total prediction is zero
     if total_prediction == 0.0 {
-        return Ok(Vec::new());
+        return Ok(vec![0.0; num_days]);
     }
 
     // Normalize predictions to get the optimal allocations
@@ -171,6 +168,13 @@ fn extract_features(
         features[[i, 3]] = fund_characteristics[i];
     }
 
+    // println!("Input features:");
+    // println!("Daily returns: {:?}", daily_returns);
+    // println!("Cash flows: {:?}", cash_flows);
+    // println!("Market indices: {:?}", market_indices);
+    // println!("Fund characteristics: {:?}", fund_characteristics);
+    // println!("Extracted features: {:?}", features);
+
     // Normalize the features
     let mean = features.mean_axis(Axis(0)).unwrap();
     let std_dev = features.std_axis(Axis(0), 0.0);
@@ -191,20 +195,14 @@ fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, Strin
 // Sentiment analysis using the helper function
 pub fn analyze_sentiment(num_days: usize) -> Result<Vec<f64>, String> {
     // Call the sentiment analysis helper function
-    let sentiment_scores = match get_sentiment_scores(num_days) {
-        Ok(scores) => scores,
-        Err(err) => return Err(err.to_string()),
-    };
+    let sentiment_scores = get_sentiment_scores(num_days)?;
     Ok(sentiment_scores)
 }
 
 // Reinforcement learning using the helper function
 pub fn train_reinforcement_learning(num_days: usize) -> Result<Vec<f64>, String> {
     // Call the reinforcement learning helper function
-    let optimal_actions = match get_optimal_actions(num_days) {
-        Ok(actions) => actions,
-        Err(err) => return Err(err.to_string()),
-    };
+    let optimal_actions = get_optimal_actions(num_days)?;
     Ok(optimal_actions)
 }
 
@@ -212,15 +210,18 @@ pub fn train_reinforcement_learning(num_days: usize) -> Result<Vec<f64>, String>
 pub fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, AllocationError> {
     // Convert features to a Dataset
     let dataset = Dataset::from(features.clone());
+
     // Create the KMeans model with 2 clusters
-    let model = match KMeans::params(2).fit(&dataset) {
-        Ok(model) => model,
-        Err(err) => return Err(AllocationError::ClusteringError(err.to_string())),
-    };
+    let n_clusters = 2;
+    let model = KMeans::params_with_rng(n_clusters, rand::thread_rng())
+        .fit(&dataset)
+        .map_err(|err| AllocationError::ClusteringError(err.to_string()))?;
+
     // Predict the clusters for each feature vector
     let clusters = model.predict(&dataset);
+
     // Convert the clusters to a Vec<usize> and return
-    Ok(clusters.to_vec())
+    Ok(clusters.iter().map(|&c| c).collect())
 }
 
 // Helper function for sentiment analysis (placeholder)

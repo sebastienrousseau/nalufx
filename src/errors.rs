@@ -46,6 +46,10 @@ pub enum NaluFxError {
     /// An error occurred during technical analysis.
     #[error("Error during technical analysis: {0}")]
     TechnicalAnalysisError(String),
+
+    /// An error occurred during portfolio optimization.
+    #[error("Error during portfolio optimization: {0}")]
+    PortfolioOptimizationError(String),
 }
 
 /// Represents an error that can occur during allocation.
