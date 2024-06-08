@@ -1,7 +1,10 @@
 use crate::errors::AllocationError;
+use crate::{
+    check_empty_inputs, check_input_lengths, check_invalid_data, check_outliers,
+    fill_feature_matrix, handle_result, normalize_features,
+};
 use augurs_ets::AutoETS;
-use linfa::prelude::Predict as LinfaPredict;
-use linfa::prelude::*;
+use linfa::prelude::{Predict as LinfaPredict, *};
 use linfa_clustering::KMeans;
 use ndarray::prelude::*;
 use rand::Rng;
@@ -52,31 +55,28 @@ pub fn calculate_optimal_allocation(
     fund_characteristics: &[f64],
     num_days: usize,
 ) -> Result<Vec<f64>, AllocationError> {
-    // Check if input slices have the same length
-    if daily_returns.len() != cash_flows.len() {
-        return Err(AllocationError::InputMismatch);
-    }
+    // Check input lengths
+    check_input_lengths!(
+        daily_returns,
+        cash_flows,
+        market_indices,
+        fund_characteristics
+    )?;
 
-    // Check if input slices are empty
-    if daily_returns.is_empty() || cash_flows.is_empty() {
-        return Err(AllocationError::EmptyInput);
-    }
+    // Check for empty inputs
+    check_empty_inputs!(
+        daily_returns,
+        cash_flows,
+        market_indices,
+        fund_characteristics
+    )?;
 
-    // Check for missing data or invalid values
-    if daily_returns.iter().any(|&x| x.is_nan() || x.is_infinite())
-        || cash_flows.iter().any(|&x| x.is_nan() || x.is_infinite())
-    {
-        return Err(AllocationError::InvalidData);
-    }
+    // Check for invalid data
+    check_invalid_data!(daily_returns, cash_flows)?;
 
-    // Check for outliers (e.g., values outside a certain range)
-    let return_threshold = 1.0; // Adjust the threshold as per your requirements
-    let cash_flow_threshold = 1_000_000.0; // Adjust the threshold as per your requirements
-    if daily_returns.iter().any(|&x| x.abs() > return_threshold)
-        || cash_flows.iter().any(|&x| x.abs() > cash_flow_threshold)
-    {
-        return Err(AllocationError::OutlierData);
-    }
+    // Check for outliers
+    check_outliers!(1.0, daily_returns)?;
+    check_outliers!(1_000_000.0, cash_flows)?;
 
     // Feature Engineering
     let features = extract_features(
@@ -87,26 +87,27 @@ pub fn calculate_optimal_allocation(
     )?;
 
     // Time Series Forecasting
-    let forecasted_returns =
-        forecast_time_series(daily_returns, num_days).map_err(AllocationError::ForecastingError)?;
+    let forecasted_returns = handle_result!(
+        forecast_time_series(daily_returns, num_days),
+        ForecastingError
+    )?;
     let forecasted_cash_flows =
-        forecast_time_series(cash_flows, num_days).map_err(AllocationError::ForecastingError)?;
+        handle_result!(forecast_time_series(cash_flows, num_days), ForecastingError)?;
 
     // Sentiment Analysis
-    let sentiment_scores =
-        analyze_sentiment(num_days).map_err(AllocationError::SentimentAnalysisError)?;
+    let sentiment_scores = handle_result!(analyze_sentiment(num_days), SentimentAnalysisError)?;
 
     // Reinforcement Learning
-    let optimal_actions = train_reinforcement_learning(num_days)
-        .map_err(AllocationError::ReinforcementLearningError)?;
+    let optimal_actions = handle_result!(
+        train_reinforcement_learning(num_days),
+        ReinforcementLearningError
+    )?;
 
     // Clustering
     let clusters = match perform_clustering(&features) {
         Ok(clusters) => clusters,
         Err(err) => {
             eprintln!("Error during clustering: {}", err);
-            // Handle the clustering error by assigning a default value or using an alternative strategy
-            // For example, you can assign a default cluster value of 0 to all data points
             vec![0; num_days]
         }
     };
@@ -204,24 +205,29 @@ pub fn extract_features(
     market_indices: &[f64],
     fund_characteristics: &[f64],
 ) -> Result<Array2<f64>, AllocationError> {
-    let n = daily_returns.len();
-    if n != cash_flows.len() || n != market_indices.len() || n != fund_characteristics.len() {
-        return Err(AllocationError::InputMismatch);
-    }
+    // Check if input slices have the same length
+    check_input_lengths!(
+        daily_returns,
+        cash_flows,
+        market_indices,
+        fund_characteristics
+    )?;
 
+    let n = daily_returns.len();
     let mut features = Array2::<f64>::zeros((n, 4));
-    for i in 0..n {
-        features[[i, 0]] = daily_returns[i];
-        features[[i, 1]] = cash_flows[i];
-        features[[i, 2]] = market_indices[i];
-        features[[i, 3]] = fund_characteristics[i];
-    }
+
+    // Fill the feature matrix
+    fill_feature_matrix!(
+        features,
+        n,
+        daily_returns,
+        cash_flows,
+        market_indices,
+        fund_characteristics
+    );
 
     // Normalize the features
-    let mean = features.mean_axis(Axis(0)).unwrap();
-    let std_dev = features.std_axis(Axis(0), 0.0);
-    features -= &mean;
-    features /= &std_dev;
+    normalize_features!(features);
 
     Ok(features)
 }
