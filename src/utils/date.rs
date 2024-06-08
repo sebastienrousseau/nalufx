@@ -27,15 +27,6 @@ use chrono::{DateTime, NaiveDate, TimeZone, Utc};
 /// use nalufx::utils::date::validate_date;
 /// use chrono::Utc;
 ///
-/// fn validate_date(input: &str) -> Result<chrono::DateTime<Utc>, &str> {
-///     match chrono::NaiveDate::parse_from_str(input, "%Y-%m-%d") {
-///         Ok(date) => Ok(Utc
-///             .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
-///             .unwrap()),
-///         _ => Err("Please enter a valid date in the format YYYY-MM-DD."),
-///     }
-/// }
-///
 /// let valid_date = "2024-01-01";
 /// assert!(validate_date(valid_date).is_ok());
 ///
@@ -52,29 +43,5 @@ pub fn validate_date(input: &str) -> Result<DateTime<Utc>, &str> {
             None => Err("Invalid time component in the date."),
         },
         Err(_) => Err("Please enter a valid date in the format YYYY-MM-DD."),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_validate_date() {
-        // Test with a valid date
-        let valid_date = "2024-01-01";
-        assert!(validate_date(valid_date).is_ok());
-
-        // Test with an invalid date
-        let invalid_date = "2024-13-01"; // Invalid month
-        assert!(validate_date(invalid_date).is_err());
-
-        // Test with an invalid format
-        let invalid_format = "01-01-2024";
-        assert!(validate_date(invalid_format).is_err());
-
-        // Test with an empty string
-        let empty_string = "";
-        assert!(validate_date(empty_string).is_err());
     }
 }
