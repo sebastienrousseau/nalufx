@@ -22,8 +22,7 @@
 // Imports and module declarations...
 use chrono::DateTime;
 use log::{error, info};
-use nalufx::errors::NaluFxError;
-use nalufx::utils::input::get_input;
+use nalufx::{errors::NaluFxError, utils::input::get_input};
 use reqwest::{header, Client};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

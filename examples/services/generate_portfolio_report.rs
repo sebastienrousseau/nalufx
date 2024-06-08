@@ -15,11 +15,11 @@
 
 use chrono::{DateTime, NaiveDate, TimeZone, Utc};
 use log::error;
-use nalufx::errors::NaluFxError;
-use nalufx::utils::input::get_input;
 use nalufx::{
     api::handlers::{get_openai_api_key, send_openai_request, OpenAIResponse},
+    errors::NaluFxError,
     services::fetch_data::fetch_data,
+    utils::{currency::format_currency, input::get_input},
 };
 use reqwest::Client;
 use serde_json::json;
@@ -37,32 +37,6 @@ struct StockAnalysis {
     pb_ratio: f64,
     dpr: f64,
     dividend_yield: f64,
-}
-
-/// Formats a float value as a currency string with two decimal places and commas.
-fn format_currency(value: f64) -> String {
-    let int_value = (value * 100.0).round() as i64;
-    let dollars = int_value / 100;
-    let cents = (int_value % 100).abs();
-    let formatted_dollars = format_dollars(dollars);
-    format!("${}.{:02}", formatted_dollars, cents)
-}
-
-/// Formats an integer value representing dollars with commas.
-fn format_dollars(dollars: i64) -> String {
-    let mut s = dollars.to_string();
-    let len = s.len();
-    if len > 3 {
-        let mut pos = len % 3;
-        if pos == 0 {
-            pos = 3;
-        }
-        while pos < len {
-            s.insert(pos, ',');
-            pos += 4;
-        }
-    }
-    s
 }
 
 /// Validates if the input is a positive floating-point number.

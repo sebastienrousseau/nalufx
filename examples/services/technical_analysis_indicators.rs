@@ -19,10 +19,12 @@
 
 use chrono::NaiveDate;
 use chrono::{TimeZone, Utc};
-use nalufx::api::handlers::{get_openai_api_key, send_openai_request};
-use nalufx::errors::NaluFxError;
-use nalufx::services::fetch_data::fetch_data;
-use nalufx::utils::input::get_input;
+use nalufx::{
+    api::handlers::{get_openai_api_key, send_openai_request},
+    errors::NaluFxError,
+    services::fetch_data::fetch_data,
+    utils::input::get_input,
+};
 use serde_json::json;
 
 /// Calculates the relative strength index (RSI) for the given data and window size.

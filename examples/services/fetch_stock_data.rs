@@ -10,43 +10,20 @@
 //! 3. Enter the initial investment amount when prompted.
 //! 4. The code will fetch historical data, perform analysis, and generate a report with investment recommendations.
 use chrono::Utc;
-use nalufx::errors::NaluFxError;
-use nalufx::utils::input::get_input;
 use nalufx::{
+    errors::NaluFxError,
     services::{
         fetch_data::fetch_data,
         processing::{calculate_cash_flows, calculate_daily_returns},
     },
-    utils::calculations::{
-        analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
+    utils::{
+        calculations::{
+            analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
+        },
+        currency::format_currency,
+        input::get_input,
     },
 };
-
-// Custom function to format float as currency
-fn format_currency(value: f64) -> String {
-    let int_value = (value * 100.0).round() as i64; // Convert to integer cents
-    let dollars = int_value / 100;
-    let cents = (int_value % 100).abs(); // Absolute value for cents
-    let formatted_dollars = format_dollars(dollars);
-    format!("${}.{:02}", formatted_dollars, cents)
-}
-
-// Helper function to format the dollar amount with commas
-fn format_dollars(dollars: i64) -> String {
-    let mut s = dollars.to_string();
-    let len = s.len();
-    if len > 3 {
-        let mut pos = len % 3;
-        if pos == 0 {
-            pos = 3;
-        }
-        while pos < len {
-            s.insert(pos, ',');
-            pos += 4;
-        }
-    }
-    s
-}
 
 // Function to validate if the input is a positive float
 fn validate_positive_float(input: &str) -> Result<f64, &str> {

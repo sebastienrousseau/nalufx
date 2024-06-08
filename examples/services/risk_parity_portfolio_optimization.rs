@@ -14,9 +14,11 @@
 //! 2. Enter the list of assets (e.g., stock tickers) when prompted.
 
 use nalgebra::{DMatrix, DVector};
-use nalufx::errors::NaluFxError;
-use nalufx::services::{fetch_data::fetch_data, processing::calculate_daily_returns};
-use nalufx::utils::input::get_input;
+use nalufx::{
+    errors::NaluFxError,
+    services::{fetch_data::fetch_data, processing::calculate_daily_returns},
+    utils::input::get_input,
+};
 use ndarray::Array2;
 use ndarray_stats::CorrelationExt;
 use std::collections::HashMap;

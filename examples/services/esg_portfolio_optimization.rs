@@ -31,10 +31,7 @@
 //! - The code uses the OpenAI API to generate the impact report. Make sure to set up the API key and have proper authentication in place.
 //! - The example uses dummy ESG ratings for demonstration purposes. In a real-world scenario, you would need to fetch actual ESG ratings from reliable sources.
 
-use nalufx::api::handlers::{get_openai_api_key, send_openai_request};
-use nalufx::errors::NaluFxError;
-use nalufx::services::{fetch_data::fetch_data, processing::calculate_daily_returns};
-use nalufx::utils::input::get_input;
+use nalufx::{api::handlers::{get_openai_api_key, send_openai_request}, errors::NaluFxError, services::{fetch_data::fetch_data, processing::calculate_daily_returns}, utils::input::get_input};
 use serde_json::json;
 
 /// Normalizes a vector of data points to a range between 0 and 1.

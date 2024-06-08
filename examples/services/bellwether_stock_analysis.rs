@@ -12,42 +12,20 @@
 //! 6. The code will fetch historical data, perform analysis, and generate a report with investment recommendations.
 //!
 use chrono::{TimeZone, Utc};
-use nalufx::errors::NaluFxError;
-use nalufx::utils::input::get_input;
 use nalufx::{
+    errors::NaluFxError,
     services::{
         fetch_data::fetch_data,
         processing::{calculate_cash_flows, calculate_daily_returns},
     },
-    utils::calculations::{
-        analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
+    utils::{
+        calculations::{
+            analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
+        },
+        currency::format_currency,
+        input::get_input,
     },
 };
-
-// Custom function to format float as currency
-fn format_currency(value: f64) -> String {
-    let int_value = (value * 100.0).round() as i64; // Convert to integer cents
-    let dollars = int_value / 100;
-    let cents = (int_value % 100).abs(); // Absolute value for cents
-    let formatted_dollars = format_dollars(dollars);
-    format!("${}.{:02}", formatted_dollars, cents)
-}
-
-fn format_dollars(dollars: i64) -> String {
-    let mut s = dollars.to_string();
-    let len = s.len();
-    if len > 3 {
-        let mut pos = len % 3;
-        if pos == 0 {
-            pos = 3;
-        }
-        while pos < len {
-            s.insert(pos, ',');
-            pos += 4;
-        }
-    }
-    s
-}
 
 // Function to validate if the input is a positive float
 fn validate_positive_float(input: &str) -> Result<f64, &str> {
@@ -133,73 +111,19 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
             // Calculate cash flows based on daily returns and initial investment
             let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
 
-            // Generate more market indices data for the specified date range
-            let market_indices = vec![
-                (start_date, 1000.0),
-                (start_date + chrono::Duration::days(30), 1010.0),
-                (start_date + chrono::Duration::days(60), 1005.0),
-                (start_date + chrono::Duration::days(90), 1015.0),
-                (start_date + chrono::Duration::days(120), 1020.0),
-                (start_date + chrono::Duration::days(150), 1030.0),
-                (start_date + chrono::Duration::days(180), 1025.0),
-                (start_date + chrono::Duration::days(210), 1040.0),
-            ];
-            println!("\n--- Market Overview ---\n");
-            println!(
-                "The Market Indices represent key points of market performance during the period:\n"
-            );
-            for (date, value) in &market_indices {
-                println!("- {}: {}", date.format("%Y-%m-%d"), format_currency(*value));
-            }
-            println!(
-                "\n*Analysis*: The market index showed a gradual increase from $1,000.00 to $1,040.00, with minor fluctuations indicating overall positive market performance during the period.\n"
-            );
+            // Ensure the lengths of all slices match
+            let min_length = daily_returns.len().min(cash_flows.len());
 
-            // Generate more fund characteristics data for the specified date range
-            let fund_characteristics = vec![
-                (start_date, 0.8),
-                (start_date + chrono::Duration::days(30), 0.9),
-                (start_date + chrono::Duration::days(60), 0.85),
-                (start_date + chrono::Duration::days(90), 0.95),
-                (start_date + chrono::Duration::days(120), 0.88),
-                (start_date + chrono::Duration::days(150), 0.92),
-                (start_date + chrono::Duration::days(180), 0.87),
-                (start_date + chrono::Duration::days(210), 0.93),
-            ];
-            println!(
-                "\nThe Fund Characteristics represent key attributes of the fund during the period:\n"
-            );
-            for (date, value) in &fund_characteristics {
-                println!("- {}: {:.2}", date.format("%Y-%m-%d"), value);
-            }
-            println!(
-                "\n*Analysis*: Fund characteristics fluctuated, with a peak of 0.95 on 2024-06-02 and a low of 0.80 on 2024-03-04, suggesting variations in performance or strategy.\n"
-            );
-
-            // Determine the minimum length of all input slices
-            let min_length = daily_returns
-                .len()
-                .min(cash_flows.len())
-                .min(market_indices.len())
-                .min(fund_characteristics.len());
-
-            // Truncate all slices to the minimum length
+            // Truncate slices to the minimum length
             let daily_returns = &daily_returns[..min_length];
             let cash_flows = &cash_flows[..min_length];
-            let market_indices: Vec<f64> = market_indices.iter().map(|&(_, value)| value).collect();
-            let market_indices = &market_indices[..min_length];
-            let fund_characteristics: Vec<f64> = fund_characteristics
-                .iter()
-                .map(|&(_, value)| value)
-                .collect();
-            let fund_characteristics = &fund_characteristics[..min_length];
 
             // Calculate the optimal allocation based on truncated input slices
             let optimal_allocation_result = calculate_optimal_allocation(
                 daily_returns,
                 cash_flows,
-                market_indices,
-                fund_characteristics,
+                &vec![1.0; min_length], // Placeholder for market_indices
+                &vec![1.0; min_length], // Placeholder for fund_characteristics
                 min_length,
             );
 
@@ -252,7 +176,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                         println!("- Day {}: {:.2}", i + 1, score);
                     }
                     println!(
-                        "\n*Analysis*: Sentiment scores varied, with a peak on Day 7 (0.93) indicating high positive sentiment, and lower scores on Days 1 and 4 suggesting caution.\n"
+                        "\n*Analysis*: Sentiment scores varied, indicating different levels of market sentiment throughout the period.\n"
                     );
 
                     // Reinforcement Learning Results
@@ -278,7 +202,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                         println!("- Day {}: {:.2}", i + 1, action);
                     }
                     println!(
-                        "\n*Analysis*: High action values on Days 1 and 4 suggest strong recommendations to allocate funds, while lower values on Days 3 and 7 indicate a more conservative approach.\n"
+                        "\n*Analysis*: The reinforcement learning model's recommendations varied, suggesting different actions based on market conditions.\n"
                     );
 
                     // Provide specific recommendations based on the optimal allocation and initial investment

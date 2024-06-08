@@ -19,14 +19,14 @@ NaluFX (NFX) is a Rust library that provides sophisticated tools for financial m
 ## Features
 
 - Advanced cash flow prediction models
+- AI-driven suggestions for cash allocation optimization
+- Clustering using K-means for data segmentation
 - Data fetching from multiple sources
 - Data processing and transformation utilities
+- Reinforcement learning for dynamic decision-making
+- Sentiment analysis
 - Structured and easy-to-parse output formats
 - Time series forecasting
-- Sentiment analysis
-- Reinforcement learning for dynamic decision-making
-- Clustering using K-means for data segmentation
-- AI-driven suggestions for cash allocation optimization
 
 ## Installation
 
@@ -39,7 +39,7 @@ nalufx = "0.0.1"
 
 ### Requirements
 
-`nalufx` requires Rust **1.60** or later.
+`nalufx` requires Rust **1.56** or later.
 
 ### Documentation
 
@@ -94,39 +94,91 @@ println!("Allocation Suggestions: {:?}", allocation_response.suggestions);
 
 ## Examples
 
-NaluFX comes with a set of examples that you can use to get started. The examples are located in the `examples` directory of the project. To run the examples, clone the repository and run the following command in your terminal from the project root directory:
+NaluFX comes with a set of examples that you can use to get started. The examples are located in the `examples` directory of the project.
+
+To run the examples, clone the repository and run the following command in your terminal from the project root directory:
 
 ```shell
 cargo run --example nalufx
 ```
 
-### Bellwether Stock Analysis (1987)
+You can also run the examples directly from the repository by using the following commands:
 
-- Analyze the performance of a bellwether stock during a significant historical period (e.g., the 1987 market crash).
+```shell
+cargo run --example <example_name>
+```
+
+### Bellwether Stock Analysis
+
+Analyze the performance of a bellwether stock during a significant historical period (e.g., the 1987 market crash).
+
+```shell
+cargo run --example bellwether_stock_analysis
+```
 
 ### Diversified ETF Portfolio Optimization
 
-- Optimize a portfolio of diversified ETFs based on historical performance and risk factors.
+Optimize a portfolio of diversified ETFs based on historical performance and risk factors.
+
+```shell
+cargo run --example diversified_etf_portfolio_optimization
+```
 
 ### ESG Portfolio Optimization
 
-- Optimize a portfolio with a strong emphasis on environmental, social, and governance (ESG) factors.
+Optimize a portfolio with a strong emphasis on environmental, social, and governance (ESG) factors.
+
+```shell
+cargo run --example esg_portfolio_optimization
+```
 
 ### Factor Investing Stock Ranking
 
-- Rank stocks based on various investing factors such as value, momentum, and quality.
+Rank stocks based on various investing factors such as value, momentum, and quality.
+
+```shell
+cargo run --example factor_investing_stock_ranking
+```
 
 ### Fetch Data Example
 
-- Demonstrate how to fetch financial data from an API or a data source.
+Demonstrate how to fetch financial data from an API or a data source.
+
+```shell
+cargo run --example fetch_stock_data
+```
 
 ### Generate Market Analysis Report
 
-- Generate a comprehensive market analysis report based on various financial metrics and indicators.
+Generate a comprehensive market analysis report based on various financial metrics and indicators.
+
+```shell
+cargo run --example generate_portfolio_report
+```
+
+### Mean Variance Optimization
+
+Implement mean-variance optimization to find the optimal risk-return tradeoff for a portfolio.
+
+```shell
+cargo run --example mean_variance_optimization
+```
+
+### Risk Parity Portfolio Optimization
+
+Optimize a portfolio using the risk parity approach to ensure balanced risk distribution.
+
+```shell
+cargo run --example risk_parity_portfolio_optimization
+```
 
 ### Technical Analysis Indicators
 
-- Implement and analyze various technical analysis indicators such as moving averages, RSI, MACD, etc.
+Implement and analyze various technical analysis indicators such as moving averages, RSI, MACD, etc.
+
+```shell
+cargo run --example technical_analysis_indicators
+```
 
 ## Semantic Versioning Policy
 

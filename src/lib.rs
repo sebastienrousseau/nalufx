@@ -1,8 +1,6 @@
 //! # `NaluFx` 🦀
 //!
-//! NaluFx is a financial forecasting application that provides modules for
-//! fetching, processing, and performing calculations on financial data.
-//! Nalufx is a Rust library for optimizing cash allocation across complex fund structures using AI-driven predictions and suggestions.
+//! NaluFX (NFX) is a Rust library that provides sophisticated tools for financial modelling, data fetching, and processing, with a focus on optimizing cash allocation across complex fund structures. It leverages AI-driven predictions and suggestions to enhance decision-making processes.
 //!
 //! [![NaluFx Logo](https://kura.pro/nalufx/images/banners/banner-nalufx.svg)](https://nalufx.com "A Robust Rust Library for optimizing cash allocation across complex fund structures using AI-driven predictions and suggestions")
 //!

@@ -5,5 +5,8 @@ pub mod ascii;
 /// mathematical errors, or insufficient data for analysis.
 pub mod calculations;
 
+/// This module provides utilities for formatting currency values.
+pub mod currency;
+
 /// This module provides utilities for reading user input from the standard input.
 pub mod input;

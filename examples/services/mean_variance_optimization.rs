@@ -15,9 +15,11 @@
 //! 3. Enter the target return for the portfolio when prompted.
 
 use chrono::{DateTime, NaiveDate, TimeZone, Utc};
-use nalufx::errors::NaluFxError;
-use nalufx::services::{fetch_data::fetch_data, processing::calculate_daily_returns};
-use nalufx::utils::input::get_input;
+use nalufx::{
+    errors::NaluFxError,
+    services::{fetch_data::fetch_data, processing::calculate_daily_returns},
+    utils::input::get_input,
+};
 use ndarray::Array2;
 use ndarray_stats::CorrelationExt;
 use std::collections::HashMap;
