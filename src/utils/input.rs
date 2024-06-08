@@ -1,5 +1,6 @@
 use crate::errors::NaluFxError;
-use std::io::{stdin, stdout, BufRead, Write};
+use std::io::BufRead;
+use std::io::{stdin, stdout, Write};
 
 /// Reads a line of user input from the standard input.
 ///
