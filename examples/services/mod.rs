@@ -36,7 +36,7 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
     logger::main();
 
     // Printing the ASCII art to the console
-    println!("{}", macro_ascii!("NaluFX"));
+    println!("\n{}", macro_ascii!("NaluFX"));
 
     // Print the options to the user
     println!("Choose an example to run:\n");
@@ -72,7 +72,7 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
         Ok(8) => risk_parity_portfolio_optimization::main()?,
         Ok(9) => technical_analysis_indicators::main()?,
         Ok(0) => {
-            println!("Exiting NaluFX, goodbye!");
+            println!("\nExiting NaluFX, goodbye!\n");
             return Ok(());
         }
         _ => return Err(NaluFxError::InvalidOption),

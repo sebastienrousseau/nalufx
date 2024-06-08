@@ -14,11 +14,10 @@
 //! 2. Enter the list of assets (e.g., stock tickers) when prompted.
 //! 3. Enter the target return for the portfolio when prompted.
 
-use chrono::{DateTime, NaiveDate, TimeZone, Utc};
 use nalufx::{
     errors::NaluFxError,
     services::{fetch_data::fetch_data, processing::calculate_daily_returns},
-    utils::input::get_input,
+    utils::{date::validate_date, input::get_input},
 };
 use ndarray::Array2;
 use ndarray_stats::CorrelationExt;
@@ -63,16 +62,6 @@ fn optimize_mean_variance(
         eprintln!("Error calculating mean returns.");
     }
     Ok(weights)
-}
-
-/// Validates if the input is a valid date in the YYYY-MM-DD format.
-fn validate_date(input: &str) -> Result<DateTime<Utc>, &str> {
-    match NaiveDate::parse_from_str(input, "%Y-%m-%d") {
-        Ok(date) => Ok(Utc
-            .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
-            .unwrap()),
-        _ => Err("Please enter a valid date in the format YYYY-MM-DD."),
-    }
 }
 
 /// Main function to run the mean-variance portfolio optimization.

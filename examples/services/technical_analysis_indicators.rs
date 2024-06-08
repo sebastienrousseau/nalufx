@@ -17,13 +17,11 @@
 //! - Moving Average Convergence Divergence (MACD): Consists of MACD line, signal line, and histogram. It helps identify trend changes and momentum.
 //! - Support and Resistance Levels: Represents key price levels where the stock tends to find support or resistance. They are used to identify potential entry and exit points.
 
-use chrono::NaiveDate;
-use chrono::{TimeZone, Utc};
 use nalufx::{
     api::handlers::{get_openai_api_key, send_openai_request},
     errors::NaluFxError,
     services::fetch_data::fetch_data,
-    utils::input::get_input,
+    utils::{date::validate_date, input::get_input},
 };
 use serde_json::json;
 
@@ -69,16 +67,6 @@ fn calculate_rsi(data: &[f64], window: usize) -> Vec<f64> {
     }
 
     rsi
-}
-
-// Function to validate if the input is a valid date in the format YYYY-MM-DD
-fn validate_date(input: &str) -> Result<chrono::DateTime<Utc>, &str> {
-    match NaiveDate::parse_from_str(input, "%Y-%m-%d") {
-        Ok(date) => Ok(Utc
-            .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
-            .unwrap()),
-        _ => Err("Please enter a valid date in the format YYYY-MM-DD."),
-    }
 }
 
 /// Validates if the input is non-empty and alphanumeric.

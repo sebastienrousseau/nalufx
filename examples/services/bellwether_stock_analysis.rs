@@ -11,7 +11,7 @@
 //! 5. Enter the end date (YYYY-MM-DD) for the analysis period when prompted.
 //! 6. The code will fetch historical data, perform analysis, and generate a report with investment recommendations.
 //!
-use chrono::{TimeZone, Utc};
+use chrono::Utc;
 use nalufx::{
     errors::NaluFxError,
     services::{
@@ -23,6 +23,7 @@ use nalufx::{
             analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
         },
         currency::format_currency,
+        date::validate_date,
         input::get_input,
     },
 };
@@ -41,16 +42,6 @@ fn validate_ticker(input: &str) -> Result<&str, &str> {
         Ok(input)
     } else {
         Err("Please enter a valid ticker symbol (alphanumeric).")
-    }
-}
-
-// Function to validate if the input is a valid date in the format YYYY-MM-DD
-fn validate_date(input: &str) -> Result<chrono::DateTime<Utc>, &str> {
-    match chrono::NaiveDate::parse_from_str(input, "%Y-%m-%d") {
-        Ok(date) => Ok(Utc
-            .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
-            .unwrap()),
-        _ => Err("Please enter a valid date in the format YYYY-MM-DD."),
     }
 }
 

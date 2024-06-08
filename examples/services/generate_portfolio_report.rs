@@ -13,13 +13,13 @@
 //! 6. The code will fetch historical data, perform analysis, and generate a Gain/Loss Analysis report.
 //!
 
-use chrono::{DateTime, NaiveDate, TimeZone, Utc};
+use chrono::{DateTime, Utc};
 use log::error;
 use nalufx::{
     api::handlers::{get_openai_api_key, send_openai_request, OpenAIResponse},
     errors::NaluFxError,
     services::fetch_data::fetch_data,
-    utils::{currency::format_currency, input::get_input},
+    utils::{currency::format_currency, date::validate_date, input::get_input},
 };
 use reqwest::Client;
 use serde_json::json;
@@ -53,16 +53,6 @@ fn validate_ticker(input: &str) -> Result<&str, &str> {
         Ok(input)
     } else {
         Err("Please enter a valid ticker symbol (alphanumeric).")
-    }
-}
-
-/// Validates if the input is a valid date in the YYYY-MM-DD format.
-fn validate_date(input: &str) -> Result<DateTime<Utc>, &str> {
-    match NaiveDate::parse_from_str(input, "%Y-%m-%d") {
-        Ok(date) => Ok(Utc
-            .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
-            .unwrap()),
-        _ => Err("Please enter a valid date in the format YYYY-MM-DD."),
     }
 }
 
