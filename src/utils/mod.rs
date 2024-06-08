@@ -13,3 +13,6 @@ pub mod date;
 
 /// This module provides utilities for reading user input from the standard input.
 pub mod input;
+
+/// This module provides utilities for ticker symbol operations.
+pub mod ticker;

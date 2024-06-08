@@ -19,7 +19,9 @@ use nalufx::{
     api::handlers::{get_openai_api_key, send_openai_request, OpenAIResponse},
     errors::NaluFxError,
     services::fetch_data::fetch_data,
-    utils::{currency::format_currency, date::validate_date, input::get_input},
+    utils::{
+        currency::format_currency, date::validate_date, input::get_input, ticker::validate_ticker,
+    },
 };
 use reqwest::Client;
 use serde_json::json;
@@ -44,15 +46,6 @@ fn validate_positive_float(input: &str) -> Result<f64, &str> {
     match input.parse::<f64>() {
         Ok(value) if value > 0.0 => Ok(value),
         _ => Err("Please enter a valid positive number."),
-    }
-}
-
-/// Validates if the input is a valid ticker symbol (alphanumeric and non-empty).
-fn validate_ticker(input: &str) -> Result<&str, &str> {
-    if input.chars().all(|c| c.is_alphanumeric()) && !input.is_empty() {
-        Ok(input)
-    } else {
-        Err("Please enter a valid ticker symbol (alphanumeric).")
     }
 }
 

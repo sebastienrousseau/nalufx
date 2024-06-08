@@ -22,7 +22,10 @@
 // Imports and module declarations...
 use chrono::DateTime;
 use log::{error, info};
-use nalufx::{errors::NaluFxError, utils::input::get_input};
+use nalufx::{
+    errors::NaluFxError,
+    utils::{input::get_input, ticker::validate_ticker},
+};
 use reqwest::{header, Client};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -62,24 +65,6 @@ struct FactorScores {
     price_end_period: f64,
     date_start_period: String,
     date_end_period: String,
-}
-
-/// Validates a stock ticker symbol.
-///
-/// # Arguments
-///
-/// * `input` - The ticker symbol to validate.
-///
-/// # Returns
-///
-/// * `Ok(&str)` - The validated ticker symbol.
-/// * `Err(&str)` - An error message if the ticker symbol is invalid.
-fn validate_ticker(input: &str) -> Result<&str, &str> {
-    if input.chars().all(|c| c.is_alphanumeric()) && !input.is_empty() {
-        Ok(input)
-    } else {
-        Err("Please enter a valid ticker symbol (alphanumeric). Example: AAPL, MSFT, GOOGL")
-    }
 }
 
 /// Fetches stock data for the given stock symbols from the Yahoo Finance API.

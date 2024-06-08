@@ -21,7 +21,7 @@ use nalufx::{
     api::handlers::{get_openai_api_key, send_openai_request},
     errors::NaluFxError,
     services::fetch_data::fetch_data,
-    utils::{date::validate_date, input::get_input},
+    utils::{date::validate_date, input::get_input, ticker::validate_ticker},
 };
 use serde_json::json;
 
@@ -67,23 +67,6 @@ fn calculate_rsi(data: &[f64], window: usize) -> Vec<f64> {
     }
 
     rsi
-}
-
-/// Validates if the input is non-empty and alphanumeric.
-///
-/// # Arguments
-///
-/// * `input` - The input string to validate.
-///
-/// # Returns
-///
-/// `Ok(input)` if the input is valid, `Err` with an error message otherwise.
-fn validate_ticker(input: &str) -> Result<&str, &str> {
-    if input.chars().all(|c| c.is_alphanumeric()) && !input.is_empty() {
-        Ok(input)
-    } else {
-        Err("Please enter a valid ticker symbol (alphanumeric).")
-    }
 }
 
 /// Calculates the exponential moving average (EMA) for the given data and window size.

@@ -24,6 +24,7 @@ use nalufx::{
         },
         currency::format_currency,
         input::get_input,
+        ticker::validate_ticker,
     },
 };
 
@@ -32,15 +33,6 @@ fn validate_positive_float(input: &str) -> Result<f64, &str> {
     match input.parse::<f64>() {
         Ok(value) if value > 0.0 => Ok(value),
         _ => Err("Please enter a valid positive number."),
-    }
-}
-
-// Function to validate if the input is non-empty and alphanumeric
-fn validate_ticker(input: &str) -> Result<&str, &str> {
-    if input.chars().all(|c| c.is_alphanumeric()) && !input.is_empty() {
-        Ok(input)
-    } else {
-        Err("Please enter a valid ticker symbol (alphanumeric).")
     }
 }
 
