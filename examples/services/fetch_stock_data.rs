@@ -23,16 +23,9 @@ use nalufx::{
         currency::format_currency,
         input::get_input,
         ticker::validate_ticker,
+        validation::validate_positive_float,
     },
 };
-
-// Function to validate if the input is a positive float
-fn validate_positive_float(input: &str) -> Result<f64, &str> {
-    match input.parse::<f64>() {
-        Ok(value) if value > 0.0 => Ok(value),
-        _ => Err("Please enter a valid positive number."),
-    }
-}
 
 #[tokio::main]
 pub(crate) async fn main() -> Result<(), NaluFxError> {

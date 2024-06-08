@@ -21,6 +21,7 @@ use nalufx::{
     services::fetch_data::fetch_data,
     utils::{
         currency::format_currency, date::validate_date, input::get_input, ticker::validate_ticker,
+        validation::validate_positive_float,
     },
 };
 use reqwest::Client;
@@ -39,14 +40,6 @@ struct StockAnalysis {
     pb_ratio: f64,
     dpr: f64,
     dividend_yield: f64,
-}
-
-/// Validates if the input is a positive floating-point number.
-fn validate_positive_float(input: &str) -> Result<f64, &str> {
-    match input.parse::<f64>() {
-        Ok(value) if value > 0.0 => Ok(value),
-        _ => Err("Please enter a valid positive number."),
-    }
 }
 
 async fn generate_combined_market_analysis_report(

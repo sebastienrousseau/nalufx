@@ -16,3 +16,6 @@ pub mod input;
 
 /// This module provides utilities for ticker symbol operations.
 pub mod ticker;
+
+/// This module provides utilities for validations.
+pub mod validation;
