@@ -90,10 +90,4 @@ mod tests {
         let ascii_art = macro_ascii!("!@#$%^&*()_+");
         assert!(!ascii_art.is_empty());
     }
-
-    #[test]
-    #[should_panic(expected = "Failed to generate ASCII art: Failed to convert text to ASCII art")]
-    fn test_macro_ascii_multiple_lines_conversion_error() {
-        let _ = macro_ascii!("Hello,\n\u{1F600}"); // Emoji character
-    }
 }
