@@ -2,9 +2,14 @@ use serde::{Deserialize, Serialize};
 
 /// Represents a request to predict cash flow based on historical data.
 ///
+/// This struct is used to encapsulate the historical cash flow data
+/// which will be used by the prediction service to forecast future cash flows.
+///
 /// # Fields
 ///
-/// * `historical_data` - A vector of historical cash flow data.
+/// * `historical_data` - A vector of historical cash flow data. Each entry represents
+///   the cash flow value at a specific time point. It is expected to be a time-series
+///   data in chronological order.
 ///
 /// # Examples
 ///
@@ -17,15 +22,26 @@ use serde::{Deserialize, Serialize};
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CashFlowRequest {
+    /// A vector of historical cash flow data.
+    ///
+    /// Each entry in this vector represents the cash flow value at a specific time point.
+    /// The data is expected to be ordered chronologically.
     pub historical_data: Vec<f64>,
 }
 
 /// Represents a response with predicted cash flow and optimal allocation.
 ///
+/// This struct is used to provide the output of the prediction service,
+/// including the predicted future cash flow values and the optimal allocation
+/// percentages for investment or resource allocation.
+///
 /// # Fields
 ///
-/// * `predictions` - A vector of predicted cash flow values.
-/// * `optimal_allocation` - A vector of optimal allocation percentages.
+/// * `predictions` - A vector of predicted cash flow values. Each entry represents
+///   the predicted cash flow value at a specific future time point.
+/// * `optimal_allocation` - A vector of optimal allocation percentages. Each entry
+///   represents the percentage of allocation for a specific resource or investment
+///   based on the predicted cash flow.
 ///
 /// # Examples
 ///
@@ -39,15 +55,28 @@ pub struct CashFlowRequest {
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CashFlowResponse {
+    /// A vector of predicted cash flow values.
+    ///
+    /// Each entry in this vector represents the predicted cash flow value at a specific future time point.
     pub predictions: Vec<f64>,
+    /// A vector of optimal allocation percentages.
+    ///
+    /// Each entry in this vector represents the percentage of allocation for a specific resource or investment
+    /// based on the predicted cash flow.
     pub optimal_allocation: Vec<f64>,
 }
 
 /// Represents an error response with an error message.
 ///
+/// This struct is used to provide details about any errors that occurred
+/// during the processing of a request. The error message gives more information
+/// about the nature of the error, which can be used for debugging or informing
+/// the user.
+///
 /// # Fields
 ///
-/// * `error` - A string containing the error message.
+/// * `error` - A string containing the error message. This provides a human-readable
+///   explanation of what went wrong.
 ///
 /// # Examples
 ///
@@ -60,5 +89,8 @@ pub struct CashFlowResponse {
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct ErrorResponse {
+    /// A string containing the error message.
+    ///
+    /// This provides a human-readable explanation of what went wrong during the processing of the request.
     pub error: String,
 }

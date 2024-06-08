@@ -15,13 +15,14 @@
 
 use chrono::{DateTime, NaiveDate, TimeZone, Utc};
 use log::error;
+use nalufx::errors::NaluFxError;
+use nalufx::utils::input::get_input;
 use nalufx::{
     api::handlers::{get_openai_api_key, send_openai_request, OpenAIResponse},
     services::fetch_data::fetch_data,
 };
 use reqwest::Client;
 use serde_json::json;
-use std::io;
 
 #[derive(Debug)]
 struct StockAnalysis {
@@ -62,16 +63,6 @@ fn format_dollars(dollars: i64) -> String {
         }
     }
     s
-}
-
-/// Prompts the user for input and returns the trimmed string.
-fn get_input(prompt: &str) -> String {
-    println!("{}", prompt);
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    input.trim().to_string()
 }
 
 /// Validates if the input is a positive floating-point number.
@@ -227,43 +218,43 @@ async fn fetch_data_with_logging(
 }
 
 #[tokio::main]
-pub(crate) async fn main() {
+pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Get user input for tickers, initial investment amount, start date, and end date
     let tickers_input =
-        get_input("Enter the ticker symbols for the stocks or portfolio (comma-separated):");
+        get_input("Enter the ticker symbols for the stocks or portfolio (comma-separated):")?;
     let tickers: Vec<&str> = tickers_input.split(',').map(|s| s.trim()).collect();
 
     for ticker in &tickers {
         if validate_ticker(ticker).is_err() {
             eprintln!("Error: Invalid ticker symbol: {}", ticker);
-            return;
+            return Err(NaluFxError::InvalidOption);
         }
     }
 
-    let initial_investment_input = get_input("Enter the initial investment amount:");
+    let initial_investment_input = get_input("Enter the initial investment amount:")?;
     let initial_investment = match validate_positive_float(&initial_investment_input) {
         Ok(value) => value,
         Err(e) => {
             eprintln!("Error: {}", e);
-            return;
+            return Err(NaluFxError::InvalidOption);
         }
     };
 
-    let start_date_input = get_input("Enter the start date (YYYY-MM-DD):");
+    let start_date_input = get_input("Enter the start date (YYYY-MM-DD):")?;
     let start_date = match validate_date(&start_date_input) {
         Ok(date) => date,
         Err(e) => {
             eprintln!("Error: {}", e);
-            return;
+            return Err(NaluFxError::InvalidOption);
         }
     };
 
-    let end_date_input = get_input("Enter the end date (YYYY-MM-DD):");
+    let end_date_input = get_input("Enter the end date (YYYY-MM-DD):")?;
     let end_date = match validate_date(&end_date_input) {
         Ok(date) => date,
         Err(e) => {
             eprintln!("Error: {}", e);
-            return;
+            return Err(NaluFxError::InvalidOption);
         }
     };
 
@@ -279,7 +270,7 @@ pub(crate) async fn main() {
                 Ok(data) => data,
                 Err(e) => {
                     eprintln!("Error fetching market data for {}: {}", ticker, e);
-                    return;
+                    return Err(NaluFxError::InvalidData);
                 }
             };
 
@@ -335,7 +326,7 @@ pub(crate) async fn main() {
         Ok(report) => report,
         Err(err) => {
             eprintln!("Error generating combined market analysis report: {}", err);
-            return;
+            return Err(NaluFxError::InvalidData);
         }
     };
 
@@ -371,4 +362,6 @@ pub(crate) async fn main() {
     // Print the combined report
     println!("\n--- Combined Market Analysis Report ---\n");
     println!("{}", combined_analysis_report);
+
+    Ok(())
 }

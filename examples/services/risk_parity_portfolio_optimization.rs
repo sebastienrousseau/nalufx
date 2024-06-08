@@ -14,29 +14,12 @@
 //! 2. Enter the list of assets (e.g., stock tickers) when prompted.
 
 use nalgebra::{DMatrix, DVector};
+use nalufx::errors::NaluFxError;
 use nalufx::services::{fetch_data::fetch_data, processing::calculate_daily_returns};
+use nalufx::utils::input::get_input;
 use ndarray::Array2;
 use ndarray_stats::CorrelationExt;
 use std::collections::HashMap;
-use std::io;
-
-/// Custom function to get user input from the command line.
-///
-/// # Arguments
-///
-/// * `prompt` - The prompt message to display to the user.
-///
-/// # Returns
-///
-/// The user's input as a trimmed string.
-fn get_input(prompt: &str) -> String {
-    println!("{}", prompt);
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    input.trim().to_string()
-}
 
 /// Function to optimize the portfolio for risk parity.
 ///
@@ -100,13 +83,13 @@ fn optimize_risk_parity(assets: &Vec<&str>, cov_matrix: &Array2<f64>) -> HashMap
         }
 
         weights = normalized_weights;
-        learning_rate *= 0.95; // Decrease learning rate over iterations
+        learning_rate *= 0.95;
     }
 
     // Convert optimized weights to a HashMap
     let mut weights_map = HashMap::new();
     for (i, &asset) in assets.iter().enumerate() {
-        weights_map.insert(asset.to_string(), weights[i]);
+        let _ = weights_map.insert(asset.to_string(), weights[i]);
     }
 
     weights_map
@@ -152,10 +135,10 @@ where
 /// A `Result` indicating the success or failure of the operation. If successful, returns `Ok(())`.
 /// If an error occurs, returns an `Err` variant containing the error message.
 #[tokio::main]
-pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Get user input for list of assets
     let assets_input =
-        get_input("Enter the list of assets (comma-separated) - (e.g, SPY, EFA, GLD, IEF):");
+        get_input("Enter the list of assets (comma-separated) - (e.g, SPY, EFA, GLD, IEF):")?;
     let assets: Vec<&str> = assets_input.split(',').map(|s| s.trim()).collect();
 
     // Fetch historical performance data for each asset
@@ -206,12 +189,15 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Debug: Print the length of the flattened returns vector
     println!("Length of flattened returns: {}", flattened_returns.len());
 
-    let returns_array = Array2::from_shape_vec((num_assets, num_returns), flattened_returns)?;
+    let returns_array = Array2::from_shape_vec((num_assets, num_returns), flattened_returns)
+        .map_err(|_| NaluFxError::InvalidOption)?;
 
     // Debug: Print the shape of the returns array
     println!("Shape of returns_array: {:?}", returns_array.dim());
 
-    let cov_matrix = returns_array.cov(1.0)?;
+    let cov_matrix = returns_array
+        .cov(1.0)
+        .map_err(|_| NaluFxError::InvalidOption)?;
 
     // Optimize the portfolio for risk parity
     let optimal_weights = optimize_risk_parity(&assets, &cov_matrix);

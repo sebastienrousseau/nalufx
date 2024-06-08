@@ -4,6 +4,39 @@ use reqwest::Client;
 use std::error::Error;
 use yahoo_finance_api as yahoo;
 
+/// Fetches historical data for a given ticker symbol from Yahoo Finance.
+///
+/// This asynchronous function retrieves historical closing prices for the specified ticker
+/// symbol within the optional date range provided. If no date range is specified, it fetches
+/// data from the earliest available date to the current date.
+///
+/// # Arguments
+///
+/// * `ticker` - A string slice that holds the ticker symbol of the stock (e.g., "AAPL").
+/// * `start_date` - An optional `DateTime<Utc>` representing the start date for the data retrieval.
+/// * `end_date` - An optional `DateTime<Utc>` representing the end date for the data retrieval.
+///
+/// # Returns
+///
+/// This function returns a `Result` containing a vector of closing prices (`Vec<f64>`) if successful,
+/// or an error (`Box<dyn Error>`) if the data retrieval fails.
+///
+/// # Examples
+///
+/// ```
+/// use chrono::Utc;
+/// use nalufx::services::fetch_data::fetch_data;
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let start_date = Some(Utc::now() - chrono::Duration::days(30));
+///     let end_date = Some(Utc::now());
+///     match fetch_data("AAPL", start_date, end_date).await {
+///         Ok(data) => println!("Data: {:?}", data),
+///         Err(e) => eprintln!("Error: {}", e),
+///     }
+/// }
+/// ```
 pub async fn fetch_data(
     ticker: &str,
     start_date: Option<DateTime<Utc>>,

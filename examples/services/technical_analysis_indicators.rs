@@ -19,11 +19,10 @@
 
 use chrono::NaiveDate;
 use chrono::{TimeZone, Utc};
-use std::io;
-
 use nalufx::api::handlers::{get_openai_api_key, send_openai_request};
 use nalufx::errors::NaluFxError;
 use nalufx::services::fetch_data::fetch_data;
+use nalufx::utils::input::get_input;
 use serde_json::json;
 
 /// Calculates the relative strength index (RSI) for the given data and window size.
@@ -70,22 +69,14 @@ fn calculate_rsi(data: &[f64], window: usize) -> Vec<f64> {
     rsi
 }
 
-/// Prompts the user for input and returns the user's response.
-///
-/// # Arguments
-///
-/// * `prompt` - The prompt message to display to the user.
-///
-/// # Returns
-///
-/// The user's input as a string.
-fn get_input(prompt: &str) -> String {
-    println!("{}", prompt);
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    input.trim().to_string()
+// Function to validate if the input is a valid date in the format YYYY-MM-DD
+fn validate_date(input: &str) -> Result<chrono::DateTime<Utc>, &str> {
+    match NaiveDate::parse_from_str(input, "%Y-%m-%d") {
+        Ok(date) => Ok(Utc
+            .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
+            .unwrap()),
+        _ => Err("Please enter a valid date in the format YYYY-MM-DD."),
+    }
 }
 
 /// Validates if the input is non-empty and alphanumeric.
@@ -338,48 +329,37 @@ Please ensure that the report is well-structured, easy to understand, and adhere
 ///
 /// A `Result` indicating whether the execution was successful or not. If successful, returns `Ok(())`, otherwise returns an error wrapped in a `Box<dyn std::error::Error>`.
 #[tokio::main]
-pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Get user input for the stock ticker symbol
-    let ticker = loop {
-        let input = get_input("Enter the ticker symbol for the stock:");
-        match validate_ticker(&input) {
-            Ok(ticker) => break ticker.to_string(),
-            Err(e) => eprintln!("Error: {}", e),
+pub(crate) async fn main() -> Result<(), NaluFxError> {
+    // Get user input for ticker, initial investment amount, start date, and end date
+    let ticker_input = get_input("Enter the ticker symbol for a bellwether stock:")?;
+    let ticker = match validate_ticker(&ticker_input) {
+        Ok(symbol) => symbol.to_string(),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return Err(NaluFxError::InvalidOption);
         }
     };
 
     // Fetch historical price data for the stock
-    let start_date = loop {
-        let input = get_input("Enter the start date (YYYY-MM-DD):");
-        match NaiveDate::parse_from_str(&input, "%Y-%m-%d") {
-            Ok(date) => {
-                let start_datetime = Utc
-                    .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
-                    .unwrap();
-                break Some(start_datetime);
-            }
-            Err(_) => eprintln!("Error: Invalid start date format. Please use YYYY-MM-DD."),
+    let start_date_input = get_input("Enter the start date (YYYY-MM-DD):")?;
+    let start_date = match validate_date(&start_date_input) {
+        Ok(date) => date,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return Err(NaluFxError::InvalidOption);
         }
     };
 
-    let end_date = loop {
-        let input = get_input("Enter the end date (YYYY-MM-DD) or leave blank for today:");
-        if input.is_empty() {
-            break Some(Utc::now());
-        } else {
-            match NaiveDate::parse_from_str(&input, "%Y-%m-%d") {
-                Ok(date) => {
-                    let end_datetime = Utc
-                        .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
-                        .unwrap();
-                    break Some(end_datetime);
-                }
-                Err(_) => eprintln!("Error: Invalid end date format. Please use YYYY-MM-DD."),
-            }
+    let end_date_input = get_input("Enter the end date (YYYY-MM-DD):")?;
+    let end_date = match validate_date(&end_date_input) {
+        Ok(date) => date,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return Err(NaluFxError::InvalidOption);
         }
     };
 
-    let closing_prices = match fetch_data(&ticker, start_date, end_date).await {
+    let closing_prices = match fetch_data(&ticker, Some(start_date), Some(end_date)).await {
         Ok(prices) => prices,
         Err(e) => {
             eprintln!("Error fetching historical data: {}", e);
@@ -436,8 +416,8 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Ticker: {}", ticker);
     println!(
         "Period: {} to {}",
-        start_date.unwrap().format("%Y-%m-%d"),
-        end_date.unwrap().format("%Y-%m-%d")
+        start_date.format("%Y-%m-%d"),
+        end_date.format("%Y-%m-%d")
     );
 
     // Print the data sections

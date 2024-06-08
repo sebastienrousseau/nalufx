@@ -1,17 +1,17 @@
-//! # Bellwether Stock Analysis Example
-//!
-//! This example demonstrates the analysis of a bellwether stock using historical data, market indices, fund characteristics, and advanced data analysis techniques.
+//! # Stock Data Fetching and Analysis
+//! //!
+//! This example demonstrates how to fetch historical closing prices for a user-specified stock,
+//! calculate daily returns, cash flows, and perform sentiment analysis, reinforcement learning, and optimal allocation.
+//! The results are presented in a comprehensive report format.
 //!
 //! Usage:
-//!
-//! 1. Run the code using `cargo run --example bellwether_stock_analysis_1987_example`.
-//! 2. Enter the ticker symbol for a bellwether stock when prompted.
+//! 1. Run the code using `cargo run --example fetch_data_example`.
+//! 2. Enter the ticker symbol for a stock when prompted.
 //! 3. Enter the initial investment amount when prompted.
-//! 4. Enter the start date (YYYY-MM-DD) for the analysis period when prompted.
-//! 5. Enter the end date (YYYY-MM-DD) for the analysis period when prompted.
-//! 6. The code will fetch historical data, perform analysis, and generate a report with investment recommendations.
-//!
-use chrono::{TimeZone, Utc};
+//! 4. The code will fetch historical data, perform analysis, and generate a report with investment recommendations.
+use chrono::Utc;
+use nalufx::errors::NaluFxError;
+use nalufx::utils::input::get_input;
 use nalufx::{
     services::{
         fetch_data::fetch_data,
@@ -21,7 +21,6 @@ use nalufx::{
         analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
     },
 };
-use std::io;
 
 // Custom function to format float as currency
 fn format_currency(value: f64) -> String {
@@ -32,6 +31,7 @@ fn format_currency(value: f64) -> String {
     format!("${}.{:02}", formatted_dollars, cents)
 }
 
+// Helper function to format the dollar amount with commas
 fn format_dollars(dollars: i64) -> String {
     let mut s = dollars.to_string();
     let len = s.len();
@@ -46,16 +46,6 @@ fn format_dollars(dollars: i64) -> String {
         }
     }
     s
-}
-
-// Function to get user input and validate it
-fn get_input(prompt: &str) -> String {
-    println!("{}", prompt);
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    input.trim().to_string()
 }
 
 // Function to validate if the input is a positive float
@@ -75,64 +65,33 @@ fn validate_ticker(input: &str) -> Result<&str, &str> {
     }
 }
 
-// Function to validate if the input is a valid date in the format YYYY-MM-DD
-fn validate_date(input: &str) -> Result<chrono::DateTime<Utc>, &str> {
-    match chrono::NaiveDate::parse_from_str(input, "%Y-%m-%d") {
-        Ok(date) => Ok(Utc
-            .from_local_datetime(&date.and_hms_opt(0, 0, 0).unwrap())
-            .unwrap()),
-        _ => Err("Please enter a valid date in the format YYYY-MM-DD."),
-    }
-}
-
 #[tokio::main]
-pub(crate) async fn main() {
-    // Get user input for ticker, initial investment amount, start date, and end date
-    let ticker_input = get_input("Enter the ticker symbol for a bellwether stock:");
+pub(crate) async fn main() -> Result<(), NaluFxError> {
+    // Get user input for ticker and initial investment amount
+    let ticker_input = get_input("Enter the ticker symbol:")?;
     let ticker = match validate_ticker(&ticker_input) {
         Ok(symbol) => symbol,
         Err(e) => {
             eprintln!("Error: {}", e);
-            return;
+            return Err(NaluFxError::InvalidOption);
         }
     };
 
-    let initial_investment_input = get_input("Enter the initial investment amount:");
+    let initial_investment_input = get_input("Enter the initial investment amount:")?;
     let initial_investment = match validate_positive_float(&initial_investment_input) {
         Ok(value) => value,
         Err(e) => {
             eprintln!("Error: {}", e);
-            return;
+            return Err(NaluFxError::InvalidOption);
         }
     };
 
-    let start_date_input = get_input("Enter the start date (YYYY-MM-DD):");
-    let start_date = match validate_date(&start_date_input) {
-        Ok(date) => date,
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            return;
-        }
-    };
-
-    let end_date_input = get_input("Enter the end date (YYYY-MM-DD):");
-    let end_date = match validate_date(&end_date_input) {
-        Ok(date) => date,
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            return;
-        }
-    };
-
-    // Fetch historical closing prices for the bellwether stock, considering the specified date range
-    match fetch_data(ticker, Some(start_date), Some(end_date)).await {
+    // Fetch historical closing prices for the ticker
+    match fetch_data(ticker, None, None).await {
         Ok(closes) => {
             if closes.is_empty() {
-                eprintln!(
-                    "No closing prices found for ticker {} in the specified date range",
-                    ticker
-                );
-                return;
+                eprintln!("No closing prices found for ticker {}", ticker);
+                return Ok(());
             }
 
             // Calculate daily returns from closing prices
@@ -141,16 +100,16 @@ pub(crate) async fn main() {
             // Calculate cash flows based on daily returns and initial investment
             let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
 
-            // Generate more market indices data for the specified date range
+            // Generate more market indices data
             let market_indices = vec![
-                (start_date, 1000.0),
-                (start_date + chrono::Duration::days(30), 1010.0),
-                (start_date + chrono::Duration::days(60), 1005.0),
-                (start_date + chrono::Duration::days(90), 1015.0),
-                (start_date + chrono::Duration::days(120), 1020.0),
-                (start_date + chrono::Duration::days(150), 1030.0),
-                (start_date + chrono::Duration::days(180), 1025.0),
-                (start_date + chrono::Duration::days(210), 1040.0),
+                (Utc::now() - chrono::Duration::days(90), 1000.0),
+                (Utc::now() - chrono::Duration::days(60), 1010.0),
+                (Utc::now() - chrono::Duration::days(30), 1005.0),
+                (Utc::now(), 1015.0),
+                (Utc::now() + chrono::Duration::days(30), 1020.0),
+                (Utc::now() + chrono::Duration::days(60), 1030.0),
+                (Utc::now() + chrono::Duration::days(90), 1025.0),
+                (Utc::now() + chrono::Duration::days(120), 1040.0),
             ];
             println!("\n--- Market Overview ---\n");
             println!(
@@ -163,16 +122,16 @@ pub(crate) async fn main() {
                 "\n*Analysis*: The market index showed a gradual increase from $1,000.00 to $1,040.00, with minor fluctuations indicating overall positive market performance during the period.\n"
             );
 
-            // Generate more fund characteristics data for the specified date range
+            // Generate more fund characteristics data
             let fund_characteristics = vec![
-                (start_date, 0.8),
-                (start_date + chrono::Duration::days(30), 0.9),
-                (start_date + chrono::Duration::days(60), 0.85),
-                (start_date + chrono::Duration::days(90), 0.95),
-                (start_date + chrono::Duration::days(120), 0.88),
-                (start_date + chrono::Duration::days(150), 0.92),
-                (start_date + chrono::Duration::days(180), 0.87),
-                (start_date + chrono::Duration::days(210), 0.93),
+                (Utc::now() - chrono::Duration::days(90), 0.8),
+                (Utc::now() - chrono::Duration::days(60), 0.9),
+                (Utc::now() - chrono::Duration::days(30), 0.85),
+                (Utc::now(), 0.95),
+                (Utc::now() + chrono::Duration::days(30), 0.88),
+                (Utc::now() + chrono::Duration::days(60), 0.92),
+                (Utc::now() + chrono::Duration::days(90), 0.87),
+                (Utc::now() + chrono::Duration::days(120), 0.93),
             ];
             println!(
                 "\nThe Fund Characteristics represent key attributes of the fund during the period:\n"
@@ -221,7 +180,7 @@ pub(crate) async fn main() {
                     let total_allocation: f64 = optimal_allocation.iter().sum();
                     if total_allocation == 0.0 {
                         eprintln!("Error: Total allocation is zero for ticker {}", ticker);
-                        return;
+                        return Ok(());
                     }
                     optimal_allocation = optimal_allocation
                         .into_iter()
@@ -325,11 +284,9 @@ pub(crate) async fn main() {
             }
         }
         Err(e) => {
-            eprintln!(
-                "Historical data not available for ticker {} in the specified date range: {}",
-                ticker, e
-            );
-            println!("Please try a different date range or choose another ticker symbol.");
+            eprintln!("Error fetching data for ticker {}: {}", ticker, e);
         }
     }
+
+    Ok(())
 }

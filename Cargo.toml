@@ -13,7 +13,7 @@ keywords = ["debugging", "log", "nalufx", "logging", "tracing"]
 license = "MIT OR Apache-2.0"
 name = "nalufx"
 repository = "https://github.com/sebastienrousseau/nalufx/"
-rust-version = "1.60"
+rust-version = "1.56.0"
 version = "0.0.1"
 include = [
     "/CONTRIBUTING.md",
@@ -37,6 +37,51 @@ include = [
 [profile.bench]
 # Profile for benchmarks.
 debug = true
+
+[[example]]
+# Description: Analyzes the performance of a bellwether stock and its correlation with the broader market.
+name = "bellwether_stock_analysis"
+path = "examples/services/bellwether_stock_analysis.rs"
+
+[[example]]
+# Description: Optimizes a diversified portfolio of ETFs based on historical performance and risk measures.
+name = "diversified_etf_portfolio_optimization"
+path = "examples/services/diversified_etf_portfolio_optimization.rs"
+
+[[example]]
+# Description: Optimizes a portfolio considering Environmental, Social, and Governance (ESG) factors.
+name = "esg_portfolio_optimization"
+path = "examples/services/esg_portfolio_optimization.rs"
+
+[[example]]
+# Description: Ranks stocks based on various factors such as value, growth, quality, and momentum.
+name = "factor_investing_stock_ranking"
+path = "examples/services/factor_investing_stock_ranking.rs"
+
+[[example]]
+# Description: Fetches historical stock data from a financial data provider API.
+name = "fetch_stock_data"
+path = "examples/services/fetch_stock_data.rs"
+
+[[example]]
+# Description: Generates a comprehensive report for a given investment portfolio.
+name = "generate_portfolio_report"
+path = "examples/services/generate_portfolio_report.rs"
+
+[[example]]
+# Description: Implements the Mean-Variance Optimization (MVO) algorithm for portfolio allocation.
+name = "mean_variance_optimization"
+path = "examples/services/mean_variance_optimization.rs"
+
+[[example]]
+# Description: Optimizes a portfolio using the Risk Parity approach, balancing risk contributions across assets.
+name = "risk_parity_portfolio_optimization"
+path = "examples/services/risk_parity_portfolio_optimization.rs"
+
+[[example]]
+# Description: Calculates various technical analysis indicators for a given stock or financial instrument.
+name = "technical_analysis_indicators"
+path = "examples/services/technical_analysis_indicators.rs"
 
 [dependencies]
 # Dependencies are only used for building.
@@ -91,12 +136,12 @@ rustdoc-args = ["--generate-link-to-definition"]
 
 ## Warn
 # box_pointers = "warn"
-# missing_copy_implementations = "warn"
-# missing_docs = "warn"
-# unstable_features = "warn"
+missing_copy_implementations = "warn"
+missing_docs = "warn"
+unstable_features = "warn"
 # unused_crate_dependencies = "warn"
-# unused_extern_crates = "warn"
-# unused_results = "warn"
+unused_extern_crates = "warn"
+unused_results = "warn"
 
 ## Allow
 bare_trait_objects = "allow"
@@ -107,9 +152,9 @@ trivial_bounds = "allow"
 unsafe_code = "allow"
 
 ## Forbid
-# missing_debug_implementations = "forbid"
-# non_ascii_idents = "forbid"
-# unreachable_pub = "forbid"
+missing_debug_implementations = "forbid"
+non_ascii_idents = "forbid"
+unreachable_pub = "forbid"
 
 ## Deny
 dead_code = "deny"

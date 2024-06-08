@@ -22,10 +22,12 @@
 // Imports and module declarations...
 use chrono::DateTime;
 use log::{error, info};
+use nalufx::errors::NaluFxError;
+use nalufx::utils::input::get_input;
 use reqwest::{header, Client};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{collections::HashMap, f64, io};
+use std::{collections::HashMap, f64};
 
 /// Represents the financial data of a stock.
 #[derive(Debug, Serialize, Deserialize)]
@@ -63,24 +65,6 @@ struct FactorScores {
     date_end_period: String,
 }
 
-/// Prompts the user for input and returns the entered value as a string.
-///
-/// # Arguments
-///
-/// * `prompt` - The prompt message to display to the user.
-///
-/// # Returns
-///
-/// The user's input as a string.
-fn get_input(prompt: &str) -> String {
-    println!("{}", prompt);
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    input.trim().to_string()
-}
-
 /// Validates a stock ticker symbol.
 ///
 /// # Arguments
@@ -111,12 +95,12 @@ fn validate_ticker(input: &str) -> Result<&str, &str> {
 /// * `Err(reqwest::Error)` - An error if the API request fails.
 async fn fetch_stock_data(symbols: &[String]) -> Result<Vec<StockData>, reqwest::Error> {
     let mut headers = header::HeaderMap::new();
-    headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
-    headers.insert(
+    let _ = headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
+    let _ = headers.insert(
         "Accept",
         header::HeaderValue::from_static("application/json"),
     );
-    headers.insert("Cookie", header::HeaderValue::from_static("YahooFcUrl"));
+    let _ = headers.insert("Cookie", header::HeaderValue::from_static("YahooFcUrl"));
 
     let client = Client::builder().default_headers(headers).build()?;
 
@@ -339,12 +323,12 @@ async fn fetch_last_quarter_data(
     symbols: &[String],
 ) -> Result<HashMap<String, f64>, reqwest::Error> {
     let mut headers = header::HeaderMap::new();
-    headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
-    headers.insert(
+    let _ = headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
+    let _ = headers.insert(
         "Accept",
         header::HeaderValue::from_static("application/json"),
     );
-    headers.insert("Cookie", header::HeaderValue::from_static("YahooFcUrl"));
+    let _ = headers.insert("Cookie", header::HeaderValue::from_static("YahooFcUrl"));
 
     let client = Client::builder().default_headers(headers).build()?;
     let mut last_quarter_data = HashMap::new();
@@ -365,7 +349,7 @@ async fn fetch_last_quarter_data(
             if !result.is_empty() {
                 if let Some(meta) = result[0]["meta"].as_object() {
                     if let Some(current_price) = meta["regularMarketPrice"].as_f64() {
-                        last_quarter_data.insert(symbol.clone(), current_price);
+                        let _ = last_quarter_data.insert(symbol.clone(), current_price);
                     }
                 }
             } else {
@@ -490,8 +474,8 @@ fn generate_report(factor_scores: &[FactorScores], last_quarter_data: &HashMap<S
 /// * `Ok(())` - If the program executes successfully.
 /// * `Err(Box<dyn std::error::Error>)` - If an error occurs during execution.
 #[tokio::main]
-pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let symbols_input = get_input("Enter the stock ticker symbols (comma-separated):");
+pub async fn main() -> Result<(), NaluFxError> {
+    let symbols_input = get_input("Enter the stock ticker symbols (comma-separated):")?;
     let symbols: Vec<String> = symbols_input
         .split(',')
         .map(|s| s.trim().to_string())

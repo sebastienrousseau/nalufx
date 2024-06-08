@@ -10,26 +10,52 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use std::env;
 
+/// Represents the response from the OpenAI API.
+///
+/// This struct captures the structure of the JSON response returned by the OpenAI API.
+/// It contains a list of choices made by the model during the request processing.
 #[derive(Debug, Deserialize)]
 pub struct OpenAIResponse {
     /// The choices made by the model.
     pub choices: Vec<OpenAIChoice>,
 }
 
+/// Represents a choice made by the OpenAI model.
+///
+/// This struct captures the content of a single choice made by the OpenAI model.
+/// It contains the message content of the choice.
 #[derive(Debug, Deserialize)]
 pub struct OpenAIChoice {
     /// The content of the choice.
     pub message: OpenAIMessage,
 }
 
+/// Represents the content of an OpenAI model's choice.
+///
+/// This struct captures the actual message content of a choice made by the OpenAI model.
 #[derive(Debug, Deserialize)]
 pub struct OpenAIMessage {
+    /// The content of the message.
     pub content: String,
 }
 
 /// Fetches the OpenAI API key from the environment or the .env file.
 ///
-/// Returns the API key as a string if it exists in the environment or the .env file, or an error message if it doesn't.
+/// This function attempts to retrieve the OpenAI API key from the environment variables.
+/// If the key is not found, it attempts to load the .env file and read the key from there.
+///
+/// # Returns
+///
+/// A `Result` containing the API key as a `String` if successful,
+/// or an error message as a `&'static str` if the API key is not found.
+///
+/// # Examples
+///
+/// ```
+/// use serde_json::json;
+/// use nalufx::api::handlers::get_openai_api_key;
+/// let api_key = get_openai_api_key().expect("API key not found");
+/// ```
 pub fn get_openai_api_key() -> Result<String, &'static str> {
     // First, try to read the API key from the environment variables
     if let Ok(key) = env::var("OPENAI_API_KEY") {
@@ -37,7 +63,10 @@ pub fn get_openai_api_key() -> Result<String, &'static str> {
     }
 
     // If the API key is not found in the environment variables, try to read it from the .env file
-    dotenv().ok();
+    if dotenv().is_err() {
+        // Ignore error, dotenv will return an error if the file is not found, which is okay
+    }
+
     match env::var("OPENAI_API_KEY") {
         Ok(key) => Ok(key),
         Err(_) => Err("OPENAI_API_KEY is not set in the environment or the .env file"),
@@ -46,13 +75,33 @@ pub fn get_openai_api_key() -> Result<String, &'static str> {
 
 /// Sends a request to the OpenAI API and handles the response.
 ///
+/// This asynchronous function sends a POST request to the OpenAI API with the specified
+/// JSON request body. It handles errors during the request and response phases.
+///
 /// # Arguments
 ///
 /// * `client` - A reference to the HTTP client.
+/// * `api_url` - The URL of the OpenAI API endpoint.
 /// * `api_key` - The OpenAI API key.
 /// * `request_body` - The JSON request body to send to the API.
 ///
-/// Returns the response body as a string if the request is successful, or an error message if it fails.
+/// # Returns
+///
+/// A `Result` containing the response body as a `String` if successful,
+/// or an error message as a `&'static str` if the request fails.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::api::handlers::get_openai_api_key;
+/// use nalufx::api::handlers::send_openai_request;
+/// use serde_json::json;
+///
+/// let client = reqwest::Client::new();
+/// let api_key = get_openai_api_key().unwrap();
+/// let request_body = json!({"key": "value"});
+/// let response = send_openai_request(&client, "https://api.openai.com/v1/endpoint", &api_key, request_body);
+/// ```
 pub async fn send_openai_request(
     client: &Client,
     api_url: &str,
@@ -81,35 +130,6 @@ pub async fn send_openai_request(
         "Error reading response body"
     })
 }
-// pub async fn send_openai_request(
-//     client: &Client,
-//     api_key: &str,
-//     request_body: Value,
-// ) -> Result<String, &'static str> {
-//     let response = client
-//         .post("https://api.openai.com/v1/chat/completions")
-//         .header("Authorization", format!("Bearer {}", api_key))
-//         .json(&request_body)
-//         .send()
-//         .await
-//         .map_err(|err| {
-//             error!("Error sending request to OpenAI API: {:?}", err);
-//             "Error contacting OpenAI API"
-//         })?;
-
-//     if !response.status().is_success() {
-//         error!(
-//             "OpenAI API call failed with status: {:?}",
-//             response.status()
-//         );
-//         return Err("OpenAI API call failed");
-//     }
-
-//     response.text().await.map_err(|err| {
-//         error!("Error reading response body: {:?}", err);
-//         "Error reading response body"
-//     })
-// }
 
 /// Parses the OpenAI API response JSON.
 ///

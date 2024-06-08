@@ -12,6 +12,8 @@
 //! 3. Enter the initial investment amount when prompted.
 //! 4. The code will fetch historical data for each ETF, perform analysis, and generate a report with investment recommendations for the best-performing ETF.
 use chrono::Utc;
+use nalufx::errors::NaluFxError;
+use nalufx::utils::input::get_input;
 use nalufx::{
     services::{
         fetch_data::fetch_data,
@@ -21,7 +23,6 @@ use nalufx::{
         analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
     },
 };
-use std::io;
 
 // Custom function to format float as currency
 fn format_currency(value: f64) -> String {
@@ -49,16 +50,6 @@ fn format_dollars(dollars: i64) -> String {
     s
 }
 
-// Function to get user input and validate it
-fn get_input(prompt: &str) -> String {
-    println!("{}", prompt);
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    input.trim().to_string()
-}
-
 // Function to validate if the input is a positive float
 fn validate_positive_float(input: &str) -> Result<f64, &str> {
     match input.parse::<f64>() {
@@ -77,23 +68,29 @@ fn validate_ticker(input: &str) -> Result<&str, &str> {
 }
 
 #[tokio::main]
-pub(crate) async fn main() {
+pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Get user input for tickers and initial investment amount
     let tickers_input = get_input("Enter the ticker symbols separated by commas (e.g., SPY,GLD):");
-    let tickers: Vec<&str> = tickers_input.split(',').collect();
+    let tickers: Vec<String> = match tickers_input {
+        Ok(input) => input.split(',').map(|s| s.trim().to_string()).collect(),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return Err(NaluFxError::InvalidOption);
+        }
+    };
     for ticker in &tickers {
         if let Err(e) = validate_ticker(ticker) {
             eprintln!("Error: {}", e);
-            return;
+            return Ok(());
         }
     }
 
-    let initial_investment_input = get_input("Enter the initial investment amount:");
+    let initial_investment_input = get_input("Enter the initial investment amount:")?;
     let initial_investment = match validate_positive_float(&initial_investment_input) {
         Ok(value) => value,
         Err(e) => {
             eprintln!("Error: {}", e);
-            return;
+            return Err(NaluFxError::InvalidOption);
         }
     };
 
@@ -119,7 +116,7 @@ pub(crate) async fn main() {
     // Check if ETF data is available
     if etf_data.is_empty() {
         println!("No ETF data available for analysis.");
-        return;
+        return Ok(());
     }
 
     // Generate more market indices data
@@ -294,4 +291,6 @@ pub(crate) async fn main() {
     } else {
         println!("No ETF data available for analysis.");
     }
+
+    Ok(())
 }

@@ -1,6 +1,5 @@
-use augurs_ets::AutoETS;
-
 use crate::errors::AllocationError;
+use augurs_ets::AutoETS;
 use linfa::prelude::Predict as LinfaPredict;
 use linfa::prelude::*;
 use linfa_clustering::KMeans;
@@ -8,6 +7,9 @@ use ndarray::prelude::*;
 use rand::Rng;
 
 /// Calculates the optimal allocation based on daily returns and cash flows.
+///
+/// This function uses a combination of time series forecasting, sentiment analysis,
+/// reinforcement learning, and clustering to calculate the optimal allocation for each day.
 ///
 /// # Arguments
 ///
@@ -27,6 +29,22 @@ use rand::Rng;
 /// - The input slices have different lengths.
 /// - The input slices are empty.
 /// - An error occurs during the execution of the `perform_clustering` function.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::utils::calculations::calculate_optimal_allocation;
+///
+/// let daily_returns = vec![0.01, 0.02, -0.01, 0.03, 0.01];
+/// let cash_flows = vec![1000.0, 1020.0, 1010.0, 1030.0, 1025.0];
+/// let market_indices = vec![1.0, 1.01, 1.02, 1.03, 1.04];
+/// let fund_characteristics = vec![0.5, 0.6, 0.7, 0.8, 0.9];
+/// let num_days = 3;
+/// match calculate_optimal_allocation(&daily_returns, &cash_flows, &market_indices, &fund_characteristics, num_days) {
+///     Ok(allocations) => println!("Allocations: {:?}", allocations),
+///     Err(e) => eprintln!("Error: {}", e),
+/// }
+/// ```
 pub fn calculate_optimal_allocation(
     daily_returns: &[f64],
     cash_flows: &[f64],
@@ -149,7 +167,38 @@ pub fn calculate_optimal_allocation(
         .collect())
 }
 
-fn extract_features(
+/// Extracts features from the input data for clustering.
+///
+/// This function takes slices of daily returns, cash flows, market indices, and fund characteristics,
+/// and constructs a feature matrix for clustering. It normalizes the features before returning them.
+///
+/// # Arguments
+///
+/// * `daily_returns` - A slice of daily returns.
+/// * `cash_flows` - A slice of cash flows.
+/// * `market_indices` - A slice of market indices.
+/// * `fund_characteristics` - A slice of fund characteristics.
+///
+/// # Returns
+///
+/// A feature matrix (`Array2<f64>`) for clustering, or an error if input slices have different lengths.
+///
+/// # Errors
+///
+/// Returns an error if the input slices have different lengths.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::utils::calculations::extract_features;
+/// let daily_returns = vec![0.01, 0.02, -0.01];
+/// let cash_flows = vec![1000.0, 1020.0, 1010.0];
+/// let market_indices = vec![1.0, 1.01, 1.02];
+/// let fund_characteristics = vec![0.5, 0.6, 0.7];
+/// let features = extract_features(&daily_returns, &cash_flows, &market_indices, &fund_characteristics).unwrap();
+/// assert_eq!(features.shape(), &[3, 4]);
+/// ```
+pub fn extract_features(
     daily_returns: &[f64],
     cash_flows: &[f64],
     market_indices: &[f64],
@@ -168,13 +217,6 @@ fn extract_features(
         features[[i, 3]] = fund_characteristics[i];
     }
 
-    // println!("Input features:");
-    // println!("Daily returns: {:?}", daily_returns);
-    // println!("Cash flows: {:?}", cash_flows);
-    // println!("Market indices: {:?}", market_indices);
-    // println!("Fund characteristics: {:?}", fund_characteristics);
-    // println!("Extracted features: {:?}", features);
-
     // Normalize the features
     let mean = features.mean_axis(Axis(0)).unwrap();
     let std_dev = features.std_axis(Axis(0), 0.0);
@@ -184,29 +226,130 @@ fn extract_features(
     Ok(features)
 }
 
-// Time series forecasting using augurs-ets
-fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, String> {
+/// Forecasts future values of a time series using the AutoETS model.
+///
+/// This function takes a slice of historical data and forecasts future values
+/// for the specified number of days using the AutoETS model.
+///
+/// # Arguments
+///
+/// * `data` - A slice of historical data.
+/// * `num_days` - The number of days to forecast.
+///
+/// # Returns
+///
+/// A vector of forecasted values (`Vec<f64>`) for the specified number of days, or an error if forecasting fails.
+///
+/// # Errors
+///
+/// Returns an error if the AutoETS model fails to fit the data or generate forecasts.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::utils::calculations::forecast_time_series;
+///
+/// let data = vec![100.0, 101.0, 102.0, 101.5];
+/// let num_days = 3;
+/// match forecast_time_series(&data, num_days) {
+///     Ok(forecast) => println!("Forecast: {:?}", forecast),
+///     Err(e) => eprintln!("Error: {}", e),
+/// }
+/// ```
+pub fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, String> {
     let mut search = AutoETS::new(1, "ZZN").map_err(|e| e.to_string())?;
     let model = search.fit(data).map_err(|e| e.to_string())?;
     let forecast = model.predict(num_days, 0.95);
     Ok(forecast.point)
 }
 
-// Sentiment analysis using the helper function
+/// Analyzes sentiment scores for a given number of days.
+///
+/// This function generates sentiment scores for the specified number of days.
+/// The actual implementation should replace the placeholder logic.
+///
+/// # Arguments
+///
+/// * `num_days` - The number of days for which to generate sentiment scores.
+///
+/// # Returns
+///
+/// A vector of sentiment scores (`Vec<f64>`) for the specified number of days, or an error if sentiment analysis fails.
+///
+/// # Errors
+///
+/// Returns an error if the sentiment analysis fails.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::utils::calculations::analyze_sentiment;
+/// let num_days = 3;
+/// let sentiment_scores = analyze_sentiment(num_days).unwrap();
+/// assert_eq!(sentiment_scores.len(), num_days);
+/// ```
 pub fn analyze_sentiment(num_days: usize) -> Result<Vec<f64>, String> {
     // Call the sentiment analysis helper function
     let sentiment_scores = get_sentiment_scores(num_days)?;
     Ok(sentiment_scores)
 }
 
-// Reinforcement learning using the helper function
+/// Trains a reinforcement learning model to generate optimal actions for a given number of days.
+///
+/// This function generates optimal actions for the specified number of days using reinforcement learning.
+/// The actual implementation should replace the placeholder logic.
+///
+/// # Arguments
+///
+/// * `num_days` - The number of days for which to generate optimal actions.
+///
+/// # Returns
+///
+/// A vector of optimal actions (`Vec<f64>`) for the specified number of days, or an error if reinforcement learning fails.
+///
+/// # Errors
+///
+/// Returns an error if the reinforcement learning process fails.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::utils::calculations::train_reinforcement_learning;
+/// let num_days = 3;
+/// let optimal_actions = train_reinforcement_learning(num_days).unwrap();
+/// assert_eq!(optimal_actions.len(), num_days);
+/// ```
 pub fn train_reinforcement_learning(num_days: usize) -> Result<Vec<f64>, String> {
     // Call the reinforcement learning helper function
     let optimal_actions = get_optimal_actions(num_days)?;
     Ok(optimal_actions)
 }
 
-// Clustering using K-means with hyperparameter tuning
+/// Performs clustering on the feature matrix using K-means with hyperparameter tuning.
+///
+/// This function takes a feature matrix and performs K-means clustering to assign each data point to a cluster.
+///
+/// # Arguments
+///
+/// * `features` - A reference to the feature matrix (`Array2<f64>`).
+///
+/// # Returns
+///
+/// A vector of cluster assignments (`Vec<usize>`) for each data point, or an error if clustering fails.
+///
+/// # Errors
+///
+/// Returns an error if the K-means model fails to fit the data or generate cluster assignments.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::utils::calculations::perform_clustering;
+/// use ndarray::Array2;
+/// let features = Array2::from_shape_vec((3, 4), vec![0.0; 12]).unwrap();
+/// let clusters = perform_clustering(&features).unwrap();
+/// assert_eq!(clusters.len(), 3);
+/// ```
 pub fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, AllocationError> {
     // Convert features to a Dataset
     let dataset = Dataset::from(features.clone());
@@ -224,8 +367,32 @@ pub fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, Allocati
     Ok(clusters.iter().map(|&c| c).collect())
 }
 
-// Helper function for sentiment analysis (placeholder)
-fn get_sentiment_scores(num_days: usize) -> Result<Vec<f64>, String> {
+/// Helper function for sentiment analysis (placeholder).
+///
+/// This function generates random sentiment scores for demonstration purposes.
+/// Replace this function with the actual sentiment analysis logic.
+///
+/// # Arguments
+///
+/// * `num_days` - The number of days for which to generate sentiment scores.
+///
+/// # Returns
+///
+/// A vector of random sentiment scores (`Vec<f64>`) for the specified number of days, or an error if sentiment analysis fails.
+///
+/// # Errors
+///
+/// Returns an error if the sentiment analysis fails.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::utils::calculations::get_sentiment_scores;
+/// let num_days = 3;
+/// let sentiment_scores = get_sentiment_scores(num_days).unwrap();
+/// assert_eq!(sentiment_scores.len(), num_days);
+/// ```
+pub fn get_sentiment_scores(num_days: usize) -> Result<Vec<f64>, String> {
     // Implement the actual sentiment analysis logic here
     // For demonstration purposes, we'll return random scores
     let mut rng = rand::thread_rng();
@@ -233,8 +400,32 @@ fn get_sentiment_scores(num_days: usize) -> Result<Vec<f64>, String> {
     Ok(sentiment_scores)
 }
 
-// Helper function for reinforcement learning (placeholder)
-fn get_optimal_actions(num_days: usize) -> Result<Vec<f64>, String> {
+/// Helper function for reinforcement learning (placeholder).
+///
+/// This function generates random optimal actions for demonstration purposes.
+/// Replace this function with the actual reinforcement learning logic.
+///
+/// # Arguments
+///
+/// * `num_days` - The number of days for which to generate optimal actions.
+///
+/// # Returns
+///
+/// A vector of random optimal actions (`Vec<f64>`) for the specified number of days, or an error if reinforcement learning fails.
+///
+/// # Errors
+///
+/// Returns an error if the reinforcement learning process fails.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::utils::calculations::get_optimal_actions;
+/// let num_days = 3;
+/// let optimal_actions = get_optimal_actions(num_days).unwrap();
+/// assert_eq!(optimal_actions.len(), num_days);
+/// ```
+pub fn get_optimal_actions(num_days: usize) -> Result<Vec<f64>, String> {
     // Implement the actual reinforcement learning logic here
     // For demonstration purposes, we'll return random actions
     let mut rng = rand::thread_rng();

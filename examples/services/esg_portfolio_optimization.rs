@@ -32,27 +32,10 @@
 //! - The example uses dummy ESG ratings for demonstration purposes. In a real-world scenario, you would need to fetch actual ESG ratings from reliable sources.
 
 use nalufx::api::handlers::{get_openai_api_key, send_openai_request};
+use nalufx::errors::NaluFxError;
 use nalufx::services::{fetch_data::fetch_data, processing::calculate_daily_returns};
+use nalufx::utils::input::get_input;
 use serde_json::json;
-use std::io;
-
-/// Prompts the user for input and returns the trimmed input as a string.
-///
-/// # Arguments
-///
-/// * `prompt` - The prompt message to display to the user.
-///
-/// # Returns
-///
-/// The user's input as a trimmed string.
-fn get_input(prompt: &str) -> String {
-    println!("{}", prompt);
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    input.trim().to_string()
-}
 
 /// Normalizes a vector of data points to a range between 0 and 1.
 ///
@@ -94,14 +77,13 @@ fn calculate_weighted_score(esg_rating: f64, normalized_returns: &Vec<f64>) -> f
 ///
 /// A `Result` indicating the success or failure of the operation. Returns `Ok(())` if successful, or an error boxed in `Err` if an error occurs.
 #[tokio::main]
-pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Get user input for investor's values and financial objectives
-    let values_input = get_input("Enter the investor's values (comma-separated) - (e.g, Environmental sustainability, social responsibility, corporate governance):");
-    let financial_objectives_input =
-        get_input("Enter the investor's financial objectives (comma-separated) - (e.g, Long-term capital appreciation, moderate risk tolerance):");
+    let values_input = get_input("Enter the investor's values (comma-separated) - (e.g, Environmental sustainability, social responsibility, corporate governance):")?;
+    let financial_objectives_input = get_input("Enter the investor's financial objectives (comma-separated) - (e.g, Long-term capital appreciation, moderate risk tolerance):")?;
 
     // Get user input for the list of ESG-focused investments
-    let investments_input = get_input("Enter the ESG investments (comma-separated) - (e.g, ESGU, ESGD, ESGE, SUSL, SUSB, ICLN, PBW, GRID, ACES, SMOG):");
+    let investments_input = get_input("Enter the ESG investments (comma-separated) - (e.g, ESGU, ESGD, ESGE, SUSL, SUSB, ICLN, PBW, GRID, ACES, SMOG):")?;
     let esg_investments: Vec<&str> = investments_input.split(',').map(|s| s.trim()).collect();
 
     // Fetch ESG ratings and historical performance data for each investment
@@ -166,9 +148,9 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let api_key = match get_openai_api_key() {
         Ok(key) => key,
-        Err(err) => {
-            eprintln!("{}", err);
-            return Err(err.into());
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return Err(NaluFxError::InvalidData);
         }
     };
 
@@ -196,9 +178,9 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let openai_url = "https://api.openai.com/v1/chat/completions";
     let response = match send_openai_request(&client, openai_url, &api_key, request_body).await {
         Ok(response) => response,
-        Err(err) => {
-            eprintln!("Error generating impact report: {}", err);
-            return Err(err.into());
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return Err(NaluFxError::InvalidData);
         }
     };
 
