@@ -1,6 +1,3 @@
-use crate::errors::AllocationError;
-use ndarray::Array2;
-
 /// Checks if the input slices have the same length.
 ///
 /// This macro accepts multiple slices and verifies that all slices have the same length. If any
@@ -238,84 +235,55 @@ macro_rules! normalize_features {
     }};
 }
 
-/// Extracts features from the input data for clustering.
+/// Extracts and normalizes features from the input data.
 ///
-/// This function takes slices of daily returns, cash flows, market indices, and fund characteristics,
-/// and constructs a feature matrix for clustering. It normalizes the features before returning them.
+/// This macro takes in the daily returns, cash flows, market indices, and fund characteristics,
+/// and extracts them into a feature matrix. The feature matrix is then normalized by subtracting
+/// the mean and dividing by the standard deviation along each column.
 ///
 /// # Arguments
 ///
-/// * `daily_returns` - A slice of daily returns.
-/// * `cash_flows` - A slice of cash flows.
-/// * `market_indices` - A slice of market indices.
-/// * `fund_characteristics` - A slice of fund characteristics.
+/// * `$features` - The mutable feature matrix to be filled and normalized.
+/// * `$daily_returns` - A slice of daily returns.
+/// * `$cash_flows` - A slice of cash flows.
+/// * `$market_indices` - A slice of market indices.
+/// * `$fund_characteristics` - A slice of fund characteristics.
 ///
 /// # Returns
 ///
-/// A feature matrix (`Array2<f64>`) for clustering, or an error if input slices have different lengths.
+/// The normalized feature matrix.
 ///
-/// # Errors
-///
-/// Returns an error if the input slices have different lengths.
-///
-/// # Examples
+/// # Example
 ///
 /// ```
-/// use nalufx::macros::calculations_macros::extract_features;
+/// use nalufx::extract_features;
+/// use nalufx::normalize_features;
+/// use nalufx::fill_feature_matrix;
 /// use nalufx::errors::AllocationError;
+/// use ndarray::Array2;
 ///
-/// let daily_returns = vec![0.01, 0.02, -0.01];
-/// let cash_flows = vec![1000.0, 1020.0, 1010.0];
-/// let market_indices = vec![1.0, 1.01, 1.02];
-/// let fund_characteristics = vec![0.5, 0.6, 0.7];
-/// let features = extract_features(&daily_returns, &cash_flows, &market_indices, &fund_characteristics).unwrap();
-/// assert_eq!(features.shape(), &[3, 4]);
+/// let daily_returns: Vec<f64> = vec![0.01, 0.02, -0.01];
+/// let cash_flows: Vec<f64> = vec![1000.0, 1020.0, 1010.0];
+/// let market_indices: Vec<f64> = vec![1.0, 1.01, 1.02];
+/// let fund_characteristics: Vec<f64> = vec![0.5, 0.6, 0.7];
+/// let mut features = Array2::<f64>::zeros((daily_returns.len(), 4));
+/// let normalized_features = extract_features!(daily_returns, cash_flows, market_indices, fund_characteristics)?;
 /// # Ok::<(), AllocationError>(())
 /// ```
-pub fn extract_features(
-    daily_returns: &[f64],
-    cash_flows: &[f64],
-    market_indices: &[f64],
-    fund_characteristics: &[f64],
-) -> Result<Array2<f64>, AllocationError> {
-    // Check if input slices have the same length
-    check_input_lengths!(
-        daily_returns,
-        cash_flows,
-        market_indices,
-        fund_characteristics
-    )?;
-
-    // Check for empty inputs
-    check_empty_inputs!(
-        daily_returns,
-        cash_flows,
-        market_indices,
-        fund_characteristics
-    )?;
-
-    // Check for invalid data
-    check_invalid_data!(daily_returns, cash_flows)?;
-
-    // Check for outliers
-    check_outliers!(1.0, daily_returns)?;
-    check_outliers!(1_000_000.0, cash_flows)?;
-
-    let n = daily_returns.len();
-    let mut features = Array2::<f64>::zeros((n, 4));
-
-    // Fill the feature matrix
-    fill_feature_matrix!(
-        features,
-        n,
-        daily_returns,
-        cash_flows,
-        market_indices,
-        fund_characteristics
-    );
-
-    // Normalize the features
-    normalize_features!(features);
-
-    Ok(features)
+#[macro_export]
+macro_rules! extract_features {
+    ($daily_returns:expr, $cash_flows:expr, $market_indices:expr, $fund_characteristics:expr) => {{
+        let n = $daily_returns.len();
+        let mut features = ndarray::Array2::<f64>::zeros((n, 4));
+        $crate::fill_feature_matrix!(
+            features,
+            n,
+            $daily_returns,
+            $cash_flows,
+            $market_indices,
+            $fund_characteristics
+        );
+        $crate::normalize_features!(features);
+        Ok::<_, $crate::errors::AllocationError>(features)
+    }};
 }

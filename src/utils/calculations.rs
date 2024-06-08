@@ -191,13 +191,16 @@ pub fn calculate_optimal_allocation(
 /// # Examples
 ///
 /// ```
-/// use nalufx::utils::calculations::extract_features;
+/// use nalufx::extract_features;
+/// use nalufx::errors::AllocationError;
+///
 /// let daily_returns = vec![0.01, 0.02, -0.01];
 /// let cash_flows = vec![1000.0, 1020.0, 1010.0];
 /// let market_indices = vec![1.0, 1.01, 1.02];
 /// let fund_characteristics = vec![0.5, 0.6, 0.7];
-/// let features = extract_features(&daily_returns, &cash_flows, &market_indices, &fund_characteristics).unwrap();
+/// let features = extract_features!(&daily_returns, &cash_flows, &market_indices, &fund_characteristics).unwrap();
 /// assert_eq!(features.shape(), &[3, 4]);
+/// # Ok::<(), AllocationError>(())
 /// ```
 pub fn extract_features(
     daily_returns: &[f64],
@@ -212,6 +215,21 @@ pub fn extract_features(
         market_indices,
         fund_characteristics
     )?;
+
+    // Check for empty inputs
+    check_empty_inputs!(
+        daily_returns,
+        cash_flows,
+        market_indices,
+        fund_characteristics
+    )?;
+
+    // Check for invalid data
+    check_invalid_data!(daily_returns, cash_flows)?;
+
+    // Check for outliers
+    check_outliers!(1.0, daily_returns)?;
+    check_outliers!(1_000_000.0, cash_flows)?;
 
     let n = daily_returns.len();
     let mut features = Array2::<f64>::zeros((n, 4));
