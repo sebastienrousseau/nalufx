@@ -1,4 +1,4 @@
-//! # Stock Data Fetching and Analysis
+//! # Stock Data Fetching and Analysis Example
 //! //!
 //! This example demonstrates how to fetch historical closing prices for a user-specified stock,
 //! calculate daily returns, cash flows, and perform sentiment analysis, reinforcement learning, and optimal allocation.

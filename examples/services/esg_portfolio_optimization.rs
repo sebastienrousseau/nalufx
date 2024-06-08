@@ -1,4 +1,4 @@
-//! ESG-Focused Portfolio Optimization
+//! # ESG-Focused Portfolio Optimization Example
 //!
 //! This example demonstrates how to optimize a portfolio with a strong emphasis on environmental, social, and governance (ESG) factors.
 //! It fetches ESG ratings and historical performance data for a diverse range of socially responsible investments (SRI) and green bonds.

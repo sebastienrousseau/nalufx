@@ -1,4 +1,4 @@
-//! Performance Measurement Example
+//! # Performance Measurement Example
 //!
 //! This example demonstrates how to measure the performance of a stock or portfolio using a Gain/Loss Analysis.
 //! It fetches historical market data, calculates the initial market value, net investment, final market value,

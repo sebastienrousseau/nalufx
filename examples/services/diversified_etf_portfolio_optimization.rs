@@ -1,4 +1,4 @@
-//! Diversified ETF Portfolio Optimization
+//! # Diversified ETF Portfolio Optimization Example
 //!
 //! This example demonstrates how to optimize a diversified portfolio of ETFs (Exchange-Traded Funds).
 //! It fetches historical closing prices for user-specified ETFs, calculates daily returns, cash flows,

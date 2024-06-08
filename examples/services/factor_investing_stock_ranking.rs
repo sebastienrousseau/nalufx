@@ -1,4 +1,4 @@
-//! # Stock Ranking System based on Factor Investing (Yahoo Finance API)
+//! # Stock Ranking System based on Factor Investing (Yahoo Finance API) Example
 //!
 //! This module demonstrates how to fetch financial data for a list of stocks using the Yahoo Finance API,
 //! calculate various factors, and generate a ranking based on the factor scores. The factors considered

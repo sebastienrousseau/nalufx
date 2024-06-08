@@ -21,7 +21,7 @@ pub mod technical_analysis_indicators;
 
 /// Imports
 use nalufx::errors::NaluFxError;
-use nalufx::utils::input::get_input;
+use nalufx::{macro_ascii, utils::input::get_input};
 
 /// The main function of the application.
 /// It provides a menu for the user to choose an example to run.
@@ -35,22 +35,24 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
     // Initialize the logger
     logger::main();
 
+    // Printing the ASCII art to the console
+    println!("{}", macro_ascii!("NaluFX"));
+
     // Print the options to the user
-    println!("Choose an example to run:");
-    println!("1. Analyze Bellwether Stock");
-    println!("2. Optimise ETF Portfolio");
-    println!("3. Factor Investing Stock Ranking");
-    println!("4. Fetch Stock Data");
-    println!("5. Generate Portfolio Report");
-    println!("6. Generate Technical Analysis");
-    println!("7. ESG Portfolio Optimization");
-    println!("8. Risk Parity Portfolio Optimization");
-    println!("9. Mean-Variance Portfolio Optimization");
-    println!("0. Exit");
-    println!("Enter the number of the example you want to run: ");
+    println!("Choose an example to run:\n");
+    println!("1. Analyze Bellwether Stock - Perform in-depth analysis of a key stock to gauge market trends.");
+    println!("2. Optimize ETF Portfolio - Find the optimal allocation for your ETF investments.");
+    println!("3. Create ESG Portfolio - Build a socially responsible investment portfolio.");
+    println!("4. Rank Stocks by Factors - Rank stocks based on key financial factors.");
+    println!("5. Retrieve Stock Data - Fetch historical data for specified stocks.");
+    println!("6. Generate Portfolio Report - Generate a comprehensive report for your investment portfolio.");
+    println!("7. Optimize Mean-Variance Portfolio - Use the mean-variance approach for portfolio optimization.");
+    println!("8. Balance Risk Parity Portfolio - Allocate risk equally across all assets in your portfolio.");
+    println!("9. Perform Technical Analysis - Generate technical indicators for stocks to inform trading decisions.");
+    println!("0. Quit - Exit the application.");
 
     // Read the user's input
-    let input = match get_input("Enter the number of the example you want to run: ") {
+    let input = match get_input("\nEnter the number of the example you want to run: ") {
         Ok(input) => input,
         Err(e) => {
             eprintln!("Error reading input: {}", e);
@@ -70,7 +72,7 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
         Ok(8) => risk_parity_portfolio_optimization::main()?,
         Ok(9) => technical_analysis_indicators::main()?,
         Ok(0) => {
-            println!("Exiting...");
+            println!("Exiting NaluFX, goodbye!");
             return Ok(());
         }
         _ => return Err(NaluFxError::InvalidOption),

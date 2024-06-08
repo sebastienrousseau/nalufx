@@ -1,5 +1,5 @@
 use crate::{
-    api::models::{CashFlowRequest, CashFlowResponse},
+    models::cash_flow_models::{CashFlowRequest, CashFlowResponse},
     utils::calculations::calculate_optimal_allocation,
 };
 use actix_web::{post, web, HttpResponse, Responder};

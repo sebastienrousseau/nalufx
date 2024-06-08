@@ -1,3 +1,6 @@
+/// This module provides functionality for generating ASCII art from text using the FIGlet library.
+pub mod ascii;
+
 /// This module will return errors if the calculations fail due to invalid input data,
 /// mathematical errors, or insufficient data for analysis.
 pub mod calculations;

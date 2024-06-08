@@ -1,4 +1,4 @@
-//! Mean-Variance Portfolio Optimization
+//! # Mean-Variance Portfolio Optimization Example
 //!
 //! This example demonstrates how to optimize a portfolio using the mean-variance optimization approach.
 //! The code fetches historical performance data for a set of assets, calculates the covariance matrix and mean returns,

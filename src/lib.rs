@@ -50,6 +50,9 @@ pub mod config;
 /// This module contains error definitions and handling functionality.
 pub mod errors;
 
+/// This module contains the generators for ASCII art.
+pub mod macros;
+
 /// This module contains data models used throughout the application.
 pub mod models;
 

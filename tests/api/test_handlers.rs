@@ -4,7 +4,7 @@ mod tests {
     use lazy_static::lazy_static;
     use nalufx::{
         api::handlers::{get_openai_api_key, parse_openai_response, send_openai_request},
-        models::{CashFlowRequest, CashFlowResponse, ErrorResponse},
+        models::cash_flow_models::{CashFlowRequest, CashFlowResponse, ErrorResponse},
     };
     use reqwest::Client;
     use serde_json::json;

@@ -1,4 +1,4 @@
-//! Technical Analysis Indicators
+//! # Technical Analysis Indicators Example
 //!
 //! This example demonstrates how to fetch historical stock data, calculate technical indicators,
 //! and generate a comprehensive technical analysis report for a user-specified stock using OpenAI.

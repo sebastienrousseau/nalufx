@@ -1,4 +1,4 @@
-//! Risk Parity Portfolio Optimization
+//! # Risk Parity Portfolio Optimization Example
 //!
 //! This example demonstrates how to create a risk parity portfolio, where the goal is to allocate risk equally across all assets in the portfolio.
 //! The code fetches historical performance data for a set of assets, calculates the risk contribution of each asset, and then optimizes the portfolio
