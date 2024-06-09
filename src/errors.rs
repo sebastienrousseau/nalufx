@@ -29,7 +29,6 @@ use thiserror::Error;
 /// fn example_function() -> Result<(), NaluFxError> {
 ///     Err(NaluFxError::InputMismatch)
 /// }
-/// ```
 #[derive(Debug, Error)]
 pub enum NaluFxError {
     /// An error occurred during clustering.
@@ -100,9 +99,21 @@ pub enum NaluFxError {
     #[error("Failed to parse date")]
     DateParseError(#[from] chrono::ParseError),
 
+    /// An error occurred with CSV parsing.
+    #[error("CSV parsing error: {0}")]
+    CsvError(#[from] csv::Error),
+
+    /// An error occurred during JSON serialization/deserialization.
+    #[error("JSON serialization/deserialization error: {0}")]
+    JsonError(#[from] serde_json::Error),
+
     /// An error occurred in the NaluFx library.
     #[error("NaluFxError: {0}")]
     NaluFxError(String),
+
+    /// An error occurred with string manipulation.
+    #[error("String error: {0}")]
+    StringError(String),
 }
 
 /// Represents an error that can occur during allocation.

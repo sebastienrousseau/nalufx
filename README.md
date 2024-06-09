@@ -180,6 +180,14 @@ Implement and analyze various technical analysis indicators such as moving avera
 cargo run --example technical_analysis_indicators
 ```
 
+### Automate Cash Allocation
+
+Automatically allocate cash to ETFs and mutual funds based on historical performance and market conditions.
+
+```shell
+cargo run --example automate_cash_allocation
+```
+
 ## Semantic Versioning Policy
 
 For transparency into our release cycle and in striving to maintain backward compatibility, `NaluFX` follows [semantic versioning][06].

@@ -39,6 +39,10 @@ include = [
 debug = true
 
 [[example]]
+name = "automated_cash_allocation"
+path = "examples/services/automated_cash_allocation.rs"
+
+[[example]]
 # Description: Analyzes the performance of a bellwether stock and its correlation with the broader market.
 name = "bellwether_stock_analysis"
 path = "examples/services/bellwether_stock_analysis.rs"

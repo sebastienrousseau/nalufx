@@ -1,3 +1,5 @@
+/// Automated Cash Allocation Example
+pub mod automated_cash_allocation;
 /// Bellwether Stock Analysis Example
 pub mod bellwether_stock_analysis;
 /// Diversified ETF Portfolio Optimization Example
@@ -49,6 +51,9 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
     println!("7. Optimize Mean-Variance Portfolio - Use the mean-variance approach for portfolio optimization.");
     println!("8. Balance Risk Parity Portfolio - Allocate risk equally across all assets in your portfolio.");
     println!("9. Perform Technical Analysis - Generate technical indicators for stocks to inform trading decisions.");
+    println!(
+        "10. Automate Cash Allocation - Automatically allocate cash to ETFs and mutual funds."
+    );
     println!("0. Quit - Exit the application.");
 
     // Read the user's input
@@ -61,7 +66,7 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
     };
 
     // Determine which example to run based on the user's input
-    match input.trim().parse() {
+    match input.trim().parse::<u32>() {
         Ok(1) => bellwether_stock_analysis::main()?,
         Ok(2) => diversified_etf_portfolio_optimization::main()?,
         Ok(3) => esg_portfolio_optimization::main()?,
@@ -71,6 +76,7 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
         Ok(7) => mean_variance_optimization::main()?,
         Ok(8) => risk_parity_portfolio_optimization::main()?,
         Ok(9) => technical_analysis_indicators::main()?,
+        Ok(10) => automated_cash_allocation::main()?,
         Ok(0) => {
             println!("\nExiting NaluFX, goodbye!\n");
             return Ok(());
