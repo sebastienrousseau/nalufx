@@ -16,8 +16,9 @@
 use chrono::{DateTime, Utc};
 use log::error;
 use nalufx::{
-    api::handlers::{get_openai_api_key, send_openai_request, OpenAIResponse},
     errors::NaluFxError,
+    llm::openai::{get_openai_api_key, send_openai_request},
+    models::openai::OpenAIResponse,
     services::fetch_data::fetch_data,
     utils::{
         currency::format_currency, date::validate_date, input::get_input, ticker::validate_ticker,

@@ -18,8 +18,9 @@
 //! - Support and Resistance Levels: Represents key price levels where the stock tends to find support or resistance. They are used to identify potential entry and exit points.
 
 use nalufx::{
-    api::handlers::{get_openai_api_key, send_openai_request},
     errors::NaluFxError,
+    llm::openai::{get_openai_api_key, send_openai_request},
+    models::openai::OpenAIResponse,
     services::fetch_data::fetch_data,
     utils::{date::validate_date, input::get_input, ticker::validate_ticker},
 };
@@ -267,11 +268,10 @@ Please ensure that the report is well-structured, easy to understand, and adhere
         Err(err) => return Err(err),
     };
 
-    let openai_response: nalufx::api::handlers::OpenAIResponse = serde_json::from_str(&response)
-        .map_err(|err| {
-            eprintln!("Error parsing response JSON: {:?}", err);
-            "Error parsing response JSON"
-        })?;
+    let openai_response: OpenAIResponse = serde_json::from_str(&response).map_err(|err| {
+        eprintln!("Error parsing response JSON: {:?}", err);
+        "Error parsing response JSON"
+    })?;
 
     let generated_text = openai_response
         .choices
