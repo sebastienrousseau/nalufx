@@ -53,7 +53,7 @@ use csv::Reader;
 use nalufx::errors::NaluFxError;
 use nalufx::utils::currency::format_currency;
 use nalufx::{
-    llm::openai::{get_openai_api_key, send_openai_request},
+    llms::openai::{get_openai_api_key, send_openai_request},
     utils::{date::validate_date, input::get_input},
 };
 use reqwest::{header, Client};

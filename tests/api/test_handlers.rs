@@ -3,7 +3,7 @@ mod tests {
     use actix_web::{test, web, App, HttpResponse, Responder};
     use lazy_static::lazy_static;
     use nalufx::{
-        llm::openai::{get_openai_api_key, parse_openai_response, send_openai_request},
+        llms::openai::{get_openai_api_key, parse_openai_response, send_openai_request},
         models::cash_flow_dm::{CashFlowRequest, CashFlowResponse, ErrorResponse},
     };
     use reqwest::Client;

@@ -46,7 +46,7 @@ pub mod api;
 pub mod config;
 
 /// This module contains the logic for interacting with the OpenAI API.
-pub mod llm;
+pub mod llms;
 
 /// This module contains error definitions and handling functionality.
 pub mod errors;
