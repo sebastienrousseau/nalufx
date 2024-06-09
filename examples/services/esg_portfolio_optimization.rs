@@ -34,7 +34,7 @@
 use nalufx::{
     errors::NaluFxError,
     llm::openai::{get_openai_api_key, send_openai_request},
-    models::openai::OpenAIResponse,
+    models::openai_dm::OpenAIResponse,
     services::{fetch_data::fetch_data, processing::calculate_daily_returns},
     utils::input::get_input,
 };

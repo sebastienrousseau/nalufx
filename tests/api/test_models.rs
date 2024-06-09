@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use nalufx::models::financial_models::{
+    use nalufx::models::financial_dm::{
         CashFlowRequest, CashFlowResponse, ErrorResponse, HistoricalData,
     };
     use serde_json;

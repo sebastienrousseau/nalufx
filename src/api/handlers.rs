@@ -1,6 +1,6 @@
 use crate::llm::openai::{get_openai_api_key, parse_openai_response, send_openai_request};
 use crate::{
-    models::cash_flow_models::{CashFlowRequest, CashFlowResponse},
+    models::cash_flow_dm::{CashFlowRequest, CashFlowResponse},
     utils::calculations::calculate_optimal_allocation,
 };
 use actix_web::{post, web, HttpResponse, Responder};

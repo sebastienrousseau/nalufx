@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use nalufx::models::financial_models::CashFlowRequest;
+/// use nalufx::models::financial_dm::CashFlowRequest;
 ///
 /// let request = CashFlowRequest {
 ///     historical_data: vec![1.0, 2.0, 3.0],
@@ -31,7 +31,7 @@ pub struct CashFlowRequest {
 /// # Example
 ///
 /// ```
-/// use nalufx::models::financial_models::CashFlowResponse;
+/// use nalufx::models::financial_dm::CashFlowResponse;
 ///
 /// let response = CashFlowResponse {
 ///     predictions: vec![1.0, 2.0, 3.0],
@@ -55,7 +55,7 @@ pub struct CashFlowResponse {
 /// # Example
 ///
 /// ```
-/// use nalufx::models::financial_models::ErrorResponse;
+/// use nalufx::models::financial_dm::ErrorResponse;
 ///
 /// let error_response = ErrorResponse {
 ///     error: String::from("An error occurred"),
@@ -77,7 +77,7 @@ pub struct ErrorResponse {
 /// # Example
 ///
 /// ```
-/// use nalufx::models::financial_models::HistoricalData;
+/// use nalufx::models::financial_dm::HistoricalData;
 ///
 /// let historical_data = HistoricalData {
 ///     ticker: String::from("AAPL"),

@@ -1,6 +1,6 @@
 //! This module provides functionality for generating ASCII art from text using the FIGlet library.
 
-use crate::models::error_ascii_art::AsciiArtError;
+use crate::models::ascii_art_dm::AsciiArtError;
 use figlet_rs::FIGfont;
 
 /// Generates ASCII art from the given text using the standard `FIGfont`.

@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 /// # Examples
 ///
 /// ```
-/// use nalufx::models::cash_flow_models::CashFlowRequest;
+/// use nalufx::models::cash_flow_dm::CashFlowRequest;
 ///
 /// let request = CashFlowRequest {
 ///     historical_data: vec![1.0, 2.0, 3.0],
@@ -46,7 +46,7 @@ pub struct CashFlowRequest {
 /// # Examples
 ///
 /// ```
-/// use nalufx::models::cash_flow_models::CashFlowResponse;
+/// use nalufx::models::cash_flow_dm::CashFlowResponse;
 ///
 /// let response = CashFlowResponse {
 ///     predictions: vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
@@ -81,7 +81,7 @@ pub struct CashFlowResponse {
 /// # Examples
 ///
 /// ```
-/// use nalufx::models::cash_flow_models::ErrorResponse;
+/// use nalufx::models::cash_flow_dm::ErrorResponse;
 ///
 /// let error_response = ErrorResponse {
 ///     error: "Invalid historical data".to_string(),

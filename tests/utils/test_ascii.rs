@@ -2,7 +2,7 @@
 mod tests {
     use nalufx::{
         macro_ascii,
-        models::error_ascii_art::AsciiArtError,
+        models::ascii_art_dm::AsciiArtError,
         utils::ascii::{generate_ascii_art, load_standard_font},
     };
 

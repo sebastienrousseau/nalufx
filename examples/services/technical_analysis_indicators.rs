@@ -20,7 +20,7 @@
 use nalufx::{
     errors::NaluFxError,
     llm::openai::{get_openai_api_key, send_openai_request},
-    models::openai::OpenAIResponse,
+    models::openai_dm::OpenAIResponse,
     services::fetch_data::fetch_data,
     utils::{date::validate_date, input::get_input, ticker::validate_ticker},
 };
