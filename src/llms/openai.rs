@@ -1,10 +1,51 @@
+use super::LLM;
 use crate::models::openai_dm::OpenAIResponse;
 use actix_web::HttpResponse;
+use async_trait::async_trait;
 use dotenvy::dotenv;
 use log::error;
 use reqwest::Client;
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::env;
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
+/// A struct representing the OpenAI API.
+pub struct OpenAI;
+
+#[async_trait]
+impl LLM for OpenAI {
+    async fn send_request(
+        &self,
+        client: &Client,
+        api_key: &str,
+        prompt: &str,
+        max_tokens: usize,
+    ) -> Result<Value, reqwest::Error> {
+        let request_body = json!({
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a financial analyst specializing in automated cash allocation."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "max_tokens": max_tokens,
+        });
+
+        let response = client
+            .post("https://api.openai.com/v1/chat/completions")
+            .header("Authorization", format!("Bearer {}", api_key))
+            .json(&request_body)
+            .send()
+            .await?;
+
+        response.json().await
+    }
+}
 
 /// Retrieves the OpenAI API key from the environment variables or.env file.
 ///

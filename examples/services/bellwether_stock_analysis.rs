@@ -15,8 +15,8 @@ use chrono::Utc;
 use nalufx::{
     errors::NaluFxError,
     services::{
-        fetch_data::fetch_data,
-        processing::{calculate_cash_flows, calculate_daily_returns},
+        fetch_data_svc::fetch_data,
+        processing_svc::{calculate_cash_flows, calculate_daily_returns},
     },
     utils::{
         calculations::{

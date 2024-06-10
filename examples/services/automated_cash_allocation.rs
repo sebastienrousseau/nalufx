@@ -16,52 +16,18 @@
 //! The generated report will be saved to `data/allocation_report.json`.
 
 use csv::Reader;
-use nalufx::errors::NaluFxError;
-use nalufx::utils::currency::format_currency;
 use nalufx::{
-    llms::openai::{get_openai_api_key, send_openai_request},
-    utils::{date::validate_date, input::get_input},
+    errors::NaluFxError,
+    llms::{LLM, openai::OpenAI}, // Add other LLMs as needed
+    services::llm_svc::generate_analysis,
+    utils::{currency::format_currency, date::validate_date, input::get_input}
 };
 use reqwest::{header, Client};
-use serde::{Deserialize, Serialize};
-use serde_json::json;
-use std::collections::HashMap;
-use std::io::{BufReader, BufWriter};
-use tokio::fs;
-use tokio::io::AsyncReadExt;
+use serde::Serialize;
+use std::{collections::HashMap, io::BufReader};
+use tokio::{fs, io::AsyncReadExt};
 
-/// Represents an ETF (Exchange Traded Fund).
-#[derive(Debug, Deserialize)]
-struct Etf {
-    symbol: String,
-    name: String,
-    price: f64,
-    shares_outstanding: f64,
-}
-
-/// Represents a Mutual Fund.
-#[derive(Debug, Deserialize)]
-struct MutualFund {
-    symbol: String,
-    name: String,
-    price: f64,
-    net_assets: f64,
-}
-
-/// Represents allocation rules for ETFs and Mutual Funds.
-#[derive(Debug, Deserialize, Serialize)]
-struct AllocationRules {
-    etf_percentage: f64,
-    mutual_fund_percentage: f64,
-}
-
-/// Represents an allocation order for a fund.
-#[derive(Debug, Clone, Serialize)]
-struct AllocationOrder {
-    symbol: String,
-    name: String,
-    amount: f64,
-}
+use nalufx::models::allocation_dm::{AllocationOrder, Etf, MutualFund, AllocationRules};
 
 /// Represents a report of allocation orders.
 #[derive(Debug, Serialize)]
@@ -75,6 +41,26 @@ struct Report {
 /// The main function for the automated cash allocation example.
 #[tokio::main]
 pub(crate) async fn main() -> Result<(), NaluFxError> {
+    // Get user input for LLM choice
+    let llm_choice = get_input("Enter the LLM to use (e.g., openai, claude, gemini, llama, mistral, ollama):")?;
+    let (llm, api_key): (Box<dyn LLM>, String) = match llm_choice.as_str() {
+        "openai" => {
+            let api_key = match nalufx::llms::openai::get_openai_api_key() {
+                Ok(key) => key,
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    return Err(NaluFxError::InvalidData);
+                }
+            };
+            (Box::new(OpenAI), api_key)
+        },
+        // Add other cases for different LLMs with their respective API key functions
+        _ => {
+            eprintln!("Unsupported LLM choice");
+            return Err(NaluFxError::InvalidOption);
+        }
+    };
+
     // Get user input for portfolio name, investor's values, and financial objectives
     let portfolio_name = get_input("Enter the name of the portfolio - (e.g., Growth Portfolio, Balanced Portfolio, Sustainable Future Portfolio):")?;
     let values_input = get_input("Enter the investor's values (comma-separated) - (e.g., Environmental sustainability, social responsibility, corporate governance):")?;
@@ -105,8 +91,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Step 2: Determine allocation percentages
     let allocation_rules = load_allocation_rules("data/allocation_rules.json").await?;
     let mut etf_allocation = allocate_funds(&etf_data, allocation_rules.etf_percentage);
-    let mut mutual_fund_allocation =
-        allocate_funds(&mutual_fund_data, allocation_rules.mutual_fund_percentage);
+    let mut mutual_fund_allocation = allocate_funds(&mutual_fund_data, allocation_rules.mutual_fund_percentage);
 
     // Step 3: Fetch real-time prices for all symbols
     let all_symbols: Vec<String> = etf_data
@@ -121,7 +106,11 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     update_prices_in_allocations(&mut mutual_fund_allocation, &real_time_prices);
 
     // Step 4: Generate detailed analysis
+    let client = Client::new();
     let analysis = generate_analysis(
+        llm, // Pass the boxed trait object here
+        &client,
+        &api_key,
         &portfolio_name,
         &etf_allocation,
         &mutual_fund_allocation,
@@ -131,7 +120,11 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         &end_date_input,
         &real_time_prices,
     )
-    .await?;
+    .await
+    .map_err(|e| {
+        eprintln!("Error generating analysis: {}", e);
+        NaluFxError::InvalidData
+    })?;
 
     // Step 5: Generate report
     let report = generate_allocation_report(&etf_allocation, &mutual_fund_allocation, analysis);
@@ -245,108 +238,6 @@ fn generate_allocation_report(
     }
 }
 
-/// Generates a detailed analysis of the allocation.
-async fn generate_analysis(
-    portfolio_name: &str,
-    etf_allocation: &[AllocationOrder],
-    mutual_fund_allocation: &[AllocationOrder],
-    values_input: &str,
-    financial_objectives_input: &str,
-    start_date: &str,
-    end_date: &str,
-    real_time_prices: &HashMap<String, (f64, f64)>,
-) -> Result<String, NaluFxError> {
-    let client = Client::new();
-    let api_key = match get_openai_api_key() {
-        Ok(key) => key,
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            return Err(NaluFxError::InvalidData);
-        }
-    };
-
-    let allocations_str = etf_allocation
-        .iter()
-        .map(|order| {
-            format!(
-                "{}: {} ({})",
-                order.name,
-                format_currency(order.amount),
-                order.symbol
-            )
-        })
-        .chain(mutual_fund_allocation.iter().map(|order| {
-            format!(
-                "{}: {} ({})",
-                order.name,
-                format_currency(order.amount),
-                order.symbol
-            )
-        }))
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    let performance_str = real_time_prices
-        .iter()
-        .map(|(symbol, (start_price, end_price))| {
-            format!(
-                "{}: Start Price: {}, End Price: {}, Return: {:.2}%",
-                symbol,
-                format_currency(*start_price),
-                format_currency(*end_price),
-                ((*end_price - *start_price) / *start_price) * 100.0
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    let request_body = json!({
-        "model": "gpt-3.5-turbo",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are a financial analyst specializing in automated cash allocation. Generate a comprehensive impact report for a portfolio, highlighting its performance, diversification, and alignment with the investor's values and financial objectives. Include sections on ETF allocations over time, ETF investment objectives, and Preferred ETF investment strategies, each with 3 Key Take Outs."
-            },
-            {
-                "role": "user",
-                "content": format!("Portfolio Name: {}\n\nPortfolio Allocations:\n{}\n\nInvestor Values: {}\nFinancial Objectives: {}\nStart Date: {}\nEnd Date: {}\n\nPerformance:\n{}", portfolio_name, allocations_str, values_input, financial_objectives_input, start_date, end_date, performance_str)
-            }
-        ],
-        "max_tokens": 1500,
-    });
-
-    let openai_url = "https://api.openai.com/v1/chat/completions";
-    let response = match send_openai_request(&client, openai_url, &api_key, request_body).await {
-        Ok(response) => response,
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            return Err(NaluFxError::StringError(e.to_string()));
-        }
-    };
-
-    let impact_report: serde_json::Value = serde_json::from_str(&response)?;
-    let generated_report = impact_report["choices"][0]["message"]["content"]
-        .as_str()
-        .unwrap_or("")
-        .to_string();
-
-    Ok(generated_report)
-}
-
-/// Saves the allocation report to a JSON file.
-async fn save_report(report: &Report, file_path: &str) -> Result<(), NaluFxError> {
-    let file = fs::File::create(file_path).await.map_err(|e| {
-        NaluFxError::InputError(std::io::Error::new(
-            e.kind(),
-            format!("Failed to create report file: {}", file_path),
-        ))
-    })?;
-    let std_file = file.into_std().await;
-    let writer = BufWriter::new(std_file);
-    serde_json::to_writer_pretty(writer, report)?;
-    Ok(())
-}
-
 /// Prints the results of the allocation report.
 fn print_results(report: &Report) {
     println!("\n--- Allocation Report ---");
@@ -376,6 +267,22 @@ fn print_results(report: &Report) {
         "\n--- Automated Cash Allocation Analysis ---\n\n{}",
         report.analysis
     );
+}
+
+/// Saves the allocation report to a JSON file.
+async fn save_report(report: &Report, file_path: &str) -> Result<(), NaluFxError> {
+    let file = fs::File::create(file_path).await.map_err(|e| {
+        NaluFxError::InputError(std::io::Error::new(
+            e.kind(),
+            format!("Failed to create report file: {}", file_path),
+        ))
+    })?;
+    let std_file = file.into_std().await;
+    let writer = std::io::BufWriter::new(std_file);
+    serde_json::to_writer_pretty(writer, report).map_err(|_e| {
+        NaluFxError::InvalidData
+    })?;
+    Ok(())
 }
 
 /// Trait to define common behavior for fund data.

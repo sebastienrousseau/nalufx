@@ -16,7 +16,10 @@
 
 use nalufx::{
     errors::NaluFxError,
-    services::{fetch_data::fetch_data, processing::calculate_daily_returns},
+    services::{
+        fetch_data_svc::fetch_data,
+        processing_svc::calculate_daily_returns
+    },
     utils::{date::validate_date, input::get_input},
 };
 use ndarray::Array2;

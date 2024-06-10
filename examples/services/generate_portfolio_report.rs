@@ -19,7 +19,7 @@ use nalufx::{
     errors::NaluFxError,
     llms::openai::{get_openai_api_key, send_openai_request},
     models::openai_dm::OpenAIResponse,
-    services::fetch_data::fetch_data,
+    services::fetch_data_svc::fetch_data,
     utils::{
         currency::format_currency, date::validate_date, input::get_input, ticker::validate_ticker,
         validation::validate_positive_float,

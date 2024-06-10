@@ -91,6 +91,7 @@ path = "examples/services/technical_analysis_indicators.rs"
 # Dependencies are only used for building.
 actix-web = "4.6.0"
 augurs-ets = "0.1.2"
+async-trait = "0.1.80"
 chrono = "0.4.38"
 csv = "1.3.0"
 dotenvy = "0.15.7"

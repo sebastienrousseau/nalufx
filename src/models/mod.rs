@@ -1,3 +1,6 @@
+/// Data models for the allocation calculations.
+pub mod allocation_dm;
+
 /// Data models for the OpenAI API.
 pub mod cash_flow_dm;
 

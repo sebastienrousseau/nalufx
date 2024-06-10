@@ -3,52 +3,52 @@
     {
       "symbol": "SPY",
       "name": "SPDR S&P 500 ETF Trust",
-      "amount": 534.260009765625
+      "amount": 535.6599731445312
     },
     {
       "symbol": "IVV",
       "name": "iShares Core S&P 500 ETF",
-      "amount": 536.989990234375
+      "amount": 538.3300170898438
     },
     {
       "symbol": "VOO",
       "name": "Vanguard S&P 500 ETF",
-      "amount": 491.1499938964844
+      "amount": 492.4100036621094
     },
     {
       "symbol": "QQQ",
       "name": "Invesco QQQ Trust",
-      "amount": 463.3900146484375
+      "amount": 464.8299865722656
     },
     {
       "symbol": "VTI",
       "name": "Vanguard Total Stock Market ETF",
-      "amount": 263.17999267578125
+      "amount": 263.8299865722656
     },
     {
       "symbol": "VEA",
       "name": "Vanguard FTSE Developed Markets ETF",
-      "amount": 50.564998626708984
+      "amount": 50.619998931884766
     },
     {
       "symbol": "BND",
       "name": "Vanguard Total Bond Market ETF",
-      "amount": 71.55999755859375
+      "amount": 71.61000061035156
     },
     {
       "symbol": "AGG",
       "name": "iShares Core U.S. Aggregate Bond ETF",
-      "amount": 96.45999908447266
+      "amount": 96.54000091552734
     },
     {
       "symbol": "IEMG",
       "name": "iShares Core MSCI Emerging Markets ETF",
-      "amount": 53.23500061035156
+      "amount": 53.220001220703125
     },
     {
       "symbol": "GLD",
       "name": "SPDR Gold Shares ETF",
-      "amount": 213.779296875
+      "amount": 213.5399932861328
     }
   ],
   "mutual_fund_orders": [
@@ -103,6 +103,6 @@
       "amount": 222030000000.0
     }
   ],
-  "total_allocation": 17385871502774.57,
-  "analysis": "## Impact Report: Growth Portfolio\n\n### Performance Analysis\n\n**Key Take Outs:**\n1. The Growth Portfolio has shown exceptional performance over the analysis period from January 1, 2024, to June 1, 2024, with impressive returns across most ETFs.\n   \n2. The highest returns were observed in QQQ (807.50%), VOO (384.75%), and GLD (381.70%), indicating strong growth potential and diversification within the portfolio.\n   \n3. Despite challenges in the bond market, AGG and BND experienced negative returns (-5.59% and -4.89%, respectively) underscoring the importance of balancing risk with high-growth assets.\n\n### Diversification Overview\n\n**Key Take Outs:**\n1. The Growth Portfolio is well-diversified across various asset classes, including equity (SPY, IVV, VOO, QQQ, VTI), bonds (BND, AGG), emerging markets (IEMG), developed markets (VEA), and gold (GLD), enhancing risk management and potential upside.\n\n2. The inclusion of different ETFs such as VTI and IEMG provides exposure to a broad range of market segments, reducing concentration risk and contributing to more stable returns across market conditions.\n\n3. The portfolio’s mix of domestic and international holdings, combined with bonds and gold, showcases effective diversification strategies to mitigate risk while seeking capital appreciation aligned with the investor's long-term objectives.\n\n### Alignment with Investor's Values and Financial Objectives\n\n**Key Take Outs:**\n1. The Growth Portfolio demonstrates alignment with the investor's values of environmental sustainability by including ETFs that have environmentally responsible investment practices and excluding controversial industries, reflecting a socially responsible investment approach.\n\n2. The portfolio's focus on long-term capital appreciation through diversified investments in high-growth assets like QQQ and VOO, coupled with a strategic allocation to bonds and gold for stability and risk management, supports the investor's financial objectives of sustainable wealth creation.\n\n3. By incorporating a mix of passive and active ETFs, the portfolio combines cost-effective, broad-market exposure with active management for potential outperformance, catering to the investor's preference for growth while managing risk diligently.\n\n---\n\n### ETF Allocations Over Time\n\n**Key Take Outs:**\n1. The ETF allocations in the Growth Portfolio have evolved dynamically over the analysis period, with strategic adjustments to capitalize on market opportunities and manage risk effectively.\n\n2. Shifts in allocations such as increased investments in VOO and QQQ reflect a proactive asset allocation strategy to capture high-growth sectors and diversify exposure, optimizing returns and aligning with the portfolio's growth objectives.\n\n3. Continual monitoring and rebalancing of ETF allocations have maintained the portfolio's diversification and performance, ensuring alignment with the investor's values and financial goals while adapting to changing market conditions.\n\n### ETF Investment Objectives\n\n**Key Take Outs:**\n1. The selected ETFs in the Growth Portfolio serve various investment objectives, including long-term capital appreciation, income generation, risk mitigation, and exposure to growth sectors, accommodating the investor's diverse financial goals within a single diversified portfolio.\n\n2. ETFs like IVV and QQQ target growth-oriented investors seeking exposure to high-performing sectors like technology, while assets like AGG and BND cater to stability and income generation, offering a balanced risk-return profile across market cycles.\n\n3. The mix of equity, bond, and commodity ETFs in the portfolio reflects a strategic approach to asset allocation that aims to optimize returns, manage risk, and align with the investor's values and objectives consistently over time.\n\n### Preferred ETF Investment Strategies\n\n**Key Take Outs:**\n1. The Growth Portfolio's preferred ETF investment strategies encompass a blend of passive and active management approaches, leveraging low-cost index funds for broad market exposure and actively managed ETFs for alpha generation and risk mitigation opportunities.\n\n2. Strategies such as sector rotation, smart beta investing, and thematic allocations are employed with ETFs like QQQ and VOO, allowing the portfolio to capitalize on market trends, exploit diversification benefits, and enhance long-term performance potential systematically.\n\n3. The emphasis on ETFs with strong ESG principles, sustainable investing practices, and consistent performance track records underscores a commitment to socially responsible investing, aligning with the portfolio's values and the investor's desire for sustainable, ethical wealth creation. \n\n---\n\nThis comprehensive impact report highlights the Growth Portfolio's robust performance, effective diversification, and strategic alignment with the investor's values and financial objectives. The analysis of ETF allocations, investment objectives, and preferred strategies underscores a proactive, diversified, and values-driven approach to wealth management tailored to deliver sustainable growth and capital appreciation over the long term."
+  "total_allocation": 17385871502780.59,
+  "analysis": "Based on the portfolio allocations and the provided performance data for the Growth Portfolio from January 1, 2024, to June 1, 2024, I will analyze the portfolio's overall performance, allocation distribution, and contribution to the financial objectives of long-term capital appreciation with a focus on environmental sustainability.\n\nOverall Portfolio Performance:\n- The Growth Portfolio had an overall positive performance during the period, supported by strong returns from several key assets such as VOO, VTI, and IVV.\n- Notable outperformers in the portfolio include VOO with a return of 385.99%, VTI with a return of 373.96%, and IVV with a return of 282.64%.\n\nAllocation Distribution Analysis:\n- The Growth Portfolio is heavily weighted towards equity holdings, with significant allocations in various equity ETFs, funds, and index funds.\n- The top-performing assets VOO, VTI, and IVV have relatively high allocations in the portfolio, indicating a strategic emphasis on these assets to drive long-term capital appreciation.\n\nAlignment with Investor Values & Objectives:\n- The portfolio does not have specific ESG (Environmental, Social, Governance) or sustainability-focused investments explicitly mentioned in the allocations provided.\n- To better align with the investor's values on environmental sustainability, the portfolio may consider incorporating ESG-focused funds or ETFs into its allocation strategy in the future.\n\nRecommendations for Portfolio Optimization:\n1. Diversification: While the Growth Portfolio has strong performers, it is crucial to ensure diversification across different asset classes and sectors to manage risk effectively.\n2. ESG Integration: To align with the investor's values on environmental sustainability, consider incorporating ESG criteria when selecting investments or allocating to ESG-focused funds.\n3. Monitoring & Rebalancing: Regularly monitor the portfolio's performance and make necessary adjustments to maintain alignment with the investor's financial objectives and risk tolerance.\n\nIn summary, the Growth Portfolio has shown positive performance driven by key equity holdings but may benefit from further diversification and alignment with the investor's values on environmental sustainability and long-term capital appreciation. Consideration of ESG criteria and strategic allocation adjustments can enhance the portfolio's sustainability and overall performance over time."
 }
