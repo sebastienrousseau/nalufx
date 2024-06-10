@@ -15,40 +15,6 @@
 //!
 //! The generated report will be saved to `data/allocation_report.json`.
 
-//! # Automated Cash Allocation Example
-//!
-//! This example demonstrates the automation of cash allocation to ETFs and Mutual Funds
-//! using predefined allocation rules. It fetches the latest fund data, applies allocation
-//! rules, executes the allocation orders, generates a report, and prints the results to the console.
-//!
-//! ## Usage
-//!
-//! 1. Ensure you have the necessary data files:
-//!    - `data/etf_data.csv` for ETF data
-//!    - `data/mutual_fund_data.csv` for Mutual Fund data
-//!    - `data/allocation_rules.json` for allocation rules
-//! 2. Run the code using `cargo run --example automated_cash_allocation`.
-//! 3. The code will automatically process the data and display the allocation results.
-//!
-//! The generated report will be saved to `data/allocation_report.json`.
-
-//! # Automated Cash Allocation Example
-//!
-//! This example demonstrates the automation of cash allocation to ETFs and Mutual Funds
-//! using predefined allocation rules. It fetches the latest fund data, applies allocation
-//! rules, executes the allocation orders, generates a report, and prints the results to the console.
-//!
-//! ## Usage
-//!
-//! 1. Ensure you have the necessary data files:
-//!    - `data/etf_data.csv` for ETF data
-//!    - `data/mutual_fund_data.csv` for Mutual Fund data
-//!    - `data/allocation_rules.json` for allocation rules
-//! 2. Run the code using `cargo run --example automated_cash_allocation`.
-//! 3. The code will automatically process the data and display the allocation results.
-//!
-//! The generated report will be saved to `data/allocation_report.json`.
-
 use csv::Reader;
 use nalufx::errors::NaluFxError;
 use nalufx::utils::currency::format_currency;
@@ -453,10 +419,7 @@ async fn fetch_real_time_prices(
 ) -> Result<HashMap<String, (f64, f64)>, reqwest::Error> {
     let mut headers = header::HeaderMap::new();
     let _ = headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
-    let _ = headers.insert(
-        "Accept",
-        header::HeaderValue::from_static("application/json"),
-    );
+    let _ = headers.insert("Accept", header::HeaderValue::from_static("application/json"));
     let _ = headers.insert("Cookie", header::HeaderValue::from_static("YahooFcUrl"));
 
     let client = Client::builder().default_headers(headers).build()?;
@@ -471,11 +434,11 @@ async fn fetch_real_time_prices(
         let response = client.get(&url).send().await?;
         let data: serde_json::Value = response.json().await?;
         if let Some(result) = data["chart"]["result"].as_array() {
-            if let Some(_timestamps) = result[0]["timestamp"].as_array() {
-                if let Some(closes) = result[0]["indicators"]["quote"][0]["close"].as_array() {
-                    let start_price = closes.first().unwrap().as_f64().unwrap();
-                    let end_price = closes.last().unwrap().as_f64().unwrap();
-                    let _ = prices.insert(symbol.clone(), (start_price, end_price));
+            if let Some(_timestamps) = result.get(0).and_then(|r| r["timestamp"].as_array()) {
+                if let Some(closes) = result.get(0).and_then(|r| r["indicators"]["quote"][0]["close"].as_array()) {
+                    if let (Some(start_price), Some(end_price)) = (closes.first().and_then(|v| v.as_f64()), closes.last().and_then(|v| v.as_f64())) {
+                        let _ = prices.insert(symbol.clone(), (start_price, end_price));
+                    }
                 }
             }
         }
