@@ -19,7 +19,7 @@ use csv::Reader;
 use nalufx::{
     errors::NaluFxError,
     llms::{LLM, openai::OpenAI}, // Add other LLMs as needed
-    services::llm_svc::generate_analysis,
+    services::automated_cash_allocation_svc::generate_analysis,
     utils::{currency::format_currency, date::validate_date, input::get_input}
 };
 use reqwest::{header, Client};
