@@ -89,7 +89,7 @@ path = "examples/services/technical_analysis_indicators.rs"
 
 [dependencies]
 # Dependencies are only used for building.
-actix-web = "4.6.0"
+actix-web = "4.7.0"
 augurs-ets = "0.1.2"
 async-trait = "0.1.80"
 chrono = "0.4.38"
@@ -101,13 +101,15 @@ futures = "0.3.30"
 linfa = "0.7.0"
 linfa-clustering = "0.7.0"
 log = "0.4.21"
-nalgebra = "0.32.5"
+nalgebra = "0.32.6"
 ndarray = "0.15.6"
 ndarray-stats = "0.5.1"
+printpdf = "0.7.0"
 rand = "0.8.5"
 reqwest = { version = "0.12.4", features = ["json"] }
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
+textplots = "0.8.6"
 thiserror = "1.0.61"
 time = "0.3.36"
 tokio = { version = "1.38.0", features = ["full"] }
@@ -120,7 +122,7 @@ version_check = "0.9.4"
 [dev-dependencies]
 # Development dependencies are only used for testing and building.
 # criterion = "0.5.1"
-actix-rt = "2.9.0"
+actix-rt = "2.10.0"
 lazy_static = "1.4.0"
 wiremock = "0.6.0"
 
