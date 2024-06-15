@@ -1,0 +1,21 @@
+[package]
+# Metadata about the package.
+name = "nalufx-api" # The name of the package.
+description = "" # A short description of the package.
+include = ["src/**/*", "README.md"] # Files to include when publishing the package.
+
+# The following metadata is inherited from the workspace.
+authors.workspace = true # Authors are defined in the workspace.
+categories.workspace = true # Categories are defined in the workspace.
+edition.workspace = true # The edition is defined in the workspace.
+exclude.workspace = true # Files to exclude are defined in the workspace.
+homepage.workspace = true # The homepage URL is defined in the workspace.
+license.workspace = true # The license is defined in the workspace.
+repository.workspace = true # The repository URL is defined in the workspace.
+rust-version.workspace = true # The Rust version is defined in the workspace.
+version.workspace = true # The version is defined in the workspace.
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nalufx-core = { path = "../nalufx-core" }

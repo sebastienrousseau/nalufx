@@ -26,7 +26,7 @@
 //!
 //! ```rust
 //! use nalufx::api::handlers::predict_cash_flow;
-//! use nalufx::services::fetch_data::fetch_data;
+//! use nalufx::services::fetch_data_svc::fetch_data;
 //! use nalufx::utils::calculations::calculate_optimal_allocation;
 //! ```
 //!

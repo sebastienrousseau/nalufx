@@ -50,7 +50,7 @@ nalufx = "0.0.1"
 ### Fetching Data
 
 ```rust
-use nalufx::services::fetch_data::fetch_cash_flow_data;
+use nalufx::services::fetch_data_svc::fetch_cash_flow_data;
 
 let data = fetch_cash_flow_data("some_data_source").unwrap();
 ```
@@ -58,7 +58,7 @@ let data = fetch_cash_flow_data("some_data_source").unwrap();
 ### Processing Data
 
 ```rust
-use nalufx::services::processing::process_cash_flow_data;
+use nalufx::services::processing_svc::process_cash_flow_data;
 
 let processed_data = process_cash_flow_data(&data);
 ```

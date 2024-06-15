@@ -25,7 +25,7 @@ use yahoo_finance_api as yahoo;
 ///
 /// ```
 /// use chrono::Utc;
-/// use nalufx::services::fetch_data::fetch_data;
+/// use nalufx::services::fetch_data_svc::fetch_data;
 ///
 /// #[tokio::main]
 /// async fn main() {

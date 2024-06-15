@@ -15,7 +15,7 @@
 /// # Examples
 ///
 /// ```
-/// use nalufx::services::processing::calculate_daily_returns;
+/// use nalufx::services::processing_svc::calculate_daily_returns;
 /// let closes = vec![100.0, 101.0, 102.0, 101.5];
 /// let daily_returns = calculate_daily_returns(&closes);
 /// assert_eq!(daily_returns, vec![0.010000000000000009, 0.00990099009900991, -0.004901960784313708]);
@@ -42,7 +42,7 @@ pub fn calculate_daily_returns(closes: &[f64]) -> Vec<f64> {
 /// # Examples
 ///
 /// ```
-/// use nalufx::services::processing::calculate_cash_flows;
+/// use nalufx::services::processing_svc::calculate_cash_flows;
 /// let daily_returns = vec![0.01, 0.009900990099009901, -0.004901960784313725];
 /// let initial_investment = 1000.0;
 /// let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
