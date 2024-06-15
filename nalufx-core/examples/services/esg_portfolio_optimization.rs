@@ -31,10 +31,10 @@
 //! - The code uses the OpenAI API to generate the impact report. Make sure to set up the API key and have proper authentication in place.
 //! - The example uses dummy ESG ratings for demonstration purposes. In a real-world scenario, you would need to fetch actual ESG ratings from reliable sources.
 
+use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
+use nalufx_llms::models::openai_dm::OpenAIResponse;
 use nalufx::{
     errors::NaluFxError,
-    llms::openai::{get_openai_api_key, send_openai_request},
-    models::openai_dm::OpenAIResponse,
     services::{fetch_data_svc::fetch_data, processing_svc::calculate_daily_returns},
     utils::input::get_input,
 };

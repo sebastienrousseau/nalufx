@@ -15,10 +15,10 @@
 
 use chrono::{DateTime, Utc};
 use log::error;
+use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
+use nalufx_llms::models::openai_dm::OpenAIResponse;
 use nalufx::{
     errors::NaluFxError,
-    llms::openai::{get_openai_api_key, send_openai_request},
-    models::openai_dm::OpenAIResponse,
     services::fetch_data_svc::fetch_data,
     utils::{
         currency::format_currency, date::validate_date, input::get_input, ticker::validate_ticker,

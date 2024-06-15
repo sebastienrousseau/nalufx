@@ -1,4 +1,4 @@
-use crate::llms::openai::{get_openai_api_key, parse_openai_response, send_openai_request};
+use nalufx_llms::llms::openai::{get_openai_api_key, parse_openai_response, send_openai_request};
 use crate::{
     models::cash_flow_dm::{CashFlowRequest, CashFlowResponse},
     utils::calculations::calculate_optimal_allocation,

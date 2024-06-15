@@ -1,4 +1,4 @@
-use crate::llms::LLM;
+use nalufx_llms::llms::LLM;
 use reqwest::Client;
 use std::collections::HashMap;
 use crate::utils::currency::format_currency;

@@ -3,7 +3,7 @@
 resolver = "2"
 members = ["nalufx-api", "nalufx-cli", "nalufx-core", "nalufx-llms", "nalufx-ui"]
 
-default-members = ["nalufx-core"]
+# default-members = ["nalufx-core", "nalufx-llms"]
 
 [workspace.package]
 # Workspace package metadata.

@@ -16,9 +16,9 @@
 //! The generated report will be saved to `data/allocation_report.json`.
 
 use csv::Reader;
+use nalufx_llms::llms::{LLM, openai, openai::OpenAI};
 use nalufx::{
     errors::NaluFxError,
-    llms::{LLM, openai::OpenAI}, // Add other LLMs as needed
     services::automated_cash_allocation_svc::generate_analysis,
     utils::{currency::format_currency, date::validate_date, input::get_input}
 };
@@ -45,7 +45,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     let llm_choice = get_input("Enter the LLM to use (e.g., openai, claude, gemini, llama, mistral, ollama):")?;
     let (llm, api_key): (Box<dyn LLM>, String) = match llm_choice.as_str() {
         "openai" => {
-            let api_key = match nalufx::llms::openai::get_openai_api_key() {
+            let api_key = match openai::get_openai_api_key() {
                 Ok(key) => key,
                 Err(e) => {
                     eprintln!("Error: {}", e);

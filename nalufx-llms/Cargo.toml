@@ -1,13 +1,14 @@
 [package]
 # Metadata about the package.
 name = "nalufx-llms" # The name of the package.
+categories = ["web-programming"] # Categories for the package.
 description = "" # A short description of the package.
+edition = "2021" # The edition of the Rust language to use.
+keywords=["llms","claude","gemini","gemma","llama","mistral","ollama","openai"]
 include = ["src/**/*", "README.md"] # Files to include when publishing the package.
 
 # The following metadata is inherited from the workspace.
 authors.workspace = true # Authors are defined in the workspace.
-categories.workspace = true # Categories are defined in the workspace.
-edition.workspace = true # The edition is defined in the workspace.
 exclude.workspace = true # Files to exclude are defined in the workspace.
 homepage.workspace = true # The homepage URL is defined in the workspace.
 license.workspace = true # The license is defined in the workspace.
@@ -15,7 +16,37 @@ repository.workspace = true # The repository URL is defined in the workspace.
 rust-version.workspace = true # The Rust version is defined in the workspace.
 version.workspace = true # The version is defined in the workspace.
 
+[lib]
+# Library configuration.
+crate-type = ["lib"] # The type of the library.
+name = "nalufx_llms" # The name of the library.
+path = "src/lib.rs" # The path to the library file.
+
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nalufx-core = { path = "../nalufx-core" }
+# Dependencies for the package.
+actix-web = "4.7.0"
+async-trait = "0.1.80"
+dotenvy = "0.15.7"
+log = "0.4.21"
+reqwest = { version = "0.12.4", features = ["json"] }
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.117"
+
+[build-dependencies]
+# Dependencies for build scripts.
+version_check = "0.9.4"
+
+[dev-dependencies]
+# Dependencies for development and testing.
+actix-rt = "2.10.0"
+lazy_static = "1.4.0"
+wiremock = "0.6.0"
+# Uncomment if you use Criterion for benchmarking.
+# criterion = "0.5.1"
+
+[features]
+# Optional features for the package.
+default = []

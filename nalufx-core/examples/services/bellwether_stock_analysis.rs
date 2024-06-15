@@ -11,9 +11,9 @@
 //! 5. Enter the end date (YYYY-MM-DD) for the analysis period when prompted.
 //! 6. The code will fetch historical data, perform analysis, and generate a report with investment recommendations.
 //!
+use nalufx_llms::llms::{LLM, openai, openai::OpenAI};
 use nalufx::{
     errors::NaluFxError,
-    llms::{LLM, openai::OpenAI},
     utils::input::get_input,
 };
 use reqwest::Client;
@@ -25,7 +25,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     let llm_choice = get_input("Enter the LLM to use (e.g., openai, claude, gemini, llama, mistral, ollama):")?;
     let (llm, api_key): (Box<dyn LLM>, String) = match llm_choice.as_str() {
         "openai" => {
-            let api_key = match nalufx::llms::openai::get_openai_api_key() {
+            let api_key = match openai::get_openai_api_key() {
                 Ok(key) => key,
                 Err(e) => {
                     eprintln!("Error: {}", e);

@@ -20,6 +20,8 @@ homepage.workspace = true # The homepage URL is defined in the workspace.
 
 [dependencies]
 # Dependencies for the package.
+nalufx-llms = { path = "../nalufx-llms" }
+
 actix-web = "4.7.0"
 async-trait = "0.1.80"
 augurs-ets = "0.1.2"

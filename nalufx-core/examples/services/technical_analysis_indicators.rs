@@ -17,10 +17,10 @@
 //! - Moving Average Convergence Divergence (MACD): Consists of MACD line, signal line, and histogram. It helps identify trend changes and momentum.
 //! - Support and Resistance Levels: Represents key price levels where the stock tends to find support or resistance. They are used to identify potential entry and exit points.
 
+use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
+use nalufx_llms::models::openai_dm::OpenAIResponse;
 use nalufx::{
     errors::NaluFxError,
-    llms::openai::{get_openai_api_key, send_openai_request},
-    models::openai_dm::OpenAIResponse,
     services::fetch_data_svc::fetch_data,
     utils::{date::validate_date, input::get_input, ticker::validate_ticker},
 };

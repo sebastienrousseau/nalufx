@@ -2,7 +2,6 @@ use chrono::Utc;
 use chrono::Datelike;
 use crate::{
     errors::NaluFxError,
-    llms::LLM,
     services::{
         fetch_data_svc::fetch_data,
         processing_svc::{calculate_cash_flows, calculate_daily_returns},
@@ -14,6 +13,7 @@ use crate::{
         date::validate_date,
     },
 };
+use nalufx_llms::llms::LLM;
 use reqwest::Client;
 
 /// Generates an analysis report based on historical stock data, optimal allocation, and LLM analysis.
