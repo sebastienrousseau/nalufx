@@ -1,10 +1,9 @@
 [package]
 # Metadata about the package.
 name = "nalufx-ui" # The name of the package.
+version.workspace = true # The version is defined in the workspace.
 description = "" # A short description of the package.
 include = ["src/**/*", "README.md"] # Files to include when publishing the package.
-
-# The following metadata is inherited from the workspace.
 authors.workspace = true # Authors are defined in the workspace.
 categories.workspace = true # Categories are defined in the workspace.
 edition.workspace = true # The edition is defined in the workspace.
@@ -13,9 +12,32 @@ homepage.workspace = true # The homepage URL is defined in the workspace.
 license.workspace = true # The license is defined in the workspace.
 repository.workspace = true # The repository URL is defined in the workspace.
 rust-version.workspace = true # The Rust version is defined in the workspace.
-version.workspace = true # The version is defined in the workspace.
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "lib"] # The type of the library.
+name = "nalufx_ui_lib" # The name of the library.
+path = "src/lib.rs" # The path to the library file.
+
+[[bin]]
+name = "nalufx-ui"
+path = "src/main.rs"
 
 [dependencies]
 nalufx-core = { path = "../nalufx-core" }
+# chrono = { version = "0.4.38", optional = true, default-features = false, features = ["clock", "std", "wasmbind"]}
+dtt = "0.0.6"
+futures = { version = "0.3.30", optional = true }
+slint = "1.6.0"
+tokio = { version = "1.38.0", optional = true, features = ["full"] }
+weer_api = { version = "0.1.1", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { version = "0.2.92" }
+web-sys = { version = "0.3.69", features=["console"] }
+console_error_panic_hook = "0.1.7"
+
+[build-dependencies]
+slint-build = "1.6.0"
+
+[build]
+build = "build.rs"

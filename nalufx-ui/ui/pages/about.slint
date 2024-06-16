@@ -1,0 +1,63 @@
+import { Theme } from "../theme.slint";
+import { Images } from "../images.slint";
+import { Page } from "page.slint";
+import { IconButton } from "../widgets/widgets.slint";
+import { GroupBox } from "../widgets/group_box.slint";
+
+export component About inherits Page {
+    Rectangle {
+        width: 100%;
+        height: 100%;
+
+        VerticalLayout {
+            width: 100%;
+            height: 100%;
+            spacing: Theme.spaces.medium;
+
+            // Top Spacer to push content towards the middle
+            Rectangle {
+                vertical-stretch: 1;
+            }
+
+            // Centred content container
+            Rectangle {
+                width: 100%;
+                height: 100%;
+                VerticalLayout {
+                    width: 100%;
+                    height: 100%;
+                    alignment: center; // Center the content vertically
+                    spacing: Theme.spaces.medium;
+
+                    GroupBox {
+                        width: 100%;
+                        VerticalLayout {
+                            spacing: Theme.spaces.medium;
+                            alignment: center; // Center the content horizontally
+
+                            Image {
+                                preferred-height: 100px;
+                                source: Images.nalufx-logo;
+                            }
+
+                            Text {
+                                horizontal-alignment: center;
+                                text: "Finance for the rest of us.";
+                                color: Theme.palette.nalufx-blue-100;
+                                font-size: Theme.typo.header-item.size;
+                                font-weight: Theme.typo.header-item.weight;
+                            }
+                            Text {
+                                horizontal-alignment: center;
+                                text: "© Copyright 2024 - Sebastien Rousseau. All rights reserved.";
+                                color: Theme.palette.nalufx-blue-100;
+                                font-size: Theme.typo.label-light.size;
+                                font-weight: Theme.typo.label-light.weight;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

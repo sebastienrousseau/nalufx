@@ -1,0 +1,499 @@
+import { Theme } from "../../theme.slint";
+import { Images } from "../../images.slint";
+import { Page } from "../page.slint";
+import { IconButton, CheckBox, ScrollView, Item, ItemGroupBox } from "../../widgets/widgets.slint";
+
+export global SettingsAdapter {
+    // functions
+    in-out property <bool> function-one-checked: true;
+    in-out property <bool> kiosk-mode-checked;
+    in-out property <bool> function-three-checked;
+
+    // check options
+    in-out property <bool> check-option-one-checked: true;
+    in-out property <bool> check-option-two-checked;
+    in-out property <bool> check-option-three-checked;
+
+    // stock options
+    in-out property <bool> aapl-checked: true;
+    in-out property <bool> amzn-checked;
+    in-out property <bool> googl-checked;
+    in-out property <bool> hsbc-checked;
+    in-out property <bool> ma-checked;
+    in-out property <bool> mco-checked;
+    in-out property <bool> meta-checked;
+    in-out property <bool> msft-checked;
+    in-out property <bool> nvda-checked;
+    in-out property <bool> race-checked;
+    in-out property <bool> spy-checked;
+    in-out property <bool> tsla-checked;
+    in-out property <bool> v-checked;
+}
+
+export component Settings inherits Page {
+    // functions
+    in-out property <bool> function-one-checked <=> SettingsAdapter.function-one-checked;
+    in-out property <bool> kiosk-mode-checked <=> SettingsAdapter.kiosk-mode-checked;
+    in-out property <bool> function-three-checked <=> SettingsAdapter.function-three-checked;
+
+    // check options
+    in-out property <bool> check-option-one-checked <=> SettingsAdapter.check-option-one-checked;
+    in-out property <bool> check-option-two-checked <=> SettingsAdapter.check-option-two-checked;
+    in-out property <bool> check-option-three-checked <=> SettingsAdapter.check-option-three-checked;
+
+    // stock options
+    in-out property <bool> aapl-checked <=> SettingsAdapter.aapl-checked;
+    in-out property <bool> amzn-checked <=> SettingsAdapter.amzn-checked;
+    in-out property <bool> googl-checked <=> SettingsAdapter.googl-checked;
+    in-out property <bool> hsbc-checked <=> SettingsAdapter.hsbc-checked;
+    in-out property <bool> ma-checked <=> SettingsAdapter.ma-checked;
+    in-out property <bool> mco-checked <=> SettingsAdapter.mco-checked;
+    in-out property <bool> meta-checked <=> SettingsAdapter.meta-checked;
+    in-out property <bool> msft-checked <=> SettingsAdapter.msft-checked;
+    in-out property <bool> nvda-checked <=> SettingsAdapter.nvda-checked;
+    in-out property <bool> race-checked <=> SettingsAdapter.race-checked;
+    in-out property <bool> spy-checked <=> SettingsAdapter.spy-checked;
+    in-out property <bool> tsla-checked <=> SettingsAdapter.tsla-checked;
+    in-out property <bool> v-checked <=> SettingsAdapter.v-checked;
+
+    callback close();
+
+    padding-left: 0;
+    padding-right: 0;
+
+    VerticalLayout {
+        padding-left: 0;
+        padding-right: Theme.spaces.medium;
+        padding-top: Theme.spaces.medium;
+        padding-bottom: Theme.spaces.large;
+        spacing: Theme.spaces.medium;
+
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                alignment: start;
+                spacing: Theme.spaces.medium;
+                ItemGroupBox {
+                    title: "Portfolio";
+
+                    // Apple
+                    Item {
+                        clicked => {
+                            i-checkbox-aapl.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.aapl_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "AAPL";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-aapl := CheckBox {
+                                clicked => {
+                                    root.aapl-checked = !root.aapl-checked;
+                                }
+
+                                checked: root.aapl-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Amazon
+                    Item {
+                        clicked => {
+                            i-checkbox-amzn.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.amzn_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "AMZN";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-amzn := CheckBox {
+                                clicked => {
+                                    root.amzn-checked = !root.amzn-checked;
+                                }
+
+                                checked: root.amzn-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Google
+                    Item {
+                        clicked => {
+                            i-checkbox-googl.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.googl_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "GOOGL";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-googl := CheckBox {
+                                clicked => {
+                                    root.googl-checked = !root.googl-checked;
+                                }
+
+                                checked: root.googl-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // HSBC
+                    Item {
+                        clicked => {
+                            i-checkbox-hsbc.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.hsbc_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "HSBC";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-hsbc := CheckBox {
+                                clicked => {
+                                    root.hsbc-checked = !root.hsbc-checked;
+                                }
+
+                                checked: root.hsbc-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Mastercard
+                    Item {
+                        clicked => {
+                            i-checkbox-ma.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.ma_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "MA";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-ma := CheckBox {
+                                clicked => {
+                                    root.ma-checked = !root.ma-checked;
+                                }
+
+                                checked: root.ma-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Moody's
+                    Item {
+                        clicked => {
+                            i-checkbox-mco.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.mco_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "MCO";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-mco := CheckBox {
+                                clicked => {
+                                    root.mco-checked = !root.mco-checked;
+                                }
+
+                                checked: root.mco-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Meta
+                    Item {
+                        clicked => {
+                            i-checkbox-meta.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.meta_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "META";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-meta := CheckBox {
+                                clicked => {
+                                    root.meta-checked = !root.meta-checked;
+                                }
+
+                                checked: root.meta-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Microsoft
+                    Item {
+                        clicked => {
+                            i-checkbox-msft.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.msft_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "MSFT";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-msft := CheckBox {
+                                clicked => {
+                                    root.msft-checked = !root.msft-checked;
+                                }
+
+                                checked: root.msft-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Nvidia
+                    Item {
+                        clicked => {
+                            i-checkbox-nvda.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.nvda_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "NVDA";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-nvda := CheckBox {
+                                clicked => {
+                                    root.nvda-checked = !root.nvda-checked;
+                                }
+
+                                checked: root.nvda-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Ferrari
+                    Item {
+                        clicked => {
+                            i-checkbox-race.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.race_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "RACE";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-race := CheckBox {
+                                clicked => {
+                                    root.race-checked = !root.race-checked;
+                                }
+
+                                checked: root.race-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // SPDR S&P 500 Trust ETF
+                    Item {
+                        clicked => {
+                            i-checkbox-spy.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.spy_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "SPY";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-spy := CheckBox {
+                                clicked => {
+                                    root.spy-checked = !root.spy-checked;
+                                }
+
+                                checked: root.spy-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Tesla
+                    Item {
+                        clicked => {
+                            i-checkbox-tsla.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.tsla_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "TSLA";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-tsla := CheckBox {
+                                clicked => {
+                                    root.tsla-checked = !root.tsla-checked;
+                                }
+
+                                checked: root.tsla-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+
+                    // Visa
+                    Item {
+                        clicked => {
+                            i-checkbox-v.clicked();
+                        }
+
+                        HorizontalLayout {
+                            Image {
+                                preferred-height: 40px;
+                                source: Images.v_logo;
+                                width: 40px;
+                            }
+
+                            Text {
+                                text: "V";
+                                vertical-alignment: center;
+                                horizontal-stretch: 10;
+                            }
+
+                            spacing: Theme.spaces.small;
+
+                            i-checkbox-v := CheckBox {
+                                clicked => {
+                                    root.v-checked = !root.v-checked;
+                                }
+
+                                checked: root.v-checked;
+                            }
+                        }
+                        has-separator: true;
+                    }
+                }
+            }
+        }
+    }
+}

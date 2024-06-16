@@ -1,0 +1,44 @@
+import { Images } from "../images.slint";
+import { Theme } from "../theme.slint";
+import { StateLayer } from "../components/state_layer.slint";
+
+export component MenuButton {
+     callback clicked;
+
+    in-out property <bool> internal_toggled: false;
+
+    min-width: 32px;
+    min-height: 32px;
+    opacity: root.visible ? 1.0 : 0.0;
+
+    animate opacity { duration: Theme.durations.fast; }
+
+    i-container := Rectangle {
+        background: Theme.palette.heliotrope-gradient;
+        border-radius: root.height / 2;
+        width: 100%;
+        height: 100%;
+        VerticalLayout {
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            spacing: 11px;
+            alignment: center;
+            vertical-stretch: 1;
+            Image {
+                source: root.internal_toggled ? Images.arrow-bottom : Images.arrow-top;
+                width: 16px;
+                height: 16px;
+            }
+        }
+    }
+
+    i-state-layer := StateLayer {
+        border-radius: i-container.border-radius;
+        clicked => {
+            root.internal_toggled = !root.internal_toggled;
+            root.clicked();
+        }
+    }
+}

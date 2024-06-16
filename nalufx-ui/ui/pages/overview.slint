@@ -1,0 +1,62 @@
+import { Page } from "page.slint";
+import { GroupBox, ValueDisplay, Value } from "../widgets/widgets.slint";
+
+export global OverviewAdapter {
+    in property <string> funds-title: "Funds Overview";
+    in property <string> transactions-title: "Transactions Overview";
+    in property <[Value]> funds-model: [{
+        title: "Daily",
+        value: 12.56,
+        unit: "$",
+    }, {
+        title: "Weekly",
+        value: 90.28,
+        unit: "$",
+    }];
+    in property <[Value]> transactions-model: [
+        {
+            title: "Weekly",
+            value: 54.08,
+            unit: "$",
+        },
+        {
+            title: "Monthly",
+            value: 320.18,
+            unit: "$",
+        }
+    ];
+}
+
+export component Overview inherits Page {
+    in property <string> funds-title <=> OverviewAdapter.funds-title;
+    in property <string> transactions-title <=> OverviewAdapter.transactions-title;
+    in property <[Value]> funds-model <=> OverviewAdapter.funds-model;
+    in property <[Value]> transactions-model <=> OverviewAdapter.transactions-model;
+
+    width: 100%;
+    height: 100%;
+
+    VerticalLayout {
+        spacing: 12px;
+
+        i-funds-group := GroupBox {
+            title: root.funds-title;
+
+            ValueDisplay {
+                active: root.active;
+                model: root.funds-model;
+            }
+        }
+
+        i-transactions-group := GroupBox {
+            title: root.transactions-title;
+
+            ValueDisplay {
+                active: root.active;
+                alternative-colors: true;
+
+                model: root.transactions-model;
+            }
+        }
+    }
+}
