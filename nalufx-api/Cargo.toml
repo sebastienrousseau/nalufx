@@ -6,6 +6,7 @@ include = ["src/**/*", "README.md"] # Files to include when publishing the packa
 
 # The following metadata is inherited from the workspace.
 authors.workspace = true # Authors are defined in the workspace.
+build = "build.rs" # The build script is defined in the workspace.
 categories.workspace = true # Categories are defined in the workspace.
 edition.workspace = true # The edition is defined in the workspace.
 exclude.workspace = true # Files to exclude are defined in the workspace.
@@ -19,3 +20,7 @@ version.workspace = true # The version is defined in the workspace.
 
 [dependencies]
 nalufx-core = { path = "../nalufx-core" }
+
+[build-dependencies]
+# Dependencies for build scripts.
+version_check = "0.9.4" # Check the Rust version used to compile the package.

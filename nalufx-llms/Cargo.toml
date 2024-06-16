@@ -9,6 +9,7 @@ include = ["src/**/*", "README.md"] # Files to include when publishing the packa
 
 # The following metadata is inherited from the workspace.
 authors.workspace = true # Authors are defined in the workspace.
+build = "build.rs" # The build script is defined in the workspace.
 exclude.workspace = true # Files to exclude are defined in the workspace.
 homepage.workspace = true # The homepage URL is defined in the workspace.
 license.workspace = true # The license is defined in the workspace.

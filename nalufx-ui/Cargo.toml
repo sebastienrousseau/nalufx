@@ -1,17 +1,18 @@
 [package]
 # Metadata about the package.
-name = "nalufx-ui" # The name of the package.
-version.workspace = true # The version is defined in the workspace.
-description = "" # A short description of the package.
-include = ["src/**/*", "README.md"] # Files to include when publishing the package.
 authors.workspace = true # Authors are defined in the workspace.
+build = "build.rs" # The build script is defined in the workspace.
 categories.workspace = true # Categories are defined in the workspace.
+description = "" # A short description of the package.
 edition.workspace = true # The edition is defined in the workspace.
 exclude.workspace = true # Files to exclude are defined in the workspace.
 homepage.workspace = true # The homepage URL is defined in the workspace.
+include = ["src/**/*", "README.md"] # Files to include when publishing the package.
 license.workspace = true # The license is defined in the workspace.
+name = "nalufx-ui" # The name of the package.
 repository.workspace = true # The repository URL is defined in the workspace.
 rust-version.workspace = true # The Rust version is defined in the workspace.
+version.workspace = true # The version is defined in the workspace.
 
 [lib]
 crate-type = ["cdylib", "lib"] # The type of the library.
@@ -37,7 +38,6 @@ web-sys = { version = "0.3.69", features=["console"] }
 console_error_panic_hook = "0.1.7"
 
 [build-dependencies]
+# Dependencies for build scripts.
 slint-build = "1.6.0"
-
-[build]
-build = "build.rs"
+version_check = "0.9.4" # Check the Rust version used to compile the package.
