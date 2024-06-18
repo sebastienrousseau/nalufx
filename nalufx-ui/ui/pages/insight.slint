@@ -1,0 +1,108 @@
+
+
+import { Page } from "page.slint";
+import { GroupBox, Value , ValueDisplay, BarChart, Button } from "../widgets/widgets.slint";
+import { Images } from "../images.slint";
+
+export global UsageAdapter {
+    in property <string> title: "Insight Overview";
+    in property <[Value]> overview-model: [
+        {
+            value: 16.41,
+            title: "Daily",
+            unit: "$",
+        },
+        {
+            value: 15.23,
+            title: "Weekly",
+            unit: "$",
+        }
+    ];
+    in property <[float]> model: [
+        10.0,
+        9.0,
+        11.0,
+        12.0,
+        8.0,
+        14.0,
+        9.0,
+        16.0,
+        18.0,
+        12.0,
+        11.0,
+        14.0,
+        12.0,
+        16.0
+    ];
+    in property <float> min: 0.0;
+    in property <float> max: 24.0;
+}
+
+export component Usage inherits Page {
+    in property <string> title <=> UsageAdapter.title;
+    in property <[Value]> overview-model <=> UsageAdapter.overview-model;
+    in property <[float]> model <=> UsageAdapter.model;
+    in property <float> min <=> UsageAdapter.min;
+    in property <float> max <=> UsageAdapter.max;
+
+    GroupBox {
+    title: root.title;
+
+    Rectangle {
+        width: 60px;
+        height: 100%;
+        VerticalLayout {
+            alignment: space-between;
+            height: 180px;
+
+            Button {
+                text: "1M";
+                width: 50px;
+                height: 50px;
+                clicked => {
+                    // Handle button click event for "1M"
+                }
+            }
+
+            Button {
+                text: "6M";
+                width: 50px;
+                height: 50px;
+                clicked => {
+                    // Handle button click event for "6M"
+                }
+            }
+
+            Button {
+                text: "1Y";
+                width: 50px;
+                height: 50px;
+                clicked => {
+                    // Handle button click event for "1Y"
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        BarChart {
+            preferred-width: 100%;
+            preferred-height: 100%;
+            model: root.model;
+            min: root.min;
+            max: root.max;
+            active: root.active;
+        }
+        
+        VerticalLayout {
+            alignment: start;
+            ValueDisplay {
+                model: overview-model;
+                transparent-background: true;
+                alternative-colors: true;
+                active: root.active;
+            }
+        }
+    }
+}
+}
