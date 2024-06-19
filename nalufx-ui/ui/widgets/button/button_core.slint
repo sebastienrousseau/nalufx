@@ -1,0 +1,282 @@
+/**
+ * ButtonCore Component
+ *
+ * This component defines the basic properties and behavior for a button.
+ * It includes properties for enabling/disabling the button, setting text,
+ * handling loading state, and customizing appearance.
+ */
+export component ButtonCore {
+    /**
+     * Property: isEnabled
+     * Type: bool
+     * Default: true
+     * Description: Determines if the button is enabled.
+     */
+    in property <bool> isEnabled: true;
+
+    /**
+     * Property: buttonText
+     * Type: string
+     * Default: "Button"
+     * Description: The text displayed on the button. Set to "" for no text.
+     */
+    in property <string> buttonText: "Button";
+
+    /**
+     * Property: loadingText
+     * Type: string
+     * Default: "Loading..."
+     * Description: The text displayed when the button is in the loading state. Set to "" for no text.
+     */
+    in property <string> loadingText: "Loading...";
+
+    /**
+     * Property: textColor
+     * Type: brush
+     * Default: black
+     * Description: The color of the button text.
+     */
+    in property <brush> textColor: black;
+
+    /**
+     * Property: loadingTextColor
+     * Type: brush
+     * Default: gray
+     * Description: The color of the button text when in the loading state.
+     */
+    in property <brush> loadingTextColor: gray;
+
+    /**
+     * Property: hoverTextColor
+     * Type: brush
+     * Default: textColor
+     * Description: The color of the button text when hovered.
+     */
+    in property <brush> hoverTextColor: textColor;
+
+    /**
+     * Property: borderWidth
+     * Type: length
+     * Default: 1px
+     * Description: The width of the button border.
+     */
+    in property <length> borderWidth: 1px;
+
+    /**
+     * Property: borderRadius
+     * Type: length
+     * Default: 5px
+     * Description: The radius of the button border corners.
+     */
+    in property <length> borderRadius: 5px;
+
+    /**
+     * Property: fontSize
+     * Type: length
+     * Default: 14px
+     * Description: The font size of the button text.
+     */
+    in property <length> fontSize: 14px;
+
+    /**
+     * Property: cursor
+     * Type: MouseCursor
+     * Default: pointer
+     * Description: The mouse cursor when hovering over the button.
+     */
+    in-out property <MouseCursor> cursor: pointer;
+
+    /**
+     * Property: fontWeight
+     * Type: int
+     * Default: 400
+     * Description: The font weight of the button text.
+     */
+    in property <int> fontWeight: 400;
+
+    /**
+     * Property: isPlain
+     * Type: bool
+     * Default: false
+     * Description: Determines if the button has a plain background.
+     */
+    in property <bool> isPlain: false;
+
+    /**
+     * Property: isLoading
+     * Type: bool
+     * Default: false
+     * Description: Determines if the button is in loading state.
+     */
+    in-out property <bool> isLoading: false;
+
+    /**
+     * Property: activeTextColor
+     * Type: brush
+     * Default: isEnabled ? hoverTextColor : textColor
+     * Description: The color of the button text based on its state.
+     */
+    in-out property <brush> activeTextColor: isEnabled ? hoverTextColor : textColor;
+
+    /**
+     * Property: buttonWidth
+     * Type: length
+     * Description: The width of the button.
+     * Default: txt.preferred-width + 20px
+     */
+    width: txt.preferred-width + 20px;
+
+    /**
+     * Property: buttonHeight
+     * Type: length
+     * Description: The height of the button.
+     * Default: txt.preferred-height * 1.33
+     */
+    height: txt.preferred-height * 1.33;
+
+    /**
+     * State: isLoading
+     * Description: The state when the button is in loading mode.
+     */
+    states [
+        isLoading when isLoading: {
+            /**
+             * Property: txt.text
+             * Type: string
+             * Default: loadingText
+             * Description: The text displayed when the button is in the loading state.
+             */
+            txt.text: loadingText;
+
+            /**
+             * Property: activeTextColor
+             * Type: brush
+             * Default: loadingTextColor
+             * Description: The color of the button text when in loading state.
+             */
+            activeTextColor: loadingTextColor;
+
+            /**
+             * Property: cursor
+             * Type: MouseCursor
+             * Default: MouseCursor.no_drop
+             * Description: The mouse cursor when the button is in the loading state.
+             */
+            cursor: MouseCursor.no_drop;
+        }
+
+        /**
+         * State: isDisabled
+         * Description: The state when the button is disabled.
+         */
+        isDisabled when !isEnabled: {
+            /**
+             * Property: rect.opacity
+             * Type: float
+             * Default: 0.5
+             * Description: The opacity of the button when disabled.
+             */
+            rect.opacity: 0.5;
+
+            /**
+             * Property: cursor
+             * Type: MouseCursor
+             * Default: MouseCursor.no_drop
+             * Description: The mouse cursor when the button is disabled.
+             */
+            cursor: MouseCursor.no_drop;
+        }
+    ]
+
+    rect:= Rectangle {
+        /**
+         * Property: border-color
+         * Type: brush
+         * Description: The color of the button border.
+         */
+        border-color: activeTextColor;
+
+        /**
+         * Property: border-width
+         * Type: length
+         * Description: The width of the button border.
+         */
+        border-width: borderWidth;
+
+        /**
+         * Property: border-radius
+         * Type: length
+         * Description: The radius of the button border corners.
+         */
+        border-radius: borderRadius;
+
+        /**
+         * Property: width
+         * Type: length
+         * Description: The width of the button.
+         */
+        width: root.width;
+
+        /**
+         * Property: height
+         * Type: length
+         * Description: The height of the button.
+         */
+        height: root.height;
+
+        /**
+         * Property: background
+         * Type: brush
+         * Description: The background color of the button.
+         */
+        background: isPlain ? activeTextColor : transparent;
+
+        txt:= Text {
+            /**
+             * Property: vertical-alignment
+             * Type: alignment
+             * Default: center
+             * Description: The vertical alignment of the button text.
+             */
+            vertical-alignment: center;
+
+            /**
+             * Property: horizontal-alignment
+             * Type: alignment
+             * Default: center
+             * Description: The horizontal alignment of the button text.
+             */
+            horizontal-alignment: center;
+
+            /**
+             * Property: text
+             * Type: string
+             * Description: The text displayed on the button.
+             */
+            text: buttonText;
+
+            /**
+             * Property: color
+             * Type: brush
+             * Description: The color of the button text.
+             */
+            color: isPlain ? white : activeTextColor;
+
+            /**
+             * Property: font-size
+             * Type: length
+             * Description: The font size of the button text.
+             */
+            font-size: fontSize;
+
+            /**
+             * Property: font-weight
+             * Type: int
+             * Description: The font weight of the button text.
+             */
+            font-weight: fontWeight;
+        }
+
+        @children
+    }
+}

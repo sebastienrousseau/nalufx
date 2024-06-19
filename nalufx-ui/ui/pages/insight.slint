@@ -1,7 +1,5 @@
-
-
 import { Page } from "page.slint";
-import { GroupBox, Value , ValueDisplay, BarChart, Button } from "../widgets/widgets.slint";
+import { GroupBox, Value, ValueDisplay, BarChart, Button } from "../widgets/widgets.slint";
 import { Images } from "../images.slint";
 
 export global UsageAdapter {
@@ -46,63 +44,63 @@ export component Usage inherits Page {
     in property <float> max <=> UsageAdapter.max;
 
     GroupBox {
-    title: root.title;
+        title: root.title;
 
-    Rectangle {
-        width: 60px;
-        height: 100%;
-        VerticalLayout {
-            alignment: space-between;
-            height: 180px;
+        Rectangle {
+            width: 60px;
+            height: 100%;
+            VerticalLayout {
+                alignment: space-between;
+                height: 180px;
 
-            Button {
-                text: "1M";
-                width: 50px;
-                height: 50px;
-                clicked => {
-                    // Handle button click event for "1M"
+                Button {
+                    buttonText: "1M";
+                    width: 50px;
+                    height: 50px;
+                    clicked => {
+                        // Handle button click event for "1M"
+                    }
                 }
-            }
 
-            Button {
-                text: "6M";
-                width: 50px;
-                height: 50px;
-                clicked => {
-                    // Handle button click event for "6M"
+                Button {
+                    buttonText: "6M";
+                    width: 50px;
+                    height: 50px;
+                    clicked => {
+                        // Handle button click event for "6M"
+                    }
                 }
-            }
 
-            Button {
-                text: "1Y";
-                width: 50px;
-                height: 50px;
-                clicked => {
-                    // Handle button click event for "1Y"
+                Button {
+                    buttonText: "1Y";
+                    width: 50px;
+                    height: 50px;
+                    clicked => {
+                        // Handle button click event for "1Y"
+                    }
                 }
             }
         }
-    }
 
-    Rectangle {
-        BarChart {
-            preferred-width: 100%;
-            preferred-height: 100%;
-            model: root.model;
-            min: root.min;
-            max: root.max;
-            active: root.active;
-        }
-        
-        VerticalLayout {
-            alignment: start;
-            ValueDisplay {
-                model: overview-model;
-                transparent-background: true;
-                alternative-colors: true;
+        Rectangle {
+            BarChart {
+                preferred-width: 100%;
+                preferred-height: 100%;
+                model: root.model;
+                min: root.min;
+                max: root.max;
                 active: root.active;
             }
+
+            VerticalLayout {
+                alignment: start;
+                ValueDisplay {
+                    model: overview-model;
+                    transparent-background: true;
+                    alternative-colors: true;
+                    active: root.active;
+                }
+            }
         }
     }
-}
 }
