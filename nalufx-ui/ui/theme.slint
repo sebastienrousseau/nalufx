@@ -10,6 +10,20 @@ export struct Palette {
     lemon-green-op10: brush,
     white: brush,
     dimmer: brush,
+    transparent: brush,
+    red:brush,
+        orange:brush,
+        yellow:brush,
+        green:brush,
+        mint:brush,
+        teal:brush,
+        cyan:brush,
+        blue:brush,
+        indigo:brush,
+        purple:brush,
+        pink:brush,
+        brown:brush,
+        gray:brush,
 
     // nalufx blue
     nalufx-blue-50: brush,
@@ -36,11 +50,24 @@ export struct Palette {
     lime-green-900: brush,
 
     // gradients
+    nalufx-blue-gradient: brush,
+    nalufx-brown-gradient: brush,
+    nalufx-cyan-gradient: brush,
+    nalufx-gray-gradient: brush,
+    nalufx-green-gradient: brush,
+    nalufx-indigo-gradient: brush,
+    nalufx-mint-gradient: brush,
+    nalufx-orange-gradient: brush,
+    nalufx-pink-gradient: brush,
+    nalufx-purple-gradient: brush,
+    nalufx-red-gradient: brush,
+    nalufx-teal-gradient: brush,
+    nalufx-yellow-gradient: brush,
+    nalufx-twilight-gradient: brush,
     lemon-green-gradient: brush,
     lemon-green-light-gradient: brush,
     lemon-green-radial-gradient: brush,
     nalufx-blue-gradient: brush,
-    heliotrope-gradient: brush,
     dark-left-gradient: brush,
     dark-right-gradient: brush,
     ebony-radial-gradient: brush,
@@ -52,6 +79,25 @@ export struct Palette {
     bar-background-gradient: brush,
     tab-gradient: brush,
     background-gradient: brush,
+
+    // Radial Gradients
+    nalufx-twilight-radial-gradient: brush,
+
+    // Nalufx Bar Gradients
+    nalufx-red-bar-gradient: brush,
+    nalufx-orange-bar-gradient: brush,
+    nalufx-yellow-bar-gradient: brush,
+    nalufx-green-bar-gradient: brush,
+    nalufx-mint-bar-gradient: brush,
+    nalufx-teal-bar-gradient: brush,
+    nalufx-cyan-bar-gradient: brush,
+    nalufx-blue-bar-gradient: brush,
+    nalufx-indigo-bar-gradient: brush,
+    nalufx-purple-bar-gradient: brush,
+    nalufx-pink-bar-gradient: brush,
+    nalufx-brown-bar-gradient: brush,
+    nalufx-gray-bar-gradient: brush,
+    nalufx-twilight-bar-gradient: brush,
 }
 
 export struct Spaces {
@@ -85,6 +131,20 @@ export struct Typo {
 
 export global Theme {
     in property <Palette> palette: {
+        red:rgb(255,69,58),
+        orange:rgb(255,159,10),
+        yellow:rgb(255,214,10),
+        green:rgb(50,215,75),
+        mint:rgb(102,212,207),
+        teal:rgb(106,196,220),
+        cyan:rgb(90,200,245),
+        blue:rgb(10,132,255),
+        indigo:rgb(94,92,230),
+        purple:rgb(191,90,242),
+        pink:rgb(255,55,95),
+        brown:rgb(172,142,104),
+        gray:rgb(152,152,157),
+
         // primary
         nalufx-blue: #0025FF,
         pure-black: #000000,
@@ -120,11 +180,48 @@ export global Theme {
         lime-green-900: #D9D9D9,
 
         // gradients
+        nalufx-red-gradient: @linear-gradient(135deg, #0f0c29 0%, #33181c 25%, #592529 50%, #33181c 75%, #592529 100%),
+        nalufx-orange-gradient: @linear-gradient(135deg, #0f0c29 0%, #33240f 25%, #593d19 50%, #33240f 75%, #593d19 100%),
+        nalufx-yellow-gradient: @linear-gradient(135deg, #0f0c29 0%, #33300f 25%, #594d19 50%, #33300f 75%, #594d19 100%),
+        nalufx-green-gradient: @linear-gradient(135deg, #0f0c29 0%, #1c3319 25%, #2e5930 50%, #1c3319 75%, #2e5930 100%),
+        nalufx-mint-gradient: @linear-gradient(135deg, #0f0c29 0%, #1b3333 25%, #315959 50%, #1b3333 75%, #315959 100%),
+        nalufx-teal-gradient: @linear-gradient(135deg, #0f0c29 0%, #193134 25%, #30555d 50%, #193134 75%, #30555d 100%),
+        nalufx-cyan-gradient: @linear-gradient(135deg, #0f0c29 0%, #193139 25%, #305561 50%, #193139 75%, #305561 100%),
+        nalufx-blue-gradient: @linear-gradient(135deg, #0f0c29 0%, #10213f 25%, #193861 50%, #10213f 75%, #193861 100%),
+        nalufx-indigo-gradient: @linear-gradient(135deg, #0f0c29 0%, #1c1b40 25%, #302e66 50%, #1c1b40 75%, #302e66 100%),
+        nalufx-purple-gradient: @linear-gradient(135deg, #0f0c29 0%, #2c1b40 25%, #482e66 50%, #2c1b40 75%, #482e66 100%),
+        nalufx-pink-gradient: @linear-gradient(135deg, #0f0c29 0%, #33121a 25%, #59202e 50%, #33121a 75%, #59202e 100%),
+        nalufx-brown-gradient: @linear-gradient(135deg, #0f0c29 0%, #33291a 25%, #59492e 50%, #33291a 75%, #59492e 100%),
+        nalufx-gray-gradient: @linear-gradient(135deg, #0f0c29 0%, #333333 25%, #595959 50%, #333333 75%, #595959 100%),
+        nalufx-twilight-gradient: @linear-gradient(135deg, #896fff 0%, #39316B 100%),
+
+        // Radial Gradients
+        nalufx-twilight-radial-gradient: @radial-gradient(circle, #4e4a7d 0%, #0f0c29 30%, #000000 100%),
+
+
+
+        nalufx-red-bar-gradient: @linear-gradient(180deg, #ff6b6b 0%, #ff6b6b00 100%),
+        nalufx-orange-bar-gradient: @linear-gradient(180deg, #ff9e42 0%, #ff9e4200 100%),
+        nalufx-yellow-bar-gradient: @linear-gradient(180deg, #ffd700 0%, #ffd70000 100%),
+        nalufx-green-bar-gradient: @linear-gradient(180deg, #4caf50 0%, #4caf5000 100%),
+        nalufx-mint-bar-gradient: @linear-gradient(180deg, #66ffcc 0%, #66ffcc00 100%),
+        nalufx-teal-bar-gradient: @linear-gradient(180deg, #66ccff 0%, #66ccff00 100%),
+        nalufx-cyan-bar-gradient: @linear-gradient(180deg, #00ffff 0%, #00ffff00 100%),
+        nalufx-blue-bar-gradient: @linear-gradient(180deg, #3399ff 0%, #3399ff00 100%),
+        nalufx-indigo-bar-gradient: @linear-gradient(180deg, #6666ff 0%, #6666ff00 100%),
+        nalufx-purple-bar-gradient: @linear-gradient(180deg, #cc66ff 0%, #cc66ff00 100%),
+        nalufx-pink-bar-gradient: @linear-gradient(180deg, #ff66b2 0%, #ff66b200 100%),
+        nalufx-brown-bar-gradient: @linear-gradient(180deg, #d2a679 0%, #d2a67900 100%),
+        nalufx-gray-bar-gradient: @linear-gradient(180deg, #999999 0%, #99999900 100%),
+        nalufx-twilight-bar-gradient: @linear-gradient(180deg, #b399ff 0%, #b399ff00 100%),
+
+
+
+
         lemon-green-gradient: @linear-gradient(135deg, #defb3a75 0%, #defb3a00 100%),
         lemon-green-light-gradient: @linear-gradient(135deg, #DEFB3A 0%, #defb3a33 100%),
         lemon-green-radial-gradient: @radial-gradient(circle, #DEFB3A20 0%, #DEFB3A00 100%),
         nalufx-blue-gradient: @linear-gradient(135deg, #6c4bff76 0%, #6C4BFF00 100%),
-        heliotrope-gradient: @linear-gradient(180deg, #896fff 0%, #39316B 100%),
         dark-left-gradient: @linear-gradient(90deg, #040708 0%, #04070875 50%, #04070800 100%),
         dark-right-gradient: @linear-gradient(90deg, #04070800 0%, #04070875 50%, #040708 100%),
         ebony-radial-gradient: @radial-gradient(circle, #100F23 0%, #1F1946 100%),

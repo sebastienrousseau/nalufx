@@ -60,34 +60,37 @@ export component Settings inherits Page {
 
     padding-left: 0;
     padding-right: 0;
+    padding-top: Theme.spaces.large;
+    padding-bottom: 0;
 
     VerticalLayout {
         padding-left: 0;
         padding-right: 0;
-        padding-top: Theme.spaces.medium;
+        padding-top: Theme.spaces.large;
         padding-bottom: Theme.spaces.large;
-        spacing: Theme.spaces.medium;
+        spacing: Theme.spaces.large;
 
         ScrollView {
             vertical-stretch: 1;
 
             VerticalLayout {
                 alignment: start;
-                spacing: Theme.spaces.medium;
+                spacing: Theme.spaces.large;
                 ItemGroupBox {
                     title: "Watchlist";
 
                     // Apple
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-aapl.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.aapl_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -111,15 +114,16 @@ export component Settings inherits Page {
 
                     // Amazon
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-amzn.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.amzn_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -143,15 +147,16 @@ export component Settings inherits Page {
 
                     // Google
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-googl.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.googl_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -175,15 +180,16 @@ export component Settings inherits Page {
 
                     // HSBC
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-hsbc.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.hsbc_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -207,15 +213,16 @@ export component Settings inherits Page {
 
                     // Mastercard
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-ma.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.ma_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -239,15 +246,16 @@ export component Settings inherits Page {
 
                     // Moody's
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-mco.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.mco_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -271,15 +279,16 @@ export component Settings inherits Page {
 
                     // Meta
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-meta.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.meta_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -303,15 +312,16 @@ export component Settings inherits Page {
 
                     // Microsoft
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-msft.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.msft_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -335,15 +345,16 @@ export component Settings inherits Page {
 
                     // Nvidia
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-nvda.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.nvda_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -367,15 +378,16 @@ export component Settings inherits Page {
 
                     // Ferrari
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-race.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.race_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -399,15 +411,16 @@ export component Settings inherits Page {
 
                     // SPDR S&P 500 Trust ETF
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-spy.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
-                                source: Images.spy_logo;
-                                width: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
+                                source: Images.nalufx-banner;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -431,15 +444,16 @@ export component Settings inherits Page {
 
                     // Tesla
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-tsla.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.tsla_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {
@@ -463,15 +477,16 @@ export component Settings inherits Page {
 
                     // Visa
                     Item {
+                        height: 60px; // 1.5 times the original height
                         clicked => {
                             i-checkbox-v.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 40px;
+                                preferred-height: 60px; // 1.5 times the original height
                                 source: Images.v_logo;
-                                width: 40px;
+                                width: 60px; // 1.5 times the original width
                             }
 
                             Text {

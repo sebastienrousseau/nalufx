@@ -17,18 +17,18 @@ export component ButtonCore {
     /**
      * Property: buttonText
      * Type: string
-     * Default: "Button"
+     * Default: ""
      * Description: The text displayed on the button. Set to "" for no text.
      */
-    in property <string> buttonText: "Button";
+    in property <string> buttonText: "";
 
     /**
      * Property: loadingText
      * Type: string
-     * Default: "Loading..."
+     * Default: ""
      * Description: The text displayed when the button is in the loading state. Set to "" for no text.
      */
-    in property <string> loadingText: "Loading...";
+    in property <string> loadingText: "";
 
     /**
      * Property: textColor
@@ -60,7 +60,7 @@ export component ButtonCore {
      * Default: 1px
      * Description: The width of the button border.
      */
-    in property <length> borderWidth: 1px;
+    in property <length> borderWidth: 0px;
 
     /**
      * Property: borderRadius
@@ -124,7 +124,7 @@ export component ButtonCore {
      * Description: The width of the button.
      * Default: txt.preferred-width + 20px
      */
-    width: txt.preferred-width + 20px;
+    // width: txt.preferred-width + 20px;
 
     /**
      * Property: buttonHeight
@@ -132,7 +132,7 @@ export component ButtonCore {
      * Description: The height of the button.
      * Default: txt.preferred-height * 1.33
      */
-    height: txt.preferred-height * 1.33;
+    // height: txt.preferred-height * 1.33;
 
     /**
      * State: isLoading

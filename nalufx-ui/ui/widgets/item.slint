@@ -14,7 +14,7 @@ export component Item {
     min-height: 40px;
 
     i-container := Rectangle {
-        background: Theme.palette.dark-deep-blue;
+        background: Theme.palette.transparent;
         border-radius: 4px;
     }
 
@@ -43,7 +43,7 @@ export component Item {
         height: 1px;
         x: Theme.spaces.medium;
         y: parent.height - self.height;
-        background: Theme.palette.nalufx-blue-300;
+        background: Theme.palette.indigo;
         opacity: 0.25;
     }
 }
@@ -61,8 +61,8 @@ export component ItemGroupBox {
             }
         }
 
-       Rectangle {
-            background: Theme.palette.dark-deep-blue;
+        Rectangle {
+            background: Theme.palette.transparent;
             border-radius: 4px;
 
             VerticalLayout {

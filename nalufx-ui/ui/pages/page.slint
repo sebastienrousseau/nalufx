@@ -9,6 +9,8 @@ export component Page inherits Rectangle {
 
     padding-left: 14px;
     padding-right: 14px;
+    padding-top: 14px;
+    padding-bottom: 14px;
     x: (index - current-index) * self.width;
     width: 100%;
     height: 100%;
@@ -18,6 +20,8 @@ export component Page inherits Rectangle {
     GridLayout {
         padding-left: root.padding-left;
         padding-right: root.padding-right;
+        padding-top: root.padding-top;
+        padding-bottom: root.padding-bottom;
 
         @children
     }

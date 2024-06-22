@@ -1,0 +1,69 @@
+import { ButtonCore } from "button_core.slint";
+import { Theme } from "../../theme.slint";
+
+/**
+ * IconButton Component
+ *
+ * This component inherits from ButtonCore and adds icon-specific properties
+ * and additional functionality.
+ */
+export component IconButton inherits ButtonCore {
+    /**
+     * Property: iconSource
+     * Type: image
+     * Description: The icon displayed on the button.
+     */
+    in property <image> icon <=> i-icon.source;
+
+    /**
+     * Property: enabled
+     * Type: bool
+     * Default: true
+     * Description: Determines if the button is enabled.
+     */
+    in property <bool> enabled <=> i-touch-area.enabled;
+
+    /**
+     * Event: clicked
+     * Description: Event triggered when the button is clicked.
+     */
+    callback clicked <=> i-touch-area.clicked;
+
+    vertical-stretch: 0;
+    horizontal-stretch: 0;
+    min-width: 24px;
+    min-height: 24px;
+
+    states [
+        /**
+         * State: disabled
+         * Description: The state when the button is disabled.
+         */
+        disabled when !root.enabled : {
+            opacity: 0.25;
+        }
+        /**
+         * State: pressed
+         * Description: The state when the button is pressed.
+         */
+        pressed when i-touch-area.pressed : {
+            i-icon.colorize: Theme.palette.lemon-green;
+        }
+    ]
+
+    GridLayout {
+        padding: 4px;
+
+        /**
+         * Element: i-icon
+         * Description: The image element representing the icon.
+         */
+        i-icon := Image {
+            colorize: Theme.palette.nalufx-blue;
+
+            animate colorize { duration: Theme.durations.medium; }
+        }
+    }
+
+    i-touch-area := TouchArea {}
+}

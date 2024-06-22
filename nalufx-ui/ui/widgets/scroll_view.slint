@@ -1,5 +1,3 @@
-
-
 import { Theme } from "../theme.slint";
 import { StateLayer } from "../components/state_layer.slint";
 
@@ -10,7 +8,7 @@ component ScrollBar inherits Rectangle {
     // this is always negative and bigger than  -maximum
     in-out property <length> value;
 
-    background: Theme.palette.pure-black;
+    background: Theme.palette.transparent;
     border-width: 1px;
 
     i-handle := Rectangle {
@@ -18,7 +16,7 @@ component ScrollBar inherits Rectangle {
         height: root.horizontal ? parent.height : root.maximum <= 0phx ? 0phx : parent.height * (root.page-size / (root.maximum + root.page-size));
 
         border-radius: 3px;
-        background: Theme.palette.nalufx-blue-400;
+        background: Theme.palette.purple;
         x: !root.horizontal ? 0phx : (root.width - i-handle.width) * (-root.value / root.maximum);
         y: root.horizontal ? 0phx : (root.height - i-handle.height) * (-root.value / root.maximum);
     }
@@ -49,8 +47,7 @@ export component ScrollView {
     in property <bool> enabled: true;
     out property <length> visible-width <=>  i-flickable.width;
     out property <length> visible-height <=>  i-flickable.height;
-    // FIXME: remove. This property is currently set by the ListView and is used by the native style to draw the scrollbar differently when it has focus
-    in-out property <bool> has-focus;
+    // Removed the has-focus property as per the FIXME comment
     in-out property <length> viewport-width <=> i-flickable.viewport-width;
     in-out property <length> viewport-height <=> i-flickable.viewport-height;
     in-out property <length> viewport-x <=> i-flickable.viewport-x;

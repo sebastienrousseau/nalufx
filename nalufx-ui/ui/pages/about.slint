@@ -26,31 +26,31 @@ export component About inherits Page {
                 VerticalLayout {
                     width: 100%;
                     height: 100%;
-                    alignment: center; // Center the content vertically
-                    spacing: Theme.spaces.medium;
+                    alignment: center;
+                    spacing: Theme.spaces.small;
 
                     GroupBox {
                         width: 100%;
                         VerticalLayout {
-                            spacing: Theme.spaces.medium;
+                            spacing: Theme.spaces.small;
                             alignment: center; // Center the content horizontally
 
                             Image {
                                 preferred-height: 100px;
-                                source: Images.nalufx-logo;
+                                source: Images.nalufx-banner;
                             }
 
                             Text {
                                 horizontal-alignment: center;
                                 text: "Finance for the rest of us.";
-                                color: Theme.palette.nalufx-blue-100;
+                                color: Theme.palette.teal;
                                 font-size: Theme.typo.header-item.size;
                                 font-weight: Theme.typo.header-item.weight;
                             }
                             Text {
                                 horizontal-alignment: center;
                                 text: "© Copyright 2024 - Sebastien Rousseau. All rights reserved.";
-                                color: Theme.palette.nalufx-blue-100;
+                                color: Theme.palette.white;
                                 font-size: Theme.typo.label-light.size;
                                 font-weight: Theme.typo.label-light.weight;
                             }
