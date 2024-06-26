@@ -13,7 +13,7 @@ export component Button inherits ButtonCore {
      * Event: clicked
      * Description: Event triggered when the button is clicked.
      */
-    callback clicked <=> i-state-layer.clicked;
+    // callback clicked <=> i-state-layer.clicked;
 
     /**
      * Property: minHeight
@@ -63,121 +63,122 @@ export component Button inherits ButtonCore {
      */
     fontSize: 16px;
 
-    i-container := Rectangle {
-        /**
-         * Property: background
-         * Type: brush
-         * Default: Theme.palette.nalufx-twilight-gradient
-         * Description: The background color of the button.
-         */
-        background: Theme.palette.nalufx-twilight-gradient;
+    // i-container := Rectangle {
+    //     /**
+    //      * Property: background
+    //      * Type: brush
+    //      * Default: Theme.palette.nalufx-twilight-gradient
+    //      * Description: The background color of the button.
+    //      */
+    //     background: Theme.palette.nalufx-twilight-gradient;
+        
 
-        /**
-         * Property: border-radius
-         * Type: length
-         * Description: The radius of the button border corners.
-         */
-        border-radius: root.borderRadius;
+    //     /**
+    //      * Property: border-radius
+    //      * Type: length
+    //      * Description: The radius of the button border corners.
+    //      */
+    //     border-radius: max(self.width, self.height) / 2;
 
-        /**
-         * Property: width
-         * Type: length
-         * Description: The width of the button.
-         */
-        width: 50px;
+    //     /**
+    //      * Property: width
+    //      * Type: length
+    //      * Description: The width of the button.
+    //      */
+    //     width: 50px;
 
-        /**
-         * Property: height
-         * Type: length
-         * Description: The height of the button.
-         */
-        height: 50px;
+    //     /**
+    //      * Property: height
+    //      * Type: length
+    //      * Description: The height of the button.
+    //      */
+    //     height: 50px;
 
-        i-state-layer := StateLayer {
-            /**
-             * Property: width
-             * Type: length
-             * Description: The width of the state layer.
-             */
-            width: parent.width;
+    //     i-state-layer := StateLayer {
+    //         /**
+    //          * Property: width
+    //          * Type: length
+    //          * Description: The width of the state layer.
+    //          */
+    //         width: parent.width;
 
-            /**
-             * Property: height
-             * Type: length
-             * Description: The height of the state layer.
-             */
-            height: parent.height;
+    //         /**
+    //          * Property: height
+    //          * Type: length
+    //          * Description: The height of the state layer.
+    //          */
+    //         height: parent.height;
 
-            /**
-             * Property: border-radius
-             * Type: length
-             * Description: The radius of the state layer border corners.
-             */
-            border-radius: parent.border-radius;
-        }
+    //         /**
+    //          * Property: border-radius
+    //          * Type: length
+    //          * Description: The radius of the state layer border corners.
+    //          */
+    //         border-radius: parent.border-radius;
+    //     }
 
-        HorizontalLayout {
-            /**
-             * Property: alignment
-             * Type: alignment
-             * Default: center
-             * Description: The alignment of the button content.
-             */
-            alignment: center;
+    //     HorizontalLayout {
+    //         /**
+    //          * Property: alignment
+    //          * Type: alignment
+    //          * Default: center
+    //          * Description: The alignment of the button content.
+    //          */
+    //         alignment: center;
 
-            /**
-             * Property: padding
-             * Type: length
-             * Default: 15px
-             * Description: The padding around the button content.
-             */
-            padding: 15px;
+    //         /**
+    //          * Property: padding
+    //          * Type: length
+    //          * Default: 15px
+    //          * Description: The padding around the button content.
+    //          */
+    //         padding: 15px;
 
-            Text {
-                /**
-                 * Property: text
-                 * Type: string
-                 * Description: The text displayed on the button.
-                 */
-                text: root.buttonText;
+    //         Text {
+    //             /**
+    //              * Property: text
+    //              * Type: string
+    //              * Description: The text displayed on the button.
+    //              */
+    //             text: root.buttonText;
 
-                /**
-                 * Property: color
-                 * Type: brush
-                 * Description: The color of the button text.
-                 */
-                color: root.textColor;
+    //             /**
+    //              * Property: color
+    //              * Type: brush
+    //              * Description: The color of the button text.
+    //              */
+    //             color: root.textColor;
 
-                /**
-                 * Property: font-size
-                 * Type: length
-                 * Description: The font size of the button text.
-                 */
-                font-size: root.fontSize;
+    //             /**
+    //              * Property: font-size
+    //              * Type: length
+    //              * Description: The font size of the button text.
+    //              */
+    //             font-size: root.fontSize;
 
-                /**
-                 * Property: visible
-                 * Type: bool
-                 * Description: Determines if the text is visible.
-                 */
-                visible: root.buttonText != "";
+    //             /**
+    //              * Property: visible
+    //              * Type: bool
+    //              * Description: Determines if the text is visible.
+    //              */
+    //             visible: root.buttonText != "";
 
-                /**
-                 * Property: vertical-alignment
-                 * Type: alignment
-                 * Default: center
-                 * Description: The vertical alignment of the button text.
-                 */
-                vertical-alignment: center;
+    //             /**
+    //              * Property: vertical-alignment
+    //              * Type: alignment
+    //              * Default: center
+    //              * Description: The vertical alignment of the button text.
+    //              */
+    //             vertical-alignment: center;
 
-                /**
-                 * Property: horizontal-alignment
-                 * Type: alignment
-                 * Default: center
-                 * Description: The horizontal alignment of the button text.
-                 */
-                horizontal-alignment: center;
-            }
-        }
-    }
+    //             /**
+    //              * Property: horizontal-alignment
+    //              * Type: alignment
+    //              * Default: center
+    //              * Description: The horizontal alignment of the button text.
+    //              */
+    //             horizontal-alignment: center;
+    //         }
+    //     }
+    // }
 }

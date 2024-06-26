@@ -1,5 +1,6 @@
 import { ButtonCore } from "button_core.slint";
 import { Theme } from "../../theme.slint";
+import { StateLayer } from "../../components/state_layer.slint";
 
 /**
  * IconButton Component
@@ -9,30 +10,23 @@ import { Theme } from "../../theme.slint";
  */
 export component IconButton inherits ButtonCore {
     /**
-     * Property: iconSource
+     * Property: icon
      * Type: image
      * Description: The icon displayed on the button.
      */
     in property <image> icon <=> i-icon.source;
 
     /**
-     * Property: enabled
-     * Type: bool
-     * Default: true
-     * Description: Determines if the button is enabled.
-     */
-    in property <bool> enabled <=> i-touch-area.enabled;
-
-    /**
      * Event: clicked
      * Description: Event triggered when the button is clicked.
      */
-    callback clicked <=> i-touch-area.clicked;
+    // callback clicked <=> i-touch-area.clicked;
 
     vertical-stretch: 0;
     horizontal-stretch: 0;
-    min-width: 24px;
-    min-height: 24px;
+    min-width: 44pt;
+    min-height: 44pt;
+    borderRadius: 22pt;
 
     states [
         /**
@@ -47,7 +41,7 @@ export component IconButton inherits ButtonCore {
          * Description: The state when the button is pressed.
          */
         pressed when i-touch-area.pressed : {
-            i-icon.colorize: Theme.palette.lemon-green;
+            i-icon.colorize: Theme.palette.purple;
         }
     ]
 
@@ -59,11 +53,13 @@ export component IconButton inherits ButtonCore {
          * Description: The image element representing the icon.
          */
         i-icon := Image {
-            colorize: Theme.palette.nalufx-blue;
-
+            colorize: Theme.palette.white;
             animate colorize { duration: Theme.durations.medium; }
         }
     }
 
-    i-touch-area := TouchArea {}
+    i-touch-area := TouchArea {
+        width: 100%;
+        height: 100%;
+    }
 }

@@ -1,5 +1,5 @@
 import { Page } from "page.slint";
-import { GroupBox, Value, ValueDisplay, BarChart, Button } from "../widgets/widgets.slint";
+import { GroupBox, Value, ValueDisplay, BarChart, Button, IconButton } from "../widgets/widgets.slint";
 import { Images } from "../images.slint";
 
 export global UsageAdapter {
@@ -53,10 +53,11 @@ export component Usage inherits Page {
                 alignment: space-between;
                 height: 180px;
 
-                Button {
-                    buttonText: "1M";
+                IconButton {
+                    icon: Images.arrow-right;
                     width: 50px;
                     height: 50px;
+                    borderRadius: 22pt;
                     clicked => {
                         // Handle button click event for "1M"
                     }

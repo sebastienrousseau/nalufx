@@ -2,13 +2,13 @@ import { ButtonCore } from "button_core.slint";
 import { Theme } from "../../theme.slint";
 
 export component TextButton inherits ButtonCore {
-    in property <string> text <=> i-text.text;
+    // in property <string> text <=> i-text.text;
     in property <string> buttonType;
-    in property <bool> enabled <=> i-touch-area.enabled;
+    // in property <bool> enabled <=> i-touch-area.enabled;
     in property <bool> selected;
     in property <image> icon;
     in property <bool> has-icon: icon.width > 0 && icon.height > 0;
-    callback clicked <=> i-touch-area.clicked;
+    // callback clicked <=> i-touch-area.clicked;
 
     vertical-stretch: 0;
     horizontal-stretch: 0;
