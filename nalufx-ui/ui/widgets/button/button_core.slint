@@ -4,48 +4,186 @@ import { StateLayer } from "../../components/state_layer.slint";
 /**
  * ButtonCore Component
  *
- * This component defines the basic properties and behavior for a button.
- * It includes properties for enabling/disabling the button, setting text,
- * handling loading state, and customizing appearance.
+ * This component defines a highly customizable button with various properties
+ * for appearance, behavior, and state management.
+ *
+ * Features:
+ * - Customizable appearance (background, text color, font, borders, etc.)
+ * - Support for left and right icons
+ * - Loading state
+ * - Disabled state
+ * - Hover and pressed states
+ * - Transparent background option
+ * - Minimum width and height settings
  */
 export component ButtonCore {
-    // Core properties
+    // Accessibility
+    in property <string> accessibilityLabel;
+
+    // Tooltip
+    in property <string> tooltip;
+
+    /// Core properties
+
+    /**
+     * Determines if the button is interactive.
+     * When false, the button appears dimmed and doesn't respond to input.
+     */
     in property <bool> enabled: true;
-    in property <bool> isPlain: false;
+
+    /**
+     * If true, the button has a transparent background.
+     */
+    in property <bool> hasTransparentBackground: false;
+
+    /**
+     * The text displayed on the button.
+     */
     in property <string> buttonText: "";
+
+    /**
+     * The text displayed when the button is in a loading state.
+     */
     in property <string> loadingText: "";
+
+    /**
+     * Indicates whether the button is in a loading state.
+     * When true, the button displays the loading text and a progress cursor.
+     */
     in-out property <bool> isLoading: false;
 
-    // Appearance properties
+    /// Appearance properties
+
+    /**
+     * The default background of the button.
+     */
     in property <brush> background: Theme.palette.nalufx-twilight-gradient;
+
+    /**
+     * The background color when the button is disabled.
+     */
+    in property <brush> disabledBackground;
+
+    /**
+     * The text color when the button is disabled.
+     */
+    in property <brush> disabledTextColor;
+
+    /**
+     * The background color when the button is hovered.
+     */
     in property <brush> hoverBackground: background;
+
+    /**
+     * The text color when the button is hovered.
+     */
     in property <brush> hoverTextColor: textColor;
+
+    /**
+     * The text color when the button is in a loading state.
+     */
     in property <brush> loadingTextColor: Theme.palette.white;
+
+    /**
+     * The background color when the button is pressed.
+     */
     in property <brush> pressedBackground: background;
+
+    /**
+     * The text color when the button is pressed.
+     */
     in property <brush> pressedTextColor: textColor;
+
+    /**
+     * The default text color of the button.
+     */
     in property <brush> textColor: Theme.palette.white;
+
+    /**
+     * The font weight of the button text.
+     */
     in property <int> fontWeight: 500;
-    in property <length> borderRadius: max(self.width, self.height) / 2;
+
+    /**
+     * The border radius of the button.
+     */
+    in property <length> borderRadius: 4px;
+
+    /**
+     * The border width of the button.
+     */
     in property <length> borderWidth: 0px;
+
+    /**
+     * The font size of the button text.
+     */
     in property <length> fontSize: 16px;
 
-    // Icon properties
+    /**
+     * The opacity of the button when disabled.
+     */
+    in property <float> disabledOpacity: 0.5;
+
+    /**
+     * The minimum height of the button.
+     */
+    in property <length> minHeight: 0px;
+
+    /**
+     * The minimum width of the button.
+     */
+    in property <length> minWidth: 0px;
+
+    /// Icon properties
+
+    /**
+     * The image to be displayed at the center of the button.
+     */
+    in property <image> iconCenter;
+
+    /**
+     * The image to be displayed on the left side of the button text.
+     */
     in property <image> iconLeft;
+
+    /**
+     * The image to be displayed on the right side of the button text.
+     */
     in property <image> iconRight;
 
-    // Computed properties
+    /**
+     * The size of the icons.
+     */
+    in property <length> iconSize: 16px;
+
+    /**
+     * The spacing between the icon and the text.
+     */
+    in property <length> iconTextSpacing: 8px;
+
+    /// Computed properties
+
+    /**
+     * The current background color based on the button's state.
+     */
     private property <brush> currentBackground: background;
+
+    /**
+     * The current text color based on the button's state.
+     */
     private property <brush> currentTextColor: textColor;
 
-    // Callbacks
-    callback clicked();
-    callback pressed();
-    callback released();
+    /// Callbacks
 
+    /**
+     * Emitted when the button is clicked.
+     */
+    callback clicked();
+
+    /// State management
     states [
         disabled when !enabled: {
-            currentBackground: background.darker(20%);
-            currentTextColor: textColor.darker(20%);
+            opacity: disabledOpacity;
         }
         loading when isLoading: {
             currentTextColor: loadingTextColor;
@@ -60,51 +198,71 @@ export component ButtonCore {
         }
     ]
 
+    /// Layout
     rect := Rectangle {
         border-color: currentTextColor;
         border-width: borderWidth;
         border-radius: borderRadius;
-        background: isPlain ? transparent : currentBackground;
+        background: hasTransparentBackground ? transparent : currentBackground;
+        min-height: minHeight;
+        min-width: minWidth;
 
         HorizontalLayout {
-            spacing: 8px;
             alignment: center;
 
-            if (iconLeft.width > 0 && iconLeft.height > 0): Image {
-                source: iconLeft;
-                width: 16px;
-                height: 16px;
-                colorize: currentTextColor;
-            }
+            VerticalLayout {
+                alignment: center;
+                spacing: iconTextSpacing;
 
-            txt := Text {
-                text: isLoading ? loadingText : buttonText;
-                color: currentTextColor;
-                font-size: fontSize;
-                font-weight: fontWeight;
-                vertical-alignment: center;
-                horizontal-alignment: center;
-            }
+                HorizontalLayout {
+                    alignment: center;
+                    spacing: iconTextSpacing;
 
-            if (iconRight.width > 0 && iconRight.height > 0): Image {
-                source: iconRight;
-                width: 16px;
-                height: 16px;
-                colorize: currentTextColor;
+                    if (iconCenter.width > 0 && iconCenter.height > 0 &&   buttonText == ""): Image {
+                        source: iconCenter;
+                        width: iconSize;
+                        height: iconSize;
+                        colorize: transparent;
+                    }
+
+                    if (iconLeft.width > 0 && iconLeft.height > 0): Image {
+                        source: iconLeft;
+                        width: iconSize;
+                        height: iconSize;
+                        colorize: currentTextColor;
+                    }
+
+                    txt := Text {
+                        text: isLoading ? loadingText : buttonText;
+                        color: currentTextColor;
+                        font-size: fontSize;
+                        font-weight: fontWeight;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                    }
+
+                    if (iconRight.width > 0 && iconRight.height > 0): Image {
+                        source: iconRight;
+                        width: iconSize;
+                        height: iconSize;
+                        colorize: currentTextColor;
+                    }
+                }
             }
         }
     }
 
+    /// Touch handling
     ta := TouchArea {
         width: 100%;
         height: 100%;
         mouse-cursor: enabled ? (isLoading ? MouseCursor.progress : MouseCursor.pointer) : MouseCursor.not-allowed;
-
         clicked => {
             if (enabled && !isLoading) { root.clicked(); }
         }
     }
 
+    /// State layer for visual feedback
     i-state-layer := StateLayer {
         border-radius: rect.border-radius;
     }

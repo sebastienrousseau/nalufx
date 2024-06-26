@@ -1,184 +1,72 @@
 import { ButtonCore } from "button_core.slint";
-import { StateLayer } from "../../components/state_layer.slint";
 import { Theme } from "../../theme.slint";
 
 /**
  * Button Component
  *
- * This component inherits from ButtonCore and adds theme-specific styling
+ * This component extends ButtonCore and adds theme-specific styling
  * and additional functionality.
  */
 export component Button inherits ButtonCore {
     /**
-     * Event: clicked
-     * Description: Event triggered when the button is clicked.
+     * The minimum height of the button.
      */
-    // callback clicked <=> i-state-layer.clicked;
+    minHeight: 44pt;
 
     /**
-     * Property: minHeight
-     * Type: length
-     * Default: 32px
-     * Description: The minimum height of the button.
+     * The minimum width of the button.
      */
-    min-height: 32px;
+    minWidth: 44pt;
+
 
     /**
-     * Property: minWidth
-     * Type: length
-     * Default: 32px
-     * Description: The minimum width of the button.
+     * The height of the button.
      */
-    min-width: 32px;
+    height: 44pt;
 
     /**
-     * Property: borderRadius
-     * Type: length
-     * Description: The radius of the button border corners.
-     * Default: max(self.width, self.height) / 2
+     * The width of the button.
+     */
+    width: 44pt;
+
+    /**
+     * The border radius of the button.
+     * Set to create a circular button when width and height are equal.
      */
     borderRadius: max(self.width, self.height) / 2;
 
     /**
-     * Property: textColor
-     * Type: brush
-     * Default: Theme.palette.white
-     * Description: The color of the button text.
+     * The default text color of the button.
      */
     textColor: Theme.palette.white;
 
     /**
-     * Property: hoverTextColor
-     * Type: brush
-     * Default: Theme.palette.white
-     * Description: The color of the button text when hovered.
+     * The text color when the button is hovered.
      */
     hoverTextColor: Theme.palette.white;
 
     /**
-     * Property: fontSize
-     * Type: length
-     * Default: 16px
-     * Description: The font size of the button text.
+     * The font size of the button text.
      */
     fontSize: 16px;
 
-    // i-container := Rectangle {
-    //     /**
-    //      * Property: background
-    //      * Type: brush
-    //      * Default: Theme.palette.nalufx-twilight-gradient
-    //      * Description: The background color of the button.
-    //      */
-    //     background: Theme.palette.nalufx-twilight-gradient;
-        
+    /**
+     * The background of the button.
+     */
+    background: Theme.palette.nalufx-twilight-gradient;
 
-    //     /**
-    //      * Property: border-radius
-    //      * Type: length
-    //      * Description: The radius of the button border corners.
-    //      */
-    //     border-radius: max(self.width, self.height) / 2;
+    /**
+     * The padding around the button content.
+     */
+    padding: 15px;
 
-    //     /**
-    //      * Property: width
-    //      * Type: length
-    //      * Description: The width of the button.
-    //      */
-    //     width: 50px;
-
-    //     /**
-    //      * Property: height
-    //      * Type: length
-    //      * Description: The height of the button.
-    //      */
-    //     height: 50px;
-
-    //     i-state-layer := StateLayer {
-    //         /**
-    //          * Property: width
-    //          * Type: length
-    //          * Description: The width of the state layer.
-    //          */
-    //         width: parent.width;
-
-    //         /**
-    //          * Property: height
-    //          * Type: length
-    //          * Description: The height of the state layer.
-    //          */
-    //         height: parent.height;
-
-    //         /**
-    //          * Property: border-radius
-    //          * Type: length
-    //          * Description: The radius of the state layer border corners.
-    //          */
-    //         border-radius: parent.border-radius;
-    //     }
-
-    //     HorizontalLayout {
-    //         /**
-    //          * Property: alignment
-    //          * Type: alignment
-    //          * Default: center
-    //          * Description: The alignment of the button content.
-    //          */
-    //         alignment: center;
-
-    //         /**
-    //          * Property: padding
-    //          * Type: length
-    //          * Default: 15px
-    //          * Description: The padding around the button content.
-    //          */
-    //         padding: 15px;
-
-    //         Text {
-    //             /**
-    //              * Property: text
-    //              * Type: string
-    //              * Description: The text displayed on the button.
-    //              */
-    //             text: root.buttonText;
-
-    //             /**
-    //              * Property: color
-    //              * Type: brush
-    //              * Description: The color of the button text.
-    //              */
-    //             color: root.textColor;
-
-    //             /**
-    //              * Property: font-size
-    //              * Type: length
-    //              * Description: The font size of the button text.
-    //              */
-    //             font-size: root.fontSize;
-
-    //             /**
-    //              * Property: visible
-    //              * Type: bool
-    //              * Description: Determines if the text is visible.
-    //              */
-    //             visible: root.buttonText != "";
-
-    //             /**
-    //              * Property: vertical-alignment
-    //              * Type: alignment
-    //              * Default: center
-    //              * Description: The vertical alignment of the button text.
-    //              */
-    //             vertical-alignment: center;
-
-    //             /**
-    //              * Property: horizontal-alignment
-    //              * Type: alignment
-    //              * Default: center
-    //              * Description: The horizontal alignment of the button text.
-    //              */
-    //             horizontal-alignment: center;
-    //         }
-    //     }
-    // }
+    // Apply padding to the internal layout
+    Rectangle {
+        HorizontalLayout {
+            padding-left: root.padding;
+            padding-right: root.padding;
+            padding-top: root.padding;
+            padding-bottom: root.padding;
+        }
+    }
 }
