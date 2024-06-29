@@ -1,0 +1,95 @@
+import { Theme } from "../../theme.slint";
+import { ButtonCore } from "./button_core.slint";
+import { StateLayer } from "../../components/state_layer.slint";
+
+/**
+ * ToggleButton Component
+ *
+ * A button that can be toggled on and off. It inherits from ButtonCore
+ * and provides visual feedback for its current state.
+ */
+export component ToggleButton inherits ButtonCore {
+    /**
+     * Emitted when the button is toggled.
+     */
+    callback toggled(bool);
+
+    /**
+     * The text displayed on the button.
+     */
+    in property <string> text;
+
+    /**
+     * The current checked state of the button.
+     */
+    in-out property <bool> checked;
+
+    /**
+     * The preferred height of the button.
+     */
+    preferred-height: 40px;
+
+    /**
+     * The main container of the button.
+     */
+    HorizontalLayout {
+        spacing: 8px;
+
+        indicator := Rectangle {
+            width: 44pt;
+            border-width: 1px;
+            border-radius: root.height / 2;
+            border-color: self.background.darker(25%);
+            background: root.enabled ? (root.checked ? Theme.palette.white : Theme.palette.nalufx-twilight-gradient) : Theme.palette.nalufx-twilight-gradient.brighter(25%);
+            animate background { duration: 100ms; }
+
+            bubble := Rectangle {
+                width: root.height - 8px;
+                height: bubble.width;
+                border-radius: bubble.height / 2;
+                y: 4px;
+                x: 4px + self.a * (indicator.width - bubble.width - 8px);
+                property <float> a: root.checked ? 1 : 0;
+                background: root.checked ? Theme.palette.nalufx-twilight-gradient.darker(0%) : (root.enabled ? Theme.palette.white : Theme.palette.gray);
+                animate a, background {
+                    duration: 200ms;
+                    easing: ease;
+                }
+            }
+        }
+
+        Text {
+            min-width: max(100px, self.preferred-width);
+            text: root.text;
+            vertical-alignment: center;
+            color: root.enabled ? Theme.palette.black : Theme.palette.gray;
+        }
+    }
+
+    /**
+     * The touch area for handling user interactions.
+     */
+    touch-area := TouchArea {
+        width: root.width;
+        height: root.height;
+        mouse-cursor: root.enabled ? MouseCursor.pointer : MouseCursor.not-allowed;
+        clicked => {
+            if (root.enabled) {
+                root.checked = !root.checked;
+                root.toggled(root.checked);
+            }
+        }
+    }
+
+    /**
+     * States for visual feedback on user interaction.
+     */
+    states [
+        pressed when touch-area.pressed && root.enabled: {
+            indicator.background: Theme.palette.nalufx-twilight-gradient.darker(20%);
+        }
+        hover when touch-area.has-hover && root.enabled: {
+            indicator.background: Theme.palette.nalufx-twilight-gradient.brighter(10%);
+        }
+    ]
+}

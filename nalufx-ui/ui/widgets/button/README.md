@@ -197,7 +197,7 @@ Button {
 ## Related Components
 
 - **`ButtonCore`**: The base component for buttons, providing common properties and functionality.
-- **`IconButton`**: A button component that includes an icon.
+- **`Button`**: A button component that includes text, icons, and other customization options.
 - **`FloatButton`**: A floating action button with additional properties.
 
 ## Conclusion

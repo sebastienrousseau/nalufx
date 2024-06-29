@@ -9,7 +9,7 @@ import { StateLayer } from "../../components/state_layer.slint";
  *
  * Features:
  * - Customizable appearance (background, text color, font, borders, etc.)
- * - Support for left and right icons
+ * - Support for left, right, and center icons
  * - Loading state
  * - Disabled state
  * - Hover and pressed states
@@ -107,17 +107,17 @@ export component ButtonCore {
     /**
      * The border radius of the button.
      */
-    in property <length> borderRadius: 4px;
+    in property <length> borderRadius: 4pt;
 
     /**
      * The border width of the button.
      */
-    in property <length> borderWidth: 0px;
+    in property <length> borderWidth: 0pt;
 
     /**
      * The font size of the button text.
      */
-    in property <length> fontSize: 16px;
+    in property <length> fontSize: 16pt;
 
     /**
      * The opacity of the button when disabled.
@@ -127,12 +127,22 @@ export component ButtonCore {
     /**
      * The minimum height of the button.
      */
-    in property <length> minHeight: 0px;
+    in property <length> minHeight: 0pt;
 
     /**
      * The minimum width of the button.
      */
-    in property <length> minWidth: 0px;
+    in property <length> minWidth: 0pt;
+
+    /**
+     * The padding left around the button content, based on its size and content.
+     */
+    in property <length> paddingLeft: 6pt;
+
+    /**
+     * The padding right around the button content, based on its size and content.
+     */
+    in property <length> paddingRight: 6pt;
 
     /// Icon properties
 
@@ -154,24 +164,24 @@ export component ButtonCore {
     /**
      * The size of the icons.
      */
-    in property <length> iconSize: 16px;
+    in property <length> iconSize: 18pt;
 
     /**
      * The spacing between the icon and the text.
      */
-    in property <length> iconTextSpacing: 8px;
+    in property <length> iconTextSpacing: 0pt;
 
     /// Computed properties
 
     /**
      * The current background color based on the button's state.
      */
-    private property <brush> currentBackground: background;
+    out property <brush> currentBackground: background;
 
     /**
      * The current text color based on the button's state.
      */
-    private property <brush> currentTextColor: textColor;
+    out property <brush> currentTextColor: textColor;
 
     /// Callbacks
 
@@ -206,25 +216,32 @@ export component ButtonCore {
         background: hasTransparentBackground ? transparent : currentBackground;
         min-height: minHeight;
         min-width: minWidth;
+        padding-left: paddingLeft;
+        padding-right: paddingRight;
 
+        // Main layout container
         HorizontalLayout {
             alignment: center;
 
+            // Vertical layout for centering content
             VerticalLayout {
                 alignment: center;
                 spacing: iconTextSpacing;
 
+                // Horizontal layout for button content (icons and text)
                 HorizontalLayout {
                     alignment: center;
                     spacing: iconTextSpacing;
 
-                    if (iconCenter.width > 0 && iconCenter.height > 0 &&   buttonText == ""): Image {
+                    // Center icon (only shown if no text and icon is provided)
+                    if (iconCenter.width > 0 && iconCenter.height > 0 && buttonText == ""): Image {
                         source: iconCenter;
                         width: iconSize;
                         height: iconSize;
                         colorize: transparent;
                     }
 
+                    // Left icon
                     if (iconLeft.width > 0 && iconLeft.height > 0): Image {
                         source: iconLeft;
                         width: iconSize;
@@ -232,6 +249,7 @@ export component ButtonCore {
                         colorize: currentTextColor;
                     }
 
+                    // Button text (or loading text when in loading state)
                     txt := Text {
                         text: isLoading ? loadingText : buttonText;
                         color: currentTextColor;
@@ -241,6 +259,7 @@ export component ButtonCore {
                         horizontal-alignment: center;
                     }
 
+                    // Right icon
                     if (iconRight.width > 0 && iconRight.height > 0): Image {
                         source: iconRight;
                         width: iconSize;

@@ -1,6 +1,8 @@
+import { ToggleButton } from "../widgets/button/toggle_button.slint";
 import { Page } from "page.slint";
 import { GroupBox, Value, ValueDisplay, BarChart, Button } from "../widgets/widgets.slint";
 import { Images } from "../images.slint";
+import { Theme } from "../theme.slint";
 
 export global UsageAdapter {
     in property <string> title: "Insight Overview";
@@ -47,7 +49,6 @@ export component Usage inherits Page {
         title: root.title;
 
         Rectangle {
-            width: 60px;
             height: 100%;
             VerticalLayout {
                 alignment: space-between;
@@ -55,27 +56,23 @@ export component Usage inherits Page {
 
                 Button {
                     iconCenter: Images.arrow-right;
-                    iconSize: 22pt;
-                    iconTextSpacing: 4px;
+                    iconTextSpacing: 0pt;
                     clicked => {
                         // Handle button click event for "1M"
                     }
                 }
 
-                Button {
-                    buttonText: "6M";
-                    iconLeft: Images.arrow-right;
-                    iconSize: 16px;
-                    iconTextSpacing: 4px;
-                    clicked => {
-                        // Handle button click event for "6M"
-                    }
+                ToggleButton {
+                    background: Theme.palette.transparent;
+                    checked: false;
                 }
 
                 Button {
                     buttonText: "1Y";
+                    fontSize: 10pt;
+                    iconSize: 14pt;
                     iconRight: Images.arrow-right;
-                    iconSize: 16pt;
+                    iconTextSpacing: 0pt;
                     clicked => {
                         // Handle button click event for "1Y"
                     }

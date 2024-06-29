@@ -1,7 +1,7 @@
 
 
 import { Theme } from "theme.slint";
-import { Navigation, MenuButton, MobileMenu, Value, IconButton } from "widgets/widgets.slint";
+import { Navigation, MenuButton, MobileMenu, Value, Button } from "widgets/widgets.slint";
 import { Balance, Overview, Usage, UsageAdapter, Weather, MenuPage, MenuOverviewAdapter, About } from "pages/pages.slint";
 import { Images } from "images.slint";
 
@@ -69,9 +69,9 @@ export component MobileMain {
             }
         }
 
-        settings-button := IconButton {
+        settings-button := Button {
             y: (parent.height - self.height) / 2;
-            icon: Images.settings;
+            iconCenter: Images.settings;
 
             clicked => {
                 if (!menu.open) {

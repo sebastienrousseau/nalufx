@@ -5,35 +5,40 @@ import { Theme } from "../../theme.slint";
  * Button Component
  *
  * This component extends ButtonCore and adds theme-specific styling
- * and additional functionality.
+ * and additional functionality. It supports different sizes and
+ * provides consistent styling across various states.
  */
 export component Button inherits ButtonCore {
     /**
-     * The minimum height of the button.
+     * The size variant of the button.
+     * Possible values: "small", "medium", "large"
      */
-    minHeight: 44pt;
+    in property <string> size: "medium";
 
     /**
-     * The minimum width of the button.
+     * The minimum height of the button, based on its size.
      */
-    minWidth: 44pt;
-
-
-    /**
-     * The height of the button.
-     */
-    height: 44pt;
+    minHeight: size == "small" ? 28pt : size == "medium" ? 36pt : 44pt;
 
     /**
-     * The width of the button.
+     * The minimum width of the button, based on its size.
      */
-    width: 44pt;
+    minWidth: size == "small" ? 28pt : size == "medium" ? 36pt : 44pt;
 
     /**
-     * The border radius of the button.
-     * Set to create a circular button when width and height are equal.
+     * The height of the button. Adapts to content while respecting the minimum height.
      */
-    borderRadius: max(self.width, self.height) / 2;
+    height: max(self.minHeight, self.preferred-height);
+
+    /**
+     * The width of the button. Adapts to content while respecting the minimum width.
+     */
+    width: max(self.minWidth, self.preferred-width);
+
+    /**
+     * The border radius of the button, based on its size.
+     */
+    borderRadius: size == "small" ? 14pt : size == "medium" ? 18pt : 22pt;
 
     /**
      * The default text color of the button.
@@ -46,9 +51,14 @@ export component Button inherits ButtonCore {
     hoverTextColor: Theme.palette.white;
 
     /**
-     * The font size of the button text.
+     * The text color when the button is pressed.
      */
-    fontSize: 16px;
+    pressedTextColor: Theme.palette.white;
+
+    /**
+     * The font size of the button text, based on its size.
+     */
+    fontSize: size == "small" ? 14px : size == "medium" ? 16px : 18px;
 
     /**
      * The background of the button.
@@ -56,17 +66,92 @@ export component Button inherits ButtonCore {
     background: Theme.palette.nalufx-twilight-gradient;
 
     /**
-     * The padding around the button content.
+     * The background color when the button is hovered.
      */
-    padding: 15px;
+    hoverBackground: Theme.palette.nalufx-twilight-gradient.darker(10%);
 
-    // Apply padding to the internal layout
-    Rectangle {
-        HorizontalLayout {
-            padding-left: root.padding;
-            padding-right: root.padding;
-            padding-top: root.padding;
-            padding-bottom: root.padding;
+    /**
+     * The background color when the button is pressed.
+     */
+    pressedBackground: Theme.palette.nalufx-twilight-gradient.darker(20%);
+
+    /**
+     * The text displayed when the button is in a loading state.
+     */
+    loadingText: "";
+
+    /**
+     * The text color when the button is in a loading state.
+     */
+    loadingTextColor: Theme.palette.white;
+
+    /**
+     * The background color when the button is disabled.
+     */
+    disabledBackground: Theme.palette.nalufx-twilight-gradient.darker(30%);
+
+    /**
+     * The text color when the button is disabled.
+     */
+    disabledTextColor: Theme.palette.white.darker(30%);
+
+    /**
+     * The size of the icons.
+     */
+    iconSize: size == "small" ? 16pt : size == "medium" ? 18pt : 20pt;
+
+    /**
+     * The spacing between the icon and the text.
+     */
+    iconTextSpacing: size == "small" ? 6pt : size == "medium" ? 8pt : 10pt;
+
+    /**
+     * The padding around the button content, based on its size and content.
+     */
+    function calculate-padding() -> length {
+        if (root.iconLeft.width > 0 || root.iconRight.width > 0 || root.iconCenter.width > 0) {
+            return root.size == "small" ? 8px : root.size == "medium" ? 12px : 16px;
+        } else {
+            return root.size == "small" ? 10px : root.size == "medium" ? 15px : 20px;
+        }
+    }
+
+    padding-left: calculate-padding();
+    padding-right: calculate-padding();
+    padding-top: size == "small" ? 5px : size == "medium" ? 8px : 10px;
+    padding-bottom: size == "small" ? 5px : size == "medium" ? 8px : 10px;
+
+    /**
+     * Main content layout
+     */
+    HorizontalLayout {
+        alignment: center;
+        spacing: root.iconTextSpacing;
+
+        if (root.iconLeft.width > 0): Image {
+            width: root.iconSize;
+            height: root.iconSize;
+            colorize: root.currentTextColor;
+        }
+
+        if (root.buttonText != ""): Text {
+            text: root.isLoading ? root.loadingText : root.buttonText;
+            color: root.currentTextColor;
+            font-size: root.fontSize;
+            font-weight: root.fontWeight;
+            vertical-alignment: center;
+        }
+
+        if (root.iconRight.width > 0): Image {
+            width: root.iconSize;
+            height: root.iconSize;
+            colorize: root.currentTextColor;
+        }
+
+        if (root.iconCenter.width > 0 && root.buttonText == ""): Image {
+            width: root.iconSize;
+            height: root.iconSize;
+            colorize: root.currentTextColor;
         }
     }
 }

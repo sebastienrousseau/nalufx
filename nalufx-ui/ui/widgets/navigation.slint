@@ -1,7 +1,7 @@
 
 
 import { Pagination } from "pagination.slint";
-import { FloatButton } from "float_button.slint";
+import { Button } from "button/button.slint";
 import { Theme } from "../theme.slint";
 import { Images } from "../images.slint";
 
@@ -68,8 +68,8 @@ export component Navigation {
                     padding-left: Theme.spaces.large;
                     alignment: start;
 
-                    FloatButton {
-                        icon: Images.arrow-left;
+                    Button {
+                        iconCenter: Images.arrow-left;
 
                         clicked => {
                             root.increment();
@@ -96,8 +96,8 @@ export component Navigation {
                     padding-right: Theme.spaces.large;
                     alignment: end;
 
-                    FloatButton {
-                        icon: Images.arrow-right;
+                    Button {
+                        iconCenter: Images.arrow-right;
 
                         clicked => {
                             root.decrement();

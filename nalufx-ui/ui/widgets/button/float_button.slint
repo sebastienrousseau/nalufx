@@ -1,0 +1,95 @@
+import { Theme } from "../../theme.slint";
+import { ButtonCore } from "./button_core.slint";
+import { StateLayer } from "../../components/state_layer.slint";
+
+/**
+ * FloatButton Component
+ *
+ * A circular floating button with customizable icon and states.
+ * This component provides hover and pressed visual feedback, and can be enabled or disabled.
+ */
+export component FloatButton {
+    /**
+     * The icon to be displayed in the button.
+     */
+    in property <image> icon <=> i-icon.source;
+
+    /**
+     * Determines if the button is interactive.
+     * When false, the button appears dimmed and doesn't respond to input.
+     */
+    in property <bool> enabled: true;
+
+    /**
+     * Emitted when the button is clicked and enabled.
+     */
+    callback clicked;
+
+    /**
+     * The preferred width of the button.
+     */
+    preferred-width: 50px;
+
+    /**
+     * The preferred height of the button.
+     */
+    preferred-height: 50px;
+
+    /**
+     * The current background color of the button.
+     */
+    private property <brush> current-background: Theme.palette.nalufx-twilight-gradient;
+
+    /**
+     * The main container of the button.
+     */
+    i-container := Rectangle {
+        width: 100%;
+        height: 100%;
+        background: enabled ? root.current-background : Theme.palette.nalufx-twilight-gradient.darker(30%);
+        border-radius: max(self.width, self.height) / 2;
+
+        /**
+         * The icon of the button.
+         */
+        i-icon := Image {
+            width: min(parent.width, parent.height) * 0.5;
+            height: self.width;
+            colorize: enabled ? Theme.palette.white : Theme.palette.white.darker(30%);
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+        }
+    }
+
+    /**
+     * The state layer for visual feedback.
+     */
+    i-state-layer := StateLayer {
+        border-radius: i-container.border-radius;
+        enabled: root.enabled;
+    }
+
+    /**
+     * The touch area for handling user interactions.
+     */
+    touch-area := TouchArea {
+        width: 100%;
+        height: 100%;
+        mouse-cursor: enabled ? MouseCursor.pointer : MouseCursor.not-allowed;
+        clicked => {
+            if (enabled) { root.clicked(); }
+        }
+    }
+
+    /**
+     * States for visual feedback on user interaction.
+     */
+    states [
+        pressed when touch-area.pressed && enabled: {
+            current-background: Theme.palette.nalufx-twilight-gradient.darker(20%);
+        }
+        hover when touch-area.has-hover && enabled: {
+            current-background: Theme.palette.nalufx-twilight-gradient.darker(10%);
+        }
+    ]
+}

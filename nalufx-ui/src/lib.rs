@@ -35,7 +35,7 @@ pub fn main() {
     let window = MainWindow::new().unwrap();
 
     // Debug print to confirm main function is called
-    println!("Main window created");
+    // println!("Main window created");
 
     let _timer = controllers::header::setup(&window);
 
