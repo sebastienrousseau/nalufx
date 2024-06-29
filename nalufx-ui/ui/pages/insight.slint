@@ -1,6 +1,5 @@
-import { ToggleButton } from "../widgets/button/toggle_button.slint";
 import { Page } from "page.slint";
-import { GroupBox, Value, ValueDisplay, BarChart, Button } from "../widgets/widgets.slint";
+import { GroupBox, Value, ValueDisplay, BarChart, Button, DropdownButton, ToggleButton } from "../widgets/widgets.slint";
 import { Images } from "../images.slint";
 import { Theme } from "../theme.slint";
 
@@ -44,16 +43,20 @@ export component Usage inherits Page {
     in property <[float]> model <=> UsageAdapter.model;
     in property <float> min <=> UsageAdapter.min;
     in property <float> max <=> UsageAdapter.max;
+    in-out property <string> selectedDropdownItem: "Select an option";
 
     GroupBox {
         title: root.title;
 
         Rectangle {
+            width: 66px;
             height: 100%;
+            clip: true;
+
             VerticalLayout {
                 alignment: space-between;
                 height: 180px;
-
+                // Button Icon
                 Button {
                     iconCenter: Images.arrow-right;
                     iconTextSpacing: 0pt;
@@ -62,21 +65,26 @@ export component Usage inherits Page {
                     }
                 }
 
+                // Button Text
+                Button {
+                    buttonText: "1M";
+                    clicked => {
+                        // Handle button click event for "1M"
+                    }
+                }
+
+                // Toggle button
                 ToggleButton {
                     background: Theme.palette.transparent;
                     checked: false;
                 }
 
-                Button {
-                    buttonText: "1Y";
-                    fontSize: 10pt;
-                    iconSize: 14pt;
-                    iconRight: Images.arrow-right;
-                    iconTextSpacing: 0pt;
-                    clicked => {
-                        // Handle button click event for "1Y"
-                    }
-                }
+                // Dropdown button
+                // DropdownButton {
+                //     background: Theme.palette.transparent;
+                //     menuItems: ["Option 1", "Option 2", "Option 3"];
+                //     selectedItem: root.selectedDropdownItem;
+                // }
             }
         }
 

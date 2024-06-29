@@ -1,0 +1,96 @@
+import { Theme } from "../../theme.slint";
+import { Images } from "../../images.slint";
+import { ButtonCore } from "./button_core.slint";
+import { StateLayer } from "../../components/state_layer.slint";
+
+export component DropdownButton inherits ButtonCore {
+    callback onItemSelected(string);
+    in property <[string]> menuItems;
+    in-out property <string> selectedItem: "";
+    preferred-height: 40px;
+
+    VerticalLayout {
+        spacing: 0px;
+        buttonBackground := Rectangle {
+            width: 100%;
+            height: root.preferred-height;
+            background: Theme.palette.nalufx-twilight-gradient;
+            HorizontalLayout {
+                padding-left: 6pt;
+                padding-right: 6pt;
+                alignment: space-between;
+                Text {
+                    text: root.selectedItem != "" ? root.selectedItem : "Select an option";
+                    vertical-alignment: center;
+                    color: root.enabled ? Theme.palette.white : Theme.palette.gray;
+                }
+                Rectangle {
+                    width: 16pt;
+                    height: parent.height;
+                    Image {
+                        source: menuVisible ? Images.arrow-top : Images.arrow-bottom;
+                        width: 16pt;
+                        height: 16pt;
+                        colorize: root.enabled ? Theme.palette.white : Theme.palette.gray;
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                    }
+                }
+            }
+            touch-area := TouchArea {
+                width: parent.width;
+                height: parent.height;
+                mouse-cursor: root.enabled ? MouseCursor.pointer : MouseCursor.not-allowed;
+                clicked => {
+                    if (root.enabled) {
+                        menuVisible = !menuVisible;
+                    }
+                }
+            }
+        }
+        menu := Rectangle {
+            width: 100%;
+            background: Theme.palette.nalufx-twilight-gradient;
+            border-color: Theme.palette.gray;
+            opacity: menuVisible ? 1.0 : 0.0;
+            visible: menuVisible;
+            height: menuVisible ? (menuItems.length - (selectedItem != "" ? 1 : 0)) * 40px : 0px;
+            clip: true;
+            animate height { duration: 200ms; easing: ease-in-out; }
+            animate opacity { duration: 200ms; easing: ease-in-out; }
+            z: 1;
+            VerticalLayout {
+                for item[i] in root.menuItems: Rectangle {
+                    visible: item != root.selectedItem;
+                    height: self.visible ? 40px : 0px;
+                    background: item-hover.has-hover ? Theme.palette.nalufx-twilight-gradient.darker(61.8%) : Theme.palette.transparent;
+                    Text {
+                        x: 6pt;
+                        text: item;
+                        color: Theme.palette.white;
+                        vertical-alignment: center;
+                    }
+                    item-hover := TouchArea {
+                        width: 100%;
+                        height: 100%;
+                        clicked => {
+                            root.selectedItem = item;
+                            root.onItemSelected(item);
+                            menuVisible = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    property <bool> menuVisible: false;
+
+    states [
+        pressed when touch-area.pressed && root.enabled: {
+            buttonBackground.background: Theme.palette.nalufx-twilight-gradient.darker(10%);
+        }
+        hover when touch-area.has-hover && root.enabled: {
+            buttonBackground.background: Theme.palette.nalufx-twilight-gradient.brighter(10%);
+        }
+    ]
+}
