@@ -63,7 +63,7 @@ export component DropdownButton inherits ButtonCore {
                 for item[i] in root.menuItems: Rectangle {
                     visible: item != root.selectedItem;
                     height: self.visible ? 40px : 0px;
-                    background: item-hover.has-hover ? Theme.palette.nalufx-twilight-gradient.darker(61.8%) : Theme.palette.transparent;
+                    background: item-hover.has-hover ? Theme.palette.indigo : Theme.palette.nalufx-twilight-gradient.darker(50%);
                     Text {
                         x: 6pt;
                         text: item;
