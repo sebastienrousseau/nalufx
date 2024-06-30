@@ -90,6 +90,7 @@ The `Button` component inherits from `ButtonCore` and extends its functionality 
 
 - **`clicked`**: This event is triggered when the button is clicked.
   - Example:
+
     ```slint
     Button {
         buttonText: "Click Me";
@@ -197,8 +198,9 @@ Button {
 ## Related Components
 
 - **`ButtonCore`**: The base component for buttons, providing common properties and functionality.
-- **`Button`**: A button component that includes text, icons, and other customization options.
 - **`FloatButton`**: A floating action button with additional properties.
+- **`ToggleButton`**: A button that toggles between two states.
+- **`DropdownButton`**: A button that shows a dropdown menu when clicked.
 
 ## Conclusion
 
