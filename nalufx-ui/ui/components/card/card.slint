@@ -1,0 +1,132 @@
+import { Theme } from "../../theme.slint";
+
+/**
+ * Card Component
+ *
+ * A versatile card component that displays an image, title, and description.
+ * It supports hover and press states, and can be used in various layouts.
+ *
+ * The card has a responsive design and adapts to different sizes while
+ * maintaining its aspect ratio and content layout.
+ */
+export component Card inherits Rectangle {
+    /**
+     * The title text displayed on the card.
+     */
+    in property <string> title: "Card Title";
+
+    /**
+     * The description text displayed on the card.
+     */
+    in property <string> description: "Card Description";
+
+    /**
+     * The source image to be displayed on the card.
+     */
+    in property <image> image-source;
+
+    /**
+     * Callback triggered when the card is clicked.
+     */
+    callback clicked <=> i-touch-area.clicked;
+
+    /**
+     * The preferred width of the card.
+     */
+    preferred-width: 200px;
+
+    /**
+     * The preferred height of the card.
+     */
+    preferred-height: 200px;
+
+    /**
+     * The corner radius of the card.
+     */
+    in property <length> corner-radius: 10px;
+
+    /**
+     * The background color of the card in its default state.
+     */
+    in property <color> background-color: Theme.palette.white;
+
+    /**
+     * The background color of the card when hovered.
+     */
+    in property <color> hover-background-color: background-color.darker(33%);
+
+    /**
+     * The background color of the card when pressed.
+     */
+    in property <color> pressed-background-color: background-color.darker(66%);
+
+    /**
+     * The duration of the background color transition animation.
+     */
+    in property <duration> transition-duration: Theme.durations.fast;
+
+    // Card styling
+    border-radius: root.corner-radius;
+    background: background-color;
+    clip: true;
+
+    // Interactive states
+    states [
+        pressed when i-touch-area.pressed: {
+            background: pressed-background-color;
+        }
+        hover when i-touch-area.has-hover: {
+            background: hover-background-color;
+        }
+    ]
+
+    // Animations
+    animate background { duration: transition-duration; }
+
+    // Card layout
+    VerticalLayout {
+        spacing: 0px;
+
+        // Image container
+        Rectangle {
+            width: parent.width;
+            height: parent.height / 2;
+            clip: true;
+            border-top-left-radius: root.corner-radius;
+            border-top-right-radius: root.corner-radius;
+
+            i-image := Image {
+                width: parent.width;
+                height: parent.height;
+                source: root.image-source;
+                image-fit: cover;
+                image-rendering: smooth;
+            }
+        }
+
+        // Text content
+        VerticalLayout {
+            padding: 12px;
+            spacing: 4px;
+
+            i-title := Text {
+                text: root.title;
+                color: Theme.palette.black;
+                font-size: 16px;
+                font-weight: 700;
+                wrap: word-wrap;
+            }
+
+            i-description := Text {
+                text: root.description;
+                color: Theme.palette.black;
+                font-size: 12px;
+                font-weight: 400;
+                wrap: word-wrap;
+            }
+        }
+    }
+
+    // Touch area for interaction
+    i-touch-area := TouchArea { }
+}

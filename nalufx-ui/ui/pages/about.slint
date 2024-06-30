@@ -4,17 +4,16 @@ import { Page } from "page.slint";
 import { Button } from "../widgets/widgets.slint";
 import { GroupBox } from "../widgets/group_box.slint";
 import { Divider } from "../widgets/widgets.slint";
+import { Card } from "../widgets/widgets.slint";
 
 export component About inherits Page {
     Rectangle {
         width: 100%;
         height: 100%;
-
         VerticalLayout {
             width: 100%;
             height: 100%;
             spacing: Theme.spaces.medium;
-
             // Top Spacer to push content towards the middle
             Rectangle {
                 vertical-stretch: 1;
@@ -28,22 +27,21 @@ export component About inherits Page {
                     width: 100%;
                     height: 100%;
                     alignment: center;
-                    spacing: Theme.spaces.small;
-
+                    spacing: Theme.spaces.large;
                     GroupBox {
                         width: 100%;
                         VerticalLayout {
                             spacing: Theme.spaces.small;
                             alignment: center;
-
                             Image {
-                                preferred-height: 100px;
+                                height: 100px;
                                 source: Images.nalufx-banner;
                             }
 
                             Divider {
                                 type: "centered";
-                                horizontal_alignment: "center";
+                                thickness: 1px;
+                                divider_color: Theme.palette.teal;
                             }
 
                             Text {
@@ -53,12 +51,46 @@ export component About inherits Page {
                                 font-size: Theme.typo.header-item.size;
                                 font-weight: Theme.typo.header-item.weight;
                             }
+
                             Text {
                                 horizontal-alignment: center;
                                 text: "© Copyright 2024 - Sebastien Rousseau. All rights reserved.";
                                 color: Theme.palette.white;
                                 font-size: Theme.typo.label-light.size;
                                 font-weight: Theme.typo.label-light.weight;
+                            }
+                        }
+                    }
+
+                    // Cards container
+                    GroupBox {
+                        preferred-width: 100%;
+                        HorizontalLayout {
+                            alignment: space-around;
+                            padding-left: Theme.spaces.medium;
+                            padding-right: Theme.spaces.medium;
+                            Card {
+                                width: 200px;
+                                height: 200px;
+                                title: "Card Title 1";
+                                description: "Card Description 1";
+                                image-source: Images.banner;
+                            }
+
+                            Card {
+                                width: 200px;
+                                height: 200px;
+                                title: "Card Title 2";
+                                description: "Card Description 2";
+                                image-source: Images.banner;
+                            }
+
+                            Card {
+                                width: 200px;
+                                height: 200px;
+                                title: "Card Title 3";
+                                description: "Card Description 3";
+                                image-source: Images.banner;
                             }
                         }
                     }

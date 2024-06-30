@@ -47,7 +47,7 @@ To use the `CheckBox` component in your Slint application, import it and include
 ### Basic CheckBox
 
 ```slint
-import { CheckBox } from "components/check_box.slint";
+import { CheckBox } from "components/checkbox.slint";
 
 CheckBox {
     checked: true;

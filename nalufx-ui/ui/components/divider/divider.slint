@@ -41,6 +41,11 @@ export component Divider inherits Rectangle {
     in property <length> inset: 16px;
 
     /**
+     * The color of the divider.
+     */
+    in property <brush> divider_color: Theme.palette.gray.brighter(25%);
+
+    /**
      * Horizontal Divider
      */
     horizontal-divider := Rectangle {
@@ -58,7 +63,7 @@ export component Divider inherits Rectangle {
                 0px
             }
         }
-        background: Theme.palette.gray.brighter(25%);
+        background: divider_color;
         border-radius: type == "centered" ? thickness / 2 : 0px;
     }
 
@@ -69,7 +74,7 @@ export component Divider inherits Rectangle {
         visible: type == "vertical";
         width: thickness;
         height: 100%;
-        background: Theme.palette.gray.brighter(25%);
+        background: divider_color;
     }
 
     /**
