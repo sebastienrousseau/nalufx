@@ -1,3 +1,10 @@
+<!-- markdownlint-disable MD033 MD041 -->
+
+<img src="https://kura.pro/beonux/images/logos/beonux.svg"
+alt="BeonUX logo" width="66" align="right" />
+
+<!-- markdownlint-enable MD033 MD041 -->
+
 # Button Component
 
 The `Button` component is a versatile UI element designed to handle user interactions in a clean and consistent manner. This document provides a detailed overview of the properties, events, and usage of the `Button` component.
