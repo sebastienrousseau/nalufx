@@ -3,6 +3,7 @@ import { Images } from "../images.slint";
 import { Page } from "page.slint";
 import { Button } from "../widgets/widgets.slint";
 import { GroupBox } from "../widgets/group_box.slint";
+import { Divider } from "../widgets/widgets.slint";
 
 export component About inherits Page {
     Rectangle {
@@ -33,11 +34,16 @@ export component About inherits Page {
                         width: 100%;
                         VerticalLayout {
                             spacing: Theme.spaces.small;
-                            alignment: center; // Center the content horizontally
+                            alignment: center;
 
                             Image {
                                 preferred-height: 100px;
                                 source: Images.nalufx-banner;
+                            }
+
+                            Divider {
+                                type: "centered";
+                                horizontal_alignment: "center";
                             }
 
                             Text {

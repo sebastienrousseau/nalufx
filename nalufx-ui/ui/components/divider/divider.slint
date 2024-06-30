@@ -1,0 +1,94 @@
+import { Theme } from "../../theme.slint";
+import { Images } from "../../images.slint";
+
+/**
+ * Divider Component
+ *
+ * A versatile divider component that supports multiple styles, including
+ * vertical, full-bleed, inset, centered, image, and shadow dividers.
+ */
+export component Divider inherits Rectangle {
+    /**
+     * The type of the divider.
+     * Options: "horizontal", "vertical", "full-bleed", "inset", "centered", "image", "shadow"
+     */
+    in property <string> type: "horizontal";
+
+    /**
+     * The alignment of the divider.
+     * Options: "left", "center", "right"
+     */
+    in property <string> horizontal_alignment: "left";
+
+    /**
+     * The source image for the image divider.
+     */
+    in property <image> image;
+
+    /**
+     * The shadow color for the shadow divider.
+     */
+    in property <brush> shadow_color: Theme.palette.black;
+
+    /**
+     * The thickness of the divider.
+     */
+    in property <length> thickness: 1px;
+
+    /**
+     * The inset value for the inset divider.
+     */
+    in property <length> inset: 16px;
+
+    /**
+     * Horizontal Divider
+     */
+    horizontal-divider := Rectangle {
+        visible: type == "horizontal" || type == "full-bleed" || type == "inset" || type == "centered";
+        width: type == "full-bleed" ? 100% : type == "inset" ? 50% : type == "centered" ? 30% : 100%;
+        height: thickness;
+        x: {
+            if type == "inset" {
+                inset
+            } else if (type == "centered" || horizontal_alignment == "center") && type != "full-bleed" {
+                (parent.width - self.width) / 2
+            } else if horizontal_alignment == "right" && type != "full-bleed" {
+                parent.width - self.width
+            } else {
+                0px
+            }
+        }
+        background: Theme.palette.gray.brighter(25%);
+        border-radius: type == "centered" ? thickness / 2 : 0px;
+    }
+
+    /**
+     * Vertical Divider
+     */
+    vertical-divider := Rectangle {
+        visible: type == "vertical";
+        width: thickness;
+        height: 100%;
+        background: Theme.palette.gray.brighter(25%);
+    }
+
+    /**
+     * Image Divider
+     */
+    image-divider := Image {
+        visible: type == "image";
+        source: image;
+        width: 100%;
+        height: thickness;
+    }
+
+    /**
+     * Shadow Divider
+     */
+    shadow-divider := Rectangle {
+        visible: type == "shadow";
+        width: 100%;
+        height: thickness;
+        background: shadow_color;
+    }
+}
