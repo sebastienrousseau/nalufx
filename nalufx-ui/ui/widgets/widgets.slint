@@ -2,9 +2,16 @@
 
 import { BalanceChart } from "balance_chart.slint";
 import { BarChart } from "bar_chart.slint";
+
+// Button components
 import { Button } from "../components/button/button.slint";
-import { ToggleButton } from "../components/button/toggle_button.slint";
 import { DropdownButton } from "../components/button/dropdown_button.slint";
+import { RadioButton } from "../components/button/radio_button.slint";
+import { ToggleButton } from "../components/button/toggle_button.slint";
+
+// Checkbox components
+import { CheckBox } from "../components/checkbox/check_box.slint";
+
 import { GroupBox } from "group_box.slint";
 import { MenuButton } from "menu_button.slint";
 import { Menu, MobileMenu } from "menu.slint";
@@ -17,15 +24,27 @@ import { TabWidget, TabItem } from "tab_widget.slint";
 import { ScrollView } from "scroll_view.slint";
 import { ListView } from "list_view.slint";
 import { Item, ItemGroupBox } from "item.slint";
-import { CheckBox } from "check_box.slint";
-import { RadioButton } from "radio_button.slint";
+
+
+
 import { Switch } from "switch.slint";
 import { PageScrollView, PageContainer } from "page_scroll_view.slint";
 
+
+
+// Export all UX components
 export { BalanceChart }
 export { BarChart }
+
+// Button components export
 export { Button }
 export { DropdownButton }
+export { RadioButton }
+export { ToggleButton }
+
+// Checkbox components export
+export { CheckBox }
+
 export { GroupBox }
 export { Navigation }
 export { Pagination }
@@ -38,8 +57,6 @@ export { TabWidget, TabItem }
 export { ScrollView }
 export { ListView }
 export { Item, ItemGroupBox }
-export { CheckBox }
-export { RadioButton }
-export { ToggleButton }
+
 export { Switch }
 export { PageScrollView, PageContainer }

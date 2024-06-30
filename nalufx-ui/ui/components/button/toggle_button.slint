@@ -40,7 +40,7 @@ export component ToggleButton inherits ButtonCore {
             border-width: 1px;
             border-radius: root.height / 2;
             border-color: self.background.darker(25%);
-            background: root.enabled ? (root.checked ? Theme.palette.white : Theme.palette.nalufx-twilight-gradient) : Theme.palette.nalufx-twilight-gradient.brighter(25%);
+            background: root.enabled ? (root.checked ? Theme.palette.purple : Theme.palette.nalufx-twilight-gradient) : Theme.palette.nalufx-twilight-gradient.brighter(25%);
             animate background { duration: 100ms; }
 
             bubble := Rectangle {
@@ -50,7 +50,7 @@ export component ToggleButton inherits ButtonCore {
                 y: 4px;
                 x: 4px + self.a * (indicator.width - bubble.width - 8px);
                 property <float> a: root.checked ? 1 : 0;
-                background: root.checked ? Theme.palette.nalufx-twilight-gradient.darker(0%) : (root.enabled ? Theme.palette.white : Theme.palette.gray);
+                background: root.checked ? Theme.palette.nalufx-twilight-gradient.darker(0%) : (root.enabled ? Theme.palette.purple : Theme.palette.gray);
                 animate a, background {
                     duration: 200ms;
                     easing: ease;

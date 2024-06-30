@@ -1,10 +1,22 @@
+import { Theme } from "../../theme.slint";
+import { ButtonCore } from "./button_core.slint";
+import { StateLayer } from "../../components/state_layer.slint";
 
-
-import { Theme } from "../theme.slint";
-
+/**
+ * RadioButton Component
+ *
+ * A circular radio button with a checked state.
+ * This component provides visual feedback for the checked state.
+ */
 export component RadioButton {
+    /**
+     * Indicates if the radio button is checked.
+     */
     in property <bool> checked;
 
+    /**
+     * Event triggered when the radio button is clicked.
+     */
     callback clicked <=> i-touch-area.clicked;
 
     states [
