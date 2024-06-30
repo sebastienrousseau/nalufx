@@ -1,8 +1,6 @@
-
-
-import { Theme } from "../theme.slint";
+import { Theme } from "../../theme.slint";
 import { MenuButton } from "menu_button.slint";
-import { MenuBackground } from "../components/menu_background.slint";
+import { MenuBackground } from "menu_background.slint";
 
 export component Menu {
     in-out property <bool> menu-button-visible;
@@ -115,7 +113,7 @@ export component MobileMenu {
     }
 
     public function hide() {
-       root.open = false;
+        root.open = false;
     }
 
     Rectangle {
