@@ -5,6 +5,7 @@ import { Button } from "../widgets/widgets.slint";
 import { GroupBox } from "../widgets/group_box.slint";
 import { Divider } from "../widgets/widgets.slint";
 import { Card } from "../widgets/widgets.slint";
+import { CardCollectionCell } from "../widgets/widgets.slint";
 
 export component About inherits Page {
     Rectangle {
@@ -69,28 +70,16 @@ export component About inherits Page {
                             alignment: space-around;
                             padding-left: Theme.spaces.medium;
                             padding-right: Theme.spaces.medium;
-                            Card {
+                            CardCollectionCell {
                                 width: 200px;
                                 height: 200px;
-                                title: "Card Title 1";
-                                description: "Card Description 1";
+                                selectable: true;
+                                corner-radius: 8px;
+                                title: "Example Card";
+                                description: "This is a selectable card";
                                 image-source: Images.banner;
-                            }
-
-                            Card {
-                                width: 200px;
-                                height: 200px;
-                                title: "Card Title 2";
-                                description: "Card Description 2";
-                                image-source: Images.banner;
-                            }
-
-                            Card {
-                                width: 200px;
-                                height: 200px;
-                                title: "Card Title 3";
-                                description: "Card Description 3";
-                                image-source: Images.banner;
+                                horizontal-image-alignment: Center;
+                                vertical-image-alignment: Top;
                             }
                         }
                     }

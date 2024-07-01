@@ -1,0 +1,214 @@
+/**
+ * @file card_collection_cell.slint
+ * @brief Defines a customizable card collection cell component for use in Slint UX libraries.
+ */
+
+import { Theme } from "../../theme.slint";
+import { Card } from "./card.slint";
+
+/**
+ * @global CardCellStates
+ * @brief Defines the possible states of a card cell as integer constants.
+ */
+export global CardCellStates {
+    /// Represents the normal state of the card cell.
+    out property <int> Normal: 0;
+    /// Represents the highlighted state of the card cell.
+    out property <int> Highlighted: 1;
+    /// Represents the selected state of the card cell.
+    out property <int> Selected: 2;
+    /// Represents the dragged state of the card cell.
+    out property <int> Dragged: 3;
+}
+
+/**
+ * @enum HorizontalImageAlignment
+ * @brief Defines the horizontal alignment options for the image within the card cell.
+ */
+export enum HorizontalImageAlignment {
+    Right,
+    Center,
+    Left
+}
+
+/**
+ * @enum VerticalImageAlignment
+ * @brief Defines the vertical alignment options for the image within the card cell.
+ */
+export enum VerticalImageAlignment {
+    Top,
+    Center,
+    Bottom
+}
+
+/**
+ * @component CardCollectionCell
+ * @brief A customizable card collection cell component that inherits from the Card component.
+ * 
+ * This component provides a flexible card cell with various states, image alignment options,
+ * and touch interaction capabilities.
+ */
+export component CardCollectionCell inherits Card {
+    /**
+     * @property selectable
+     * @brief Determines if the card cell can be selected.
+     * @default false
+     */
+    in-out property <bool> selectable: false;
+
+    /**
+     * @property state
+     * @brief The current state of the card cell.
+     * @default CardCellStates.Normal
+     */
+    in-out property <int> state: CardCellStates.Normal;
+
+    /**
+     * @property horizontal-image-alignment
+     * @brief The horizontal alignment of the image within the card cell.
+     * @default HorizontalImageAlignment.Center
+     */
+    in property <HorizontalImageAlignment> horizontal-image-alignment: HorizontalImageAlignment.Center;
+
+    /**
+     * @property vertical-image-alignment
+     * @brief The vertical alignment of the image within the card cell.
+     * @default VerticalImageAlignment.Top
+     */
+    in property <VerticalImageAlignment> vertical-image-alignment: VerticalImageAlignment.Top;
+
+    /**
+     * @property normal-background
+     * @brief The background color for the normal state.
+     * @default Theme.palette.white
+     */
+    in property <color> normal-background: Theme.palette.white;
+
+    /**
+     * @property highlighted-background
+     * @brief The background color for the highlighted state.
+     * @default Theme.palette.nalufx-blue-100
+     */
+    in property <color> highlighted-background: Theme.palette.nalufx-blue-100;
+
+    /**
+     * @property selected-background
+     * @brief The background color for the selected state.
+     * @default Theme.palette.nalufx-blue-200
+     */
+    in property <color> selected-background: Theme.palette.nalufx-blue-200;
+
+    /**
+     * @property dragged-background
+     * @brief The background color for the dragged state.
+     * @default Theme.palette.nalufx-blue-300
+     */
+    in property <color> dragged-background: Theme.palette.nalufx-blue-300;
+
+    /**
+     * @property background
+     * @brief Dynamically sets the background color based on the current state.
+     */
+    background: {
+        if (state == CardCellStates.Normal) {
+            normal-background
+        } else if (state == CardCellStates.Highlighted) {
+            highlighted-background
+        } else if (state == CardCellStates.Selected) {
+            selected-background
+        } else if (state == CardCellStates.Dragged) {
+            dragged-background
+        } else {
+            normal-background
+        }
+    }
+
+    /**
+     * @element i-image-container
+     * @brief Container for the card cell image with dynamic alignment.
+     */
+    i-image-container := Rectangle {
+        width: parent.width;
+        height: parent.height / 2;
+        x: {
+            if (horizontal-image-alignment == HorizontalImageAlignment.Left) {
+                0px
+            } else if (horizontal-image-alignment == HorizontalImageAlignment.Right) {
+                parent.width - self.width
+            } else {
+                (parent.width - self.width) / 2
+            }
+        }
+        y: {
+            if (vertical-image-alignment == VerticalImageAlignment.Top) {
+                0px
+            } else if (vertical-image-alignment == VerticalImageAlignment.Bottom) {
+                parent.height - self.height
+            } else {
+                (parent.height - self.height) / 2
+            }
+        }
+
+        /**
+         * @element i-image
+         * @brief The image displayed within the card cell.
+         */
+        i-image := Image {
+            width: parent.width;
+            height: parent.height;
+            source: root.image-source;
+            image-fit: cover;
+            image-rendering: smooth;
+        }
+    }
+
+    /**
+     * @element i-touch-area
+     * @brief Handles touch interactions for the card cell.
+     */
+    i-touch-area := TouchArea {
+        /**
+         * @property was-pressed
+         * @brief Tracks whether the touch area was pressed.
+         */
+        property <bool> was-pressed;
+
+        /**
+         * @callback pointer-event
+         * @brief Handles pointer events (press and release) on the card cell.
+         * @param event The pointer event details.
+         */
+        pointer-event(event) => {
+            if (event.button == PointerEventButton.left) {
+                if (event.kind == PointerEventKind.down) {
+                    was-pressed = true;
+                    if (!root.selectable) {
+                        root.state = CardCellStates.Highlighted;
+                    }
+                } else if (event.kind == PointerEventKind.up) {
+                    if (was-pressed) {
+                        if (root.selectable) {
+                            root.state = root.state == CardCellStates.Selected ? CardCellStates.Normal : CardCellStates.Selected;
+                        } else {
+                            root.state = CardCellStates.Normal;
+                        }
+                    }
+                    was-pressed = false;
+                }
+            }
+        }
+
+        /**
+         * @callback moved
+         * @brief Handles mouse movement over the card cell.
+         */
+        moved() => {
+            if (was-pressed && (self.mouse-x < 0 || self.mouse-y < 0 || self.mouse-x > self.width || self.mouse-y > self.height)) {
+                was-pressed = false;
+                if (!root.selectable) {
+                    root.state = CardCellStates.Normal;
+                }
+            }
+        }
+    }
+}
