@@ -1,11 +1,12 @@
-import { Theme } from "../theme.slint";
-import { Images } from "../images.slint";
-import { Page } from "page.slint";
 import { Button } from "../widgets/widgets.slint";
-import { GroupBox } from "../widgets/group_box.slint";
-import { Divider } from "../widgets/widgets.slint";
 import { Card } from "../widgets/widgets.slint";
 import { CardCollectionCell } from "../widgets/widgets.slint";
+import { Carousel } from "../widgets/widgets.slint";
+import { Divider } from "../widgets/widgets.slint";
+import { GroupBox } from "../widgets/group_box.slint";
+import { Images } from "../images.slint";
+import { Page } from "page.slint";
+import { Theme } from "../theme.slint";
 
 export component About inherits Page {
     Rectangle {
@@ -15,12 +16,11 @@ export component About inherits Page {
             width: 100%;
             height: 100%;
             spacing: Theme.spaces.medium;
-            // Top Spacer to push content towards the middle
+
             Rectangle {
                 vertical-stretch: 1;
             }
 
-            // Centred content container
             Rectangle {
                 width: 100%;
                 height: 100%;
@@ -63,7 +63,26 @@ export component About inherits Page {
                         }
                     }
 
-                    // Cards container
+                    GroupBox {
+                        preferred-width: 100%;
+                        HorizontalLayout {
+                            alignment: center;
+                            padding-left: Theme.spaces.medium;
+                            padding-right: Theme.spaces.medium;
+                            Carousel {
+                                background: Theme.palette.transparent;
+                                width: (Math.min(root.width, (self.sources.length * 150) * 1px));
+                                height: 150px;
+                                sources: [Images.aapl-logo, Images.amzn-logo, Images.googl-logo, Images.msft-logo, Images.tsla-logo, Images.hsbc-logo, Images.meta-logo, Images.nvda-logo];
+                                focus-main: true;
+                                type: Rotary;
+                                clicked => {
+                                    // Handle click event
+                                }
+                            }
+                        }
+                    }
+
                     GroupBox {
                         preferred-width: 100%;
                         HorizontalLayout {
