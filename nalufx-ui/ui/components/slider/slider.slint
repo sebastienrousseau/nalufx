@@ -1,0 +1,83 @@
+import { Theme } from "../../theme.slint";
+import { Images } from "../../images.slint";
+
+export component Slider inherits Rectangle {
+    in property <float> min-value: 0.0;
+    in-out property <float> max-value: 100.0;
+    in-out property <float> value: 50.0;
+    in property <float> step: 1.0;
+
+    min-height: 14px;
+    min-width: 300px;
+    horizontal-stretch: 1;
+    vertical-stretch: 0;
+
+    border-radius: root.height / 2;
+    background: touch.pressed ? Theme.palette.nalufx-twilight-gradient.darker(20%) : Theme.palette.nalufx-twilight-gradient.darker(10%);
+    border-width: 1px;
+    border-color: Theme.palette.indigo;
+
+    // Track
+    Rectangle {
+        width: 100%;
+        height: 8px;
+        y: (root.height - 8px) / 2;
+        background: Theme.palette.indigo.brighter(10%);
+        border-radius: 4px;
+
+        Rectangle {
+            width: (parent.width - 24px) * (value - min-value) / (max-value - min-value);
+            height: 8px;
+            background: Theme.palette.primary;
+            border-radius: 4px;
+        }
+    }
+
+    // Handle
+    handle := Rectangle {
+        width: 24px;
+        height: 24px;
+        border-radius: 12px;
+        background: touch.pressed ? Theme.palette.indigo.darker(33%) : Theme.palette.indigo;
+        x: (root.width - self.width) * (value - min-value) / (max-value - min-value);
+        y: (root.height - self.height) / 2;
+        border-width: 1px;
+        border-color: self.background.darker(15%);
+
+        // TouchArea to handle interactions
+        TouchArea {
+            width: parent.width;
+            height: parent.height;
+            mouse-cursor: MouseCursor.pointer;
+            property <float> pressed-value;
+
+            pointer-event(event) => {
+                if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
+                    self.pressed-value = root.value;
+                }
+            }
+
+            moved => {
+                if (self.pressed) {
+                    root.value = max(root.min-value, min(root.max-value,
+                        self.pressed-value + (touch.mouse-x - touch.pressed-x) * (root.max-value - root.min-value) / (root.width - handle.width)));
+                }
+            }
+        }
+    }
+
+    touch := TouchArea {
+        property <float> pressed-value;
+        pointer-event(event) => {
+            if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
+                self.pressed-value = root.value;
+            }
+        }
+        moved => {
+            if (self.pressed) {
+                root.value = max(root.min-value, min(root.max-value,
+                    self.pressed-value + (touch.mouse-x - touch.pressed-x) * (root.max-value - root.min-value) / (root.width - handle.width)));
+            }
+        }
+    }
+}

@@ -1,7 +1,20 @@
-
-
 export struct Palette {
-    // primary
+    // Primary colors
+    primary: brush,
+    primary_light: brush,
+    primary_dark: brush,
+
+    // Secondary colors
+    secondary: brush,
+    secondary_light: brush,
+    secondary_dark: brush,
+
+    // Tertiary colors
+    tertiary: brush,
+    tertiary_light: brush,
+    tertiary_dark: brush,
+
+    // General colors
     nalufx-blue: brush,
     pure-black: brush,
     dark-deep-blue: brush,
@@ -11,22 +24,22 @@ export struct Palette {
     white: brush,
     dimmer: brush,
     transparent: brush,
-    red:brush,
-        orange:brush,
-        yellow:brush,
-        green:brush,
-        mint:brush,
-        teal:brush,
-        cyan:brush,
-        blue:brush,
-        indigo:brush,
-        purple:brush,
-        pink:brush,
-        brown:brush,
-        gray:brush,
-        black:brush,
+    red: brush,
+    orange: brush,
+    yellow: brush,
+    green: brush,
+    mint: brush,
+    teal: brush,
+    cyan: brush,
+    blue: brush,
+    indigo: brush,
+    purple: brush,
+    pink: brush,
+    brown: brush,
+    gray: brush,
+    black: brush,
 
-    // nalufx blue
+    // Nalufx blue shades
     nalufx-blue-50: brush,
     nalufx-blue-100: brush,
     nalufx-blue-200: brush,
@@ -38,7 +51,7 @@ export struct Palette {
     nalufx-blue-800: brush,
     nalufx-blue-900: brush,
 
-    // lime green
+    // Lime green shades
     lime-green-50: brush,
     lime-green-100: brush,
     lime-green-200: brush,
@@ -50,7 +63,7 @@ export struct Palette {
     lime-green-800: brush,
     lime-green-900: brush,
 
-    // gradients
+    // Gradients
     nalufx-blue-gradient: brush,
     nalufx-brown-gradient: brush,
     nalufx-cyan-gradient: brush,
@@ -68,7 +81,6 @@ export struct Palette {
     lemon-green-gradient: brush,
     lemon-green-light-gradient: brush,
     lemon-green-radial-gradient: brush,
-    nalufx-blue-gradient: brush,
     dark-left-gradient: brush,
     dark-right-gradient: brush,
     ebony-radial-gradient: brush,
@@ -81,10 +93,10 @@ export struct Palette {
     tab-gradient: brush,
     background-gradient: brush,
 
-    // Radial Gradients
+    // Radial gradients
     nalufx-twilight-radial-gradient: brush,
 
-    // Nalufx Bar Gradients
+    // Nalufx bar gradients
     nalufx-red-bar-gradient: brush,
     nalufx-orange-bar-gradient: brush,
     nalufx-yellow-bar-gradient: brush,
@@ -132,23 +144,32 @@ export struct Typo {
 
 export global Theme {
     in property <Palette> palette: {
-        red:rgb(255,69,58),
-        orange:rgb(255,159,10),
-        yellow:rgb(255,214,10),
-        green:rgb(50,215,75),
-        mint:rgb(102,212,207),
-        teal:rgb(106,196,220),
-        cyan:rgb(90,200,245),
-        blue:rgb(10,132,255),
-        indigo:rgb(94,92,230),
-        purple:rgb(191,90,242),
-        pink:rgb(255,55,95),
-        brown:rgb(172,142,104),
-        gray:rgb(152,152,157),
-        black:rgb(0,0,0),
+        primary: #0025FF,
+        primary_light: #2F2AFF,
+        primary_dark: #001FF7,
+        secondary: #DEFB3A,
+        secondary_light: #EBFC93,
+        secondary_dark: #CBE600,
+        tertiary: #FF69B4,
+        tertiary_light: #FFB6C1,
+        tertiary_dark: #FF1493,
 
+        red: #FF453A,
+        orange: #FF9F0A,
+        yellow: #FFD60A,
+        green: #32D74B,
+        mint: #66D4CF,
+        teal: #6AC4DC,
+        cyan: #5AC8F5,
+        blue: #0A84FF,
+        indigo: #6200EE,
+        purple: #BF5AF2,
+        pink: #FF3761,
+        brown: #AC8E68,
+        gray: #98989D,
+        black: #000000,
 
-        // primary
+        // Primary
         nalufx-blue: #0025FF,
         pure-black: #000000,
         dark-deep-blue: #040708,
@@ -158,7 +179,7 @@ export global Theme {
         white: #FFFFFF,
         dimmer: #0000007b,
 
-        // nalufx blue
+        // Nalufx blue shades
         nalufx-blue-50: #EEE6FF,
         nalufx-blue-100: #D0C3FF,
         nalufx-blue-200: #AF9AFF,
@@ -170,7 +191,7 @@ export global Theme {
         nalufx-blue-800: #0019F2,
         nalufx-blue-900: #000AEF,
 
-        // lime green
+        // Lime green shades
         lime-green-50: #FBFFE6,
         lime-green-100: #F4FDC0,
         lime-green-200: #EBFC93,
@@ -182,7 +203,7 @@ export global Theme {
         lime-green-800: #ACB700,
         lime-green-900: #D9D9D9,
 
-        // gradients
+        // Gradients
         nalufx-red-gradient: @linear-gradient(135deg, #0f0c29 0%, #33181c 25%, #592529 50%, #33181c 75%, #592529 100%),
         nalufx-orange-gradient: @linear-gradient(135deg, #0f0c29 0%, #33240f 25%, #593d19 50%, #33240f 75%, #593d19 100%),
         nalufx-yellow-gradient: @linear-gradient(135deg, #0f0c29 0%, #33300f 25%, #594d19 50%, #33300f 75%, #594d19 100%),
@@ -198,10 +219,10 @@ export global Theme {
         nalufx-gray-gradient: @linear-gradient(135deg, #0f0c29 0%, #333333 25%, #595959 50%, #333333 75%, #595959 100%),
         nalufx-twilight-gradient: @linear-gradient(135deg, #896fff 0%, #39316B 100%),
 
-        // Radial Gradients
-        nalufx-twilight-radial-gradient: @radial-gradient(circle,  rgba(59,130,246, 0.5) 25%, #000000 100%),
+        // Radial gradients
+        nalufx-twilight-radial-gradient: @radial-gradient(circle, rgba(59,130,246, 0.5) 25%, #000000 100%),
 
-        // Nalufx Bar Gradients
+        // Nalufx bar gradients
         nalufx-red-bar-gradient: @linear-gradient(180deg, #ff6b6b 0%, #ff6b6b00 100%),
         nalufx-orange-bar-gradient: @linear-gradient(180deg, #ff9e42 0%, #ff9e4200 100%),
         nalufx-yellow-bar-gradient: @linear-gradient(180deg, #ffd700 0%, #ffd70000 100%),
@@ -216,9 +237,6 @@ export global Theme {
         nalufx-brown-bar-gradient: @linear-gradient(180deg, #d2a679 0%, #d2a67900 100%),
         nalufx-gray-bar-gradient: @linear-gradient(180deg, #999999 0%, #99999900 100%),
         nalufx-twilight-bar-gradient: @linear-gradient(180deg, #b399ff 0%, #b399ff00 100%),
-
-
-
 
         lemon-green-gradient: @linear-gradient(135deg, #defb3a75 0%, #defb3a00 100%),
         lemon-green-light-gradient: @linear-gradient(135deg, #DEFB3A 0%, #defb3a33 100%),

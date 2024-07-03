@@ -7,6 +7,7 @@ import { GroupBox } from "../widgets/group_box.slint";
 import { Images } from "../images.slint";
 import { Page } from "page.slint";
 import { Theme } from "../theme.slint";
+import { Slider } from "../widgets/widgets.slint";
 
 export component About inherits Page {
     Rectangle {
@@ -99,6 +100,23 @@ export component About inherits Page {
                                 image-source: Images.banner;
                                 horizontal-image-alignment: Center;
                                 vertical-image-alignment: Top;
+                            }
+                        }
+                    }
+
+                    GroupBox {
+                        preferred-width: 100%;
+                        HorizontalLayout {
+                            alignment: center;
+                            padding-left: Theme.spaces.medium;
+                            padding-right: Theme.spaces.medium;
+                            Slider {
+                                width: 400px;
+                                height: 14px;
+                                min-value: 0.0;
+                                max-value: 100.0;
+                                value: 50.0;
+                                step: 1.0;
                             }
                         }
                     }
