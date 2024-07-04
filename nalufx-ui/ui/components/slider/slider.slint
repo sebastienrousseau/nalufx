@@ -1,35 +1,46 @@
-import { Theme } from "../../theme.slint";
+import { NalufxTheme } from "../../components/themes/index.slint";
 import { Images } from "../../images.slint";
 
+/**
+ * Slider Component
+ * 
+ * A customizable slider component for selecting values within a specified range.
+ * It features a track, a filled portion, and a draggable handle.
+ */
 export component Slider inherits Rectangle {
+    /// The minimum value of the slider range
     in property <float> min-value: 0.0;
+
+    /// The maximum value of the slider range
     in-out property <float> max-value: 100.0;
+
+    /// The current value of the slider
     in-out property <float> value: 50.0;
+
+    /// The step size for value changes
     in property <float> step: 1.0;
 
     min-height: 14px;
     min-width: 300px;
     horizontal-stretch: 1;
     vertical-stretch: 0;
-
     border-radius: root.height / 2;
-    background: Theme.palette.transparent;
-    border-width: 0px; // Make borders transparent
-    border-color: Theme.palette.transparent;
+    background: NalufxTheme.palette.transparent;
+    border-width: 0px;
+    border-color: NalufxTheme.palette.transparent;
 
     // Track
     Rectangle {
         width: 100%;
         height: 8px;
         y: (root.height - 8px) / 2;
-        background: Theme.palette.nalufx-indigo-600.brighter(80%);
+        background: NalufxTheme.palette.primary.brighter(80%);
         border-radius: 4px;
-
         // Filled portion
         Rectangle {
             width: (parent.width - 24px) * (value - min-value) / (max-value - min-value) + 12px; // Ensure it starts from 0
             height: 8px;
-            background: Theme.palette.nalufx-indigo-500;
+            background: NalufxTheme.palette.primary;
             border-radius: 4px;
             x: 0px; // Start from the left edge
         }
@@ -40,25 +51,23 @@ export component Slider inherits Rectangle {
         width: 24px;
         height: 24px;
         border-radius: 12px;
-        background: touch.pressed ? Theme.palette.indigo.darker(33%) : Theme.palette.indigo;
+        background: touch.pressed ? NalufxTheme.palette.primary.darker(33%) : NalufxTheme.palette.primary;
         x: (root.width - self.width) * (value - min-value) / (max-value - min-value);
         y: (root.height - self.height) / 2;
         border-width: 0px;
-        border-color: Theme.palette.transparent;
+        border-color: NalufxTheme.palette.transparent;
 
-        // TouchArea to handle interactions
+        /// TouchArea to handle interactions
         TouchArea {
             width: parent.width;
             height: parent.height;
             mouse-cursor: MouseCursor.pointer;
             property <float> pressed-value;
-
             pointer-event(event) => {
                 if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
                     self.pressed-value = root.value;
                 }
             }
-
             moved => {
                 if (self.pressed) {
                     root.value = max(root.min-value, min(root.max-value,
@@ -68,6 +77,7 @@ export component Slider inherits Rectangle {
         }
     }
 
+    /// TouchArea for the entire slider
     touch := TouchArea {
         property <float> pressed-value;
         pointer-event(event) => {

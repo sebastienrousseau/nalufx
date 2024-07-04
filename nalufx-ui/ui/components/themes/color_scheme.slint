@@ -1,0 +1,37 @@
+export struct Colors {
+    transparent: brush,
+    primary: brush,
+    primary-variant: brush,
+    on-primary: brush,
+    secondary: brush,
+    secondary-variant: brush,
+    tertiary: brush,
+    on-tertiary: brush,
+    on-secondary: brush,
+    background: brush,
+    on-background: brush,
+    surface: brush,
+    on-surface: brush,
+    error: brush,
+    on-error: brush,
+}
+
+export global DefaultColors {
+    out property <Colors> palette: {
+        transparent: #00000000,
+        primary: #6200EE,
+        primary-variant: #3700B3,
+        on-primary: #FFFFFF,
+        secondary: #03DAC6,
+        secondary-variant: #018786,
+        tertiary: #FFD600,
+        on-tertiary: #000000,
+        on-secondary: #000000,
+        background: #FFFFFF,
+        on-background: #000000,
+        surface: #FFFFFF,
+        on-surface: #000000,
+        error: #B00020,
+        on-error: #FFFFFF,
+    };
+}
