@@ -1,38 +1,63 @@
-import { Theme } from "../../theme.slint";
+import { NalufxTheme } from "../../components/themes/index.slint";
 import { Images } from "../../images.slint";
 
+/// A customizable checkbox component with animations and states.
 export component CheckBox {
+    /// Callback triggered when the checkbox is clicked.
     callback clicked <=> i-touch-area.clicked;
+
+    /// Property representing whether the checkbox is checked.
     in-out property <bool> checked;
 
+    /// Minimum height of the checkbox.
     min-height: 18px;
+
+    /// Width of the checkbox (same as its height to make it square).
     width: self.height;
 
+    /// States for the checkbox component.
     states [
+        /// State when the checkbox is checked.
         checked when checked : {
-            i-container.border-width: 0;
-            i-container.background: Theme.palette.purple;
             i-check-icon.opacity: 1.0;
+            i-container.background: NalufxTheme.palette.primary-variant;
+            i-container.border-width: 0;
         }
     ]
 
+    /// The container rectangle for the checkbox.
     i-container := Rectangle {
-        border-color: Theme.palette.indigo;
-        border-width: 2px;
+        /// Border color of the container.
+        border-color: NalufxTheme.palette.primary;
+
+        /// Border radius of the container.
         border-radius: 2px;
 
-        animate background { duration: Theme.durations.fast; }
+        /// Border width of the container.
+        border-width: 2px;
 
+        /// Animation for the background color change.
+        animate background { duration: NalufxTheme.durations.fast; }
+
+        /// The check icon image inside the checkbox.
         i-check-icon := Image {
+            /// Initial opacity of the check icon (invisible).
             opacity: 0.0;
-            colorize: Theme.palette.pure-black;
+
+            /// Colorize the check icon with the primary color.
+            colorize: NalufxTheme.palette.on-primary;
+
+            /// Source image for the check icon.
             source: Images.check;
 
-            animate opacity { duration: Theme.durations.fast; }
+            /// Animation for the opacity change.
+            animate opacity { duration: NalufxTheme.durations.fast; }
         }
     }
 
+    /// The touch area for detecting clicks on the checkbox.
     i-touch-area := TouchArea {
+        /// Action triggered when the checkbox is clicked.
         clicked => {
             checked = !checked;
         }

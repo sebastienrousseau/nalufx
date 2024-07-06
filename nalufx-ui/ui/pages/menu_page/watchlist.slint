@@ -1,7 +1,7 @@
-import { Theme } from "../../theme.slint";
+import { Button, CheckBox, ScrollView, Item, ItemGroupBox, NalufxTheme } from "../../widgets/widgets.slint";
 import { Images } from "../../images.slint";
 import { Page } from "../page.slint";
-import { Button, CheckBox, ScrollView, Item, ItemGroupBox } from "../../widgets/widgets.slint";
+import { Theme } from "../../theme.slint";
 
 export global SettingsAdapter {
     // functions
@@ -31,6 +31,10 @@ export global SettingsAdapter {
 }
 
 export component Settings inherits Page {
+
+    // Device type
+    property <string> device-type: "desktop";
+
     // functions
     in-out property <bool> function-one-checked <=> SettingsAdapter.function-one-checked;
     in-out property <bool> kiosk-mode-checked <=> SettingsAdapter.kiosk-mode-checked;
@@ -95,6 +99,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "AAPL";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -128,6 +134,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "AMZN";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -161,6 +169,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "GOOGL";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -194,6 +204,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "HSBC";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -227,6 +239,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "MA";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -260,6 +274,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "MCO";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -293,6 +309,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "META";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -326,6 +344,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "MSFT";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -359,6 +379,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "NVDA";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -392,6 +414,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "RACE";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -425,6 +449,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "SPY";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -458,6 +484,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "TSLA";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
@@ -491,6 +519,8 @@ export component Settings inherits Page {
 
                             Text {
                                 text: "V";
+                                font-size: NalufxTheme.typography.label.size.desktop;
+                                color: NalufxTheme.palette.on-primary;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }

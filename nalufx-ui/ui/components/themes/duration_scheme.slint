@@ -1,0 +1,13 @@
+export struct Duration {
+    fast: duration,
+    medium: duration,
+    slow: duration,
+}
+
+export global DefaultDurations {
+    in property <Duration> durations: {
+        fast: 125ms,
+        medium: 200ms,
+        slow: 500ms,
+    };
+}
