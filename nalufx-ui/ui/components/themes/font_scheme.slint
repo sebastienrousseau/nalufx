@@ -1,43 +1,76 @@
+/// Defines the text transformation options.
 export enum TextTransform {
+    /// No transformation.
     None,
+    /// Capitalize the first letter of each word.
     Capitalize,
+    /// Transform all letters to uppercase.
     Uppercase,
+    /// Transform all letters to lowercase.
     Lowercase,
 }
 
+/// Defines responsive font sizes for different devices.
 export struct ResponsiveFontSize {
+    /// Font size for desktop devices.
     desktop: length,
+    /// Font size for tablet devices.
     tablet: length,
+    /// Font size for mobile devices.
     mobile: length,
 }
 
+/// Defines the font properties.
 export struct Fonts {
+    /// The font family.
     family: string,
+    /// The responsive font sizes.
     size: ResponsiveFontSize,
+    /// The font weight.
     weight: int,
+    /// The line height.
     line-height: float,
+    /// The letter spacing.
     letter-spacing: length,
+    /// The font style.
     style: string,
+    /// The text transformation.
     transform: TextTransform,
 }
 
+/// Defines the typographic styles used in the theme.
 export struct Typo {
+    /// Font properties for labels.
     label: Fonts,
+    /// Font properties for light labels.
     label-light: Fonts,
+    /// Font properties for headers.
     header: Fonts,
+    /// Font properties for header items.
     header-item: Fonts,
+    /// Font properties for light header items.
     header-item-light: Fonts,
+    /// Font properties for values.
     value: Fonts,
+    /// Font properties for descriptions.
     description: Fonts,
+    /// Font properties for light descriptions.
     description-light: Fonts,
+    /// Font properties for big values.
     value-big: Fonts,
+    /// Font properties for buttons.
     button: Fonts,
+    /// Font properties for input fields.
     input: Fonts,
+    /// Font properties for captions.
     caption: Fonts,
+    /// Font properties for overlines.
     overline: Fonts,
 }
 
+/// A global set of default font styles.
 export global DefaultFonts {
+    /// The typographic styles used in the theme.
     out property <Typo> typography: {
         label: {
             family: "Roboto",
@@ -157,34 +190,4 @@ export global DefaultFonts {
             transform: TextTransform.Uppercase,
         },
     };
-
-    // out property <{
-    //     label: ResponsiveFontSize,
-    //     label-light: ResponsiveFontSize,
-    //     header: ResponsiveFontSize,
-    //     header-item: ResponsiveFontSize,
-    //     header-item-light: ResponsiveFontSize,
-    //     value: ResponsiveFontSize,
-    //     description: ResponsiveFontSize,
-    //     description-light: ResponsiveFontSize,
-    //     value-big: ResponsiveFontSize,
-    //     button: ResponsiveFontSize,
-    //     input: ResponsiveFontSize,
-    //     caption: ResponsiveFontSize,
-    //     overline: ResponsiveFontSize,
-    // }> ResponsiveFontSize: {
-    //     label: { desktop: 14px, tablet: 13px, mobile: 12px },
-    //     label-light: { desktop: 14px, tablet: 13px, mobile: 12px },
-    //     header: { desktop: 24px, tablet: 22px, mobile: 20px },
-    //     header-item: { desktop: 18px, tablet: 17px, mobile: 16px },
-    //     header-item-light: { desktop: 18px, tablet: 17px, mobile: 16px },
-    //     value: { desktop: 16px, tablet: 15px, mobile: 14px },
-    //     description: { desktop: 12px, tablet: 11px, mobile: 10px },
-    //     description-light: { desktop: 12px, tablet: 11px, mobile: 10px },
-    //     value-big: { desktop: 32px, tablet: 28px, mobile: 24px },
-    //     button: { desktop: 14px, tablet: 13px, mobile: 12px },
-    //     input: { desktop: 16px, tablet: 15px, mobile: 14px },
-    //     caption: { desktop: 12px, tablet: 11px, mobile: 10px },
-    //     overline: { desktop: 10px, tablet: 9px, mobile: 8px },
-    // };
 }

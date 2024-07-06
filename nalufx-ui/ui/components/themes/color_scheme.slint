@@ -1,22 +1,54 @@
+/// A struct defining a set of colors used in the theme.
 export struct Colors {
+    /// The primary color.
     primary: brush,
+
+    /// A variant of the primary color.
     primary-variant: brush,
+
+    /// The color used on top of the primary color.
     on-primary: brush,
+
+    /// The secondary color.
     secondary: brush,
+
+    /// A variant of the secondary color.
     secondary-variant: brush,
+
+    /// The tertiary color.
     tertiary: brush,
+
+    /// The color used on top of the tertiary color.
     on-tertiary: brush,
+
+    /// The color used on top of the secondary color.
     on-secondary: brush,
+
+    /// The background color.
     background: brush,
+
+    /// The color used on top of the background color.
     on-background: brush,
+
+    /// The surface color.
     surface: brush,
+
+    /// The color used on top of the surface color.
     on-surface: brush,
+
+    /// The error color.
     error: brush,
+
+    /// The color used on top of the error color.
     on-error: brush,
+
+    /// A transparent color.
     transparent: brush,
 }
 
+/// A global set of default colors.
 export global DefaultColors {
+    /// The color palette used in the theme.
     out property <Colors> palette: {
         primary: #6200EE,
         primary-variant: #3700B3,
