@@ -2,56 +2,66 @@ import { Button } from "../widgets/widgets.slint";
 import { Carousel } from "../widgets/widgets.slint";
 import { GroupBox } from "../widgets/group_box.slint";
 import { Images } from "../images.slint";
+import { NalufxTheme } from "../widgets/widgets.slint";
 import { Page } from "page.slint";
-import { Theme } from "../theme.slint";
 import { Slider } from "../widgets/widgets.slint";
 
+export global StocksAdapter {
+    in property <string> title: "Stocks";
+}
+
 export component Stocks inherits Page {
-    Rectangle {
-        width: 100%;
-        height: 100%;
-        VerticalLayout {
+    in property <string> title <=> StocksAdapter.title;
+
+    GroupBox {
+        title: root.title;
+
+        Rectangle {
             width: 100%;
             height: 100%;
-            spacing: 0;
-
-            Rectangle {
-                horizontal-stretch: 1;
-                vertical-stretch: 1;
-            }
-
-            Rectangle {
+            VerticalLayout {
                 width: 100%;
                 height: 100%;
-                VerticalLayout {
-                    preferred-width: 100%;
-                    preferred-height: 100%;
-                    alignment: center;
-                    spacing: 0;
+                spacing: 0;
 
-                    GroupBox {
-                        HorizontalLayout {
-                            alignment: center;
-                            padding-left: 0;
-                            padding-right: 0;
-                            Carousel {
-                                background: Theme.palette.transparent;
-                                width: Math.min(root.width - 2 * Theme.spaces.small, 150px * self.sources.length);
-                                height: 150px;
-                                sources: [
-                                    Images.aapl-logo,
-                                    Images.amzn-logo,
-                                    Images.googl-logo,
-                                    Images.msft-logo,
-                                    Images.tsla-logo,
-                                    Images.hsbc-logo,
-                                    Images.meta-logo
-                                ];
-                                focus-main: true;
-                                type: Rotary;
-                                clicked => {
-                                    // Handle click event
-            }
+                Rectangle {
+                    horizontal-stretch: 1;
+                    vertical-stretch: 1;
+                }
+
+                Rectangle {
+                    width: 100%;
+                    height: 100%;
+                    VerticalLayout {
+                        preferred-width: 100%;
+                        preferred-height: 100%;
+                        alignment: center;
+                        spacing: 0;
+
+                        GroupBox {
+                            HorizontalLayout {
+                                alignment: center;
+                                padding-left: 0;
+                                padding-right: 0;
+                                Carousel {
+                                    background: NalufxTheme.palette.transparent;
+                                    width: Math.min(root.width - 2 * NalufxTheme.spaces.small, 150px * self.sources.length);
+                                    height: 150px;
+                                    sources: [
+                                        Images.aapl-logo,
+                                        Images.amzn-logo,
+                                        Images.googl-logo,
+                                        Images.msft-logo,
+                                        Images.tsla-logo,
+                                        Images.hsbc-logo,
+                                        Images.meta-logo
+                                    ];
+                                    focus-main: true;
+                                    type: Rotary;
+                                    clicked => {
+                                        // Handle click event
+                                }
+                                }
                             }
                         }
                     }

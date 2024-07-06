@@ -1,11 +1,13 @@
 
 
-import { Page } from "page.slint";
+import { BalanceAdapter } from "balance.slint";
 import { OverviewAdapter } from "overview.slint";
+import { Page } from "page.slint";
+import { StocksAdapter } from "stocks.slint";
 import { UsageAdapter } from "insight.slint";
 import { WeatherAdapter } from "weather.slint";
-import { BalanceAdapter } from "balance.slint";
 import { GroupBox, Value, ValueDisplay, BarChart, BarTileModel, Tile, BarTiles, BalanceChart } from "../widgets/widgets.slint";
+
 
 export component ValueTile {
     in property <string> title <=> i-group-box.title;
@@ -64,6 +66,18 @@ export component WeatherTile {
         i-bar-tiles := BarTiles {}
     }
 }
+
+export component StocksTile {
+    in property <string> title <=> i-group-box.title;
+
+    i-group-box := GroupBox {
+        spacing: 1px;
+        i-tile := Tile {}
+        // i-bar-tiles := StocksTile {}
+    }
+}
+
+
 
 export component BalanceTile {
     in property <[string]> x-axis-model;
@@ -141,6 +155,12 @@ export component Dashboard inherits Page {
                 max: UsageAdapter.max;
                 value-model: UsageAdapter.overview-model;
                 active: root.active;
+            }
+        }
+        Row {
+            StocksTile {
+                colspan: 2;
+                title: StocksAdapter.title;
             }
         }
     }
