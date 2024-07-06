@@ -36,9 +36,10 @@ export component Slider inherits Rectangle {
         y: (root.height - 8px) / 2;
         background: NalufxTheme.palette.primary.brighter(80%);
         border-radius: 4px;
+
         // Filled portion
         Rectangle {
-            width: (parent.width - 24px) * (value - min-value) / (max-value - min-value) + 12px; // Ensure it starts from 0
+            width: (parent.width - handle.width) * (value - min-value) / (max-value - min-value) + handle.width / 2;
             height: 8px;
             background: NalufxTheme.palette.primary;
             border-radius: 4px;
@@ -57,17 +58,19 @@ export component Slider inherits Rectangle {
         border-width: 0px;
         border-color: NalufxTheme.palette.transparent;
 
-        /// TouchArea to handle interactions
+        // TouchArea to handle interactions
         TouchArea {
             width: parent.width;
             height: parent.height;
             mouse-cursor: MouseCursor.pointer;
             property <float> pressed-value;
+
             pointer-event(event) => {
                 if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
                     self.pressed-value = root.value;
                 }
             }
+
             moved => {
                 if (self.pressed) {
                     root.value = max(root.min-value, min(root.max-value,
@@ -77,14 +80,18 @@ export component Slider inherits Rectangle {
         }
     }
 
-    /// TouchArea for the entire slider
+    // TouchArea for the entire slider
     touch := TouchArea {
+        width: root.width;
+        height: root.height;
         property <float> pressed-value;
+
         pointer-event(event) => {
             if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
                 self.pressed-value = root.value;
             }
         }
+
         moved => {
             if (self.pressed) {
                 root.value = max(root.min-value, min(root.max-value,

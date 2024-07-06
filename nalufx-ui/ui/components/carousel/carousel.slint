@@ -1,4 +1,4 @@
-import { Theme } from "../../theme.slint";
+import { NalufxTheme } from "../../components/themes/index.slint";
 import { Images } from "../../images.slint";
 import { Card } from "../card/card.slint";
 
@@ -9,6 +9,21 @@ export enum CarouselType {
 }
 
 /// A customizable carousel component for displaying a series of images.
+///
+/// Usage example:
+///
+/// ```
+/// Carousel {
+///     type: CarouselType.Rotary;
+///     sources: [image1, image2, image3];
+///     non-active-scale: 0.7;
+///     enable-keyboard-nav: true;
+///     clicked(index) => {
+///         debug("Clicked image at index: {}", index);
+///     }
+/// }
+/// ```
+///
 export component Carousel inherits Rectangle {
     /// The list of image sources to display in the carousel.
     in-out property <[image]> sources;
@@ -19,58 +34,107 @@ export component Carousel inherits Rectangle {
     /// The stretch factor for non-active items.
     in property <float> fold-stretch: 1.0;
 
-    /// The width of non-active items.
-    in property <length> fold-width: 100px;
+    /// The width of non-active items (responsive).
+    in property <length> fold-width: Math.min(100px, root.width / 5);
 
-    /// The height of the carousel.
-    in property <length> fold-height: root.height;
+    /// The height of the carousel (responsive).
+    in property <length> fold-height: Math.min(root.height, root.width / 2);
 
     /// Whether to focus on the main (active) item.
     in property <bool> focus-main: true;
 
     /// The index of the currently active item.
-    in-out property <int> active: 0;
+    in-out property <int> active: sources.length > 0 ? Math.floor(sources.length / 2) : 0;
 
     /// Callback triggered when an item is clicked.
     callback clicked(int);
 
+    /// Animation duration for transitions.
+    in property <duration> transition-duration: 100ms;
+
+    /// Animation easing function for transitions.
+    in property <easing> transition-easing: ease;
+
+    /// Scale factor for non-active items
+    in property <float> non-active-scale: 0.5;
+
+    /// Enable or disable keyboard navigation
+    in property <bool> enable-keyboard-nav: true;
+
     // Private properties
+    /// Array of phantom images used for rotary carousel type.
     private property <[image]> phantoms: self.sources;
+
+    /// Index of the center item in the carousel.
     private property <int> center-index: Math.max(0, Math.round(sources.length / 2) - 1);
+
+    /// Temporary variable for swapping images.
     private property <image> tmp;
+
+    /// New center index after rotation.
+    private property <int> new-center: 0;
+
+    /// Half the length of the sources array.
+    private property <int> half;
+
+    /// Shift amount for rotation.
+    private property <int> shift: sources.length / 2;
+
+    /// Initializes the carousel component.
+    init => {
+        debug("Initializing carousel. Length: {}", sources.length);
+        update-phantoms();
+    }
 
     /// Updates the phantom images for the rotary carousel type.
     function update-phantoms() {
         if (type == CarouselType.Rotary && sources.length > 0) {
-            tmp = root.phantoms[center-index];
-            root.phantoms[center-index] = root.phantoms[root.active];
-            root.phantoms[root.active] = tmp;
+            half = Math.floor(sources.length / 2);
+            new-center = Math.mod(root.active, sources.length);
+            if (phantoms == sources) {
+                phantoms = sources;
+            } else {
+                shift = Math.mod(new-center - center-index + sources.length, sources.length);
+                if (shift > half) {
+                    shift = shift - sources.length;
+                }
+                tmp = phantoms[new-center];
+                phantoms[new-center] = phantoms[center-index];
+                phantoms[center-index] = tmp;
+            }
+            center-index = new-center;
+        } else {
+            debug("Not updating phantoms: type is not Rotary or sources is empty");
         }
     }
 
     /// Calculates the scale factor for an item based on its position.
+    /// @param index The index of the item.
+    /// @return The scale factor.
     function get-item-scale(index: int) -> float {
+        if (sources.length == 0) {
+            return 1.0;
+        }
         if (type == CarouselType.Linear) {
-            return root.active == index ? 1 : 0.3;
+            return root.active == index ? 1 : non-active-scale;
         } else {
             if (index >= center-index) {
-                return 1 - (index - center-index) * 0.7 / (sources.length / 2);
+                return 1 - (index - center-index) * (1 - non-active-scale) / (sources.length / 2);
             } else {
-                return 1 - (center-index - index) * 0.7 / (sources.length / 2);
+                return 1 - (center-index - index) * (1 - non-active-scale) / (sources.length / 2);
             }
         }
     }
 
     /// Calculates the width of an item based on its index.
+    /// @param index The index of the item.
+    /// @return The width of the item.
     function get-item-width(index: int) -> length {
-        if (sources.length == 0) { return 0px; }
-
+        if (sources.length == 0) {
+            return 0px;
+        }
         if (type == CarouselType.Linear) {
-            if (root.active == index) {
-                return (root.width - (sources.length * fold-width) - (layout.spacing * 2)) * get-item-scale(index);
-            } else {
-                return fold-width * get-item-scale(index);
-            }
+            return fold-width * get-item-scale(index);
         } else {
             if (index == center-index) {
                 return (root.width - (sources.length * fold-width) - (layout.spacing * 2)) * get-item-scale(index);
@@ -81,79 +145,78 @@ export component Carousel inherits Rectangle {
     }
 
     /// Calculates the height of an item based on its index.
+    /// @param index The index of the item.
+    /// @return The height of the item.
     function get-item-height(index: int) -> length {
-        if (sources.length == 0) { return 0px; }
-        return root.fold-height * get-item-scale(index);
-    }
-
-    /// Calculates the border radius of an item based on its index.
-    function get-item-border-radius(index: int) -> length {
-        if (sources.length == 0) { return 0px; }
-        if (type == CarouselType.Linear) {
-            return root.active == index ? 0px : fold-width / 2;
-        } else {
-            return index == center-index ? 0px : fold-width / 2;
+        if (sources.length == 0) {
+            return 0px;
         }
+        return root.height * get-item-scale(index);
     }
 
-    /// Rotates the carousel to the left.
+    /// Rotates the carousel to the left (counterclockwise).
     function rotate-left() {
-        if (sources.length == 0) { return; }
-        if (root.active > 0) {
-            root.active -= 1;
-        } else {
-            root.active = root.sources.length - 1;
+        if (sources.length == 0) {
+            return;
         }
+        root.active = Math.mod(root.active - 1 + sources.length, sources.length);
         update-phantoms();
-    }
-
-    /// Rotates the carousel to the right.
-    function rotate-right() {
-        if (sources.length == 0) { return; }
-        if (root.active < root.sources.length - 1) {
-            root.active += 1;
-        } else {
-            root.active = 0;
-        }
-        update-phantoms();
-    }
-
-    /// Handles item click events.
-    function handle-item-click(index: int) {
-        if (sources.length == 0) { return; }
-        if (index == 0) {
-            rotate-left();
-        } else if (index == root.sources.length - 1) {
-            rotate-right();
-        }
         root.clicked(root.active);
     }
 
-    layout := HorizontalLayout {
+    /// Rotates the carousel to the right (clockwise).
+    function rotate-right() {
+        if (sources.length == 0) {
+            return;
+        }
+        root.active = Math.mod(root.active + 1, sources.length);
+        update-phantoms();
+        root.clicked(root.active);
+    }
+
+    /// The main layout of the carousel component.
+    layout := VerticalLayout {
         alignment: center;
-        spacing: 16px;
-        for source[index] in (type == CarouselType.Linear ? root.sources : root.phantoms): Rectangle {
-            width: get-item-width(index);
-            height: get-item-height(index);
-            clip: true;
-            animate width, height {
-                duration: 250ms;
-                easing: ease-in-out;
-            }
-            Image {
-                width: parent.width;
-                height: parent.height;
-                source: source;
-                image-fit: contain;
-                colorize: Theme.palette.transparent;
-                animate colorize {
-                    duration: 125ms;
+        spacing: Math.min(16px, root.width / 60);
+
+        HorizontalLayout {
+            alignment: center;
+            spacing: Math.min(16px, root.width / 60);
+
+            // Carousel items
+            for source[index] in (type == CarouselType.Linear ? root.sources : root.phantoms): Rectangle {
+                width: get-item-width(index);
+                height: get-item-height(index);
+                clip: true;
+                animate width, height {
+                    duration: root.transition-duration;
+                    easing: root.transition-easing;
                 }
-            }
-            TouchArea {
-                visible: index == 0 || index == root.sources.length - 1;
-                clicked => {
-                    handle-item-click(index);
+
+                Rectangle {
+                    clip: true;
+
+                    Image {
+                        width: parent.width;
+                        height: parent.height;
+                        source: source;
+                        image-fit: contain;
+                        colorize: NalufxTheme.palette.transparent;
+                        animate colorize { duration: root.transition-duration / 2; }
+                    }
+                }
+
+                TouchArea {
+                    clicked => {
+                        if (index == root.active) {
+                            // Display a text when the active image is clicked
+                            debug("Active image clicked: {}", index);
+                        } else if (index < root.active) {
+                            rotate-left();
+                        } else {
+                            rotate-right();
+                        }
+                    }
                 }
             }
         }
@@ -163,12 +226,20 @@ export component Carousel inherits Rectangle {
     forward-focus: key-handler;
     key-handler := FocusScope {
         key-pressed(event) => {
+            if (!enable-keyboard-nav) {
+                return reject;
+            }
             if (event.text == Key.LeftArrow) {
                 rotate-left();
                 return accept;
             }
             if (event.text == Key.RightArrow) {
                 rotate-right();
+                return accept;
+            }
+            if (event.text == Key.Space) {
+                root.clicked(root.active);
+                debug("Space key pressed");
                 return accept;
             }
             return reject;

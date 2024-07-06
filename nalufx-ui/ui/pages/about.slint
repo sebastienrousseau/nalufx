@@ -67,26 +67,6 @@ export component About inherits Page {
                     GroupBox {
                         preferred-width: 100%;
                         HorizontalLayout {
-                            alignment: center;
-                            padding-left: Theme.spaces.medium;
-                            padding-right: Theme.spaces.medium;
-                            Carousel {
-                                background: Theme.palette.transparent;
-                                width: (Math.min(root.width, (self.sources.length * 150) * 1px));
-                                height: 150px;
-                                sources: [Images.aapl-logo, Images.amzn-logo, Images.googl-logo, Images.msft-logo, Images.tsla-logo, Images.hsbc-logo, Images.meta-logo, Images.nvda-logo];
-                                focus-main: true;
-                                type: Rotary;
-                                clicked => {
-                                    // Handle click event
-                                }
-                            }
-                        }
-                    }
-
-                    GroupBox {
-                        preferred-width: 100%;
-                        HorizontalLayout {
                             alignment: space-around;
                             padding-left: Theme.spaces.medium;
                             padding-right: Theme.spaces.medium;

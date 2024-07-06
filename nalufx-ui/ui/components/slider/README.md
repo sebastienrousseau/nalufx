@@ -17,7 +17,7 @@ The `Slider` component is a customizable UI element designed for selecting value
 4. [Usage](#usage)
 5. [Customization](#customization)
 6. [Examples](#examples)
-7. [Related Components](#related-components)
+7. [Conclusion](#conclusion)
 
 ## Overview
 
@@ -141,12 +141,6 @@ Slider {
     step: 10.0;
 }
 ```
-
-## Related Components
-
-- **`Button`**: A versatile button component for user interactions.
-- **`ToggleButton`**: A button that toggles between two states.
-- **`DropdownButton`**: A button that shows a dropdown menu when clicked.
 
 ## Conclusion
 

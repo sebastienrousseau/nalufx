@@ -3,9 +3,10 @@
 import { Header, HeaderAdapter } from "blocks/blocks.slint";
 import { Images } from "images.slint";
 import { Theme } from "theme.slint";
+import { NalufxTheme } from "components/themes/index.slint";
 import { Menu, PageScrollView, PageContainer } from "widgets/widgets.slint";
 import { MenuPage } from "pages/pages.slint";
-import { Balance, Overview, Usage, UsageAdapter, Weather, About } from "pages/pages.slint";
+import { Balance, Overview, Usage, UsageAdapter, Weather, Stocks, About } from "pages/pages.slint";
 
 export component MidMain {
     Rectangle {
@@ -18,7 +19,7 @@ export component MidMain {
 
             i-page-scroll-view := PageScrollView {
                 vertical-stretch: 1;
-                page-count: 5;
+                page-count: 6;
 
                 PageContainer {
                     clicked => { i-page-scroll-view.toggle-selection(self.index, self.x); }
@@ -72,6 +73,18 @@ export component MidMain {
                     clicked => { i-page-scroll-view.toggle-selection(self.index, self.x); }
 
                     index: 4;
+                    selected <=> i-page-scroll-view.selection;
+                    selected-width: i-page-scroll-view.selected-width;
+                    selected-height: i-page-scroll-view.selected-height;
+                    selected-h-offset: i-page-scroll-view.selected-h-offset;
+
+                    Stocks {}
+                }
+
+                PageContainer {
+                    clicked => { i-page-scroll-view.toggle-selection(self.index, self.x); }
+
+                    index: 5;
                     selected <=> i-page-scroll-view.selection;
                     selected-width: i-page-scroll-view.selected-width;
                     selected-height: i-page-scroll-view.selected-height;
