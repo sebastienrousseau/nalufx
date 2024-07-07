@@ -1,6 +1,7 @@
 
 
 import { Theme } from "../theme.slint";
+import { NalufxTheme } from "../components/themes/index.slint";
 import { ChartAxis, AxisLabel, AxisValue } from "chart_axis.slint";
 import { ChartPattern, BarBackground } from "chart_pattern.slint";
 
@@ -104,7 +105,7 @@ export component BalanceChart {
                         display-value: value;
 
                         in {
-                            animate display-value { duration: Theme.durations.slow; easing: ease-in-out; }
+                            animate display-value { duration: NalufxTheme.durations.slow; easing: ease-in-out; }
                         }
                     }
                 ]

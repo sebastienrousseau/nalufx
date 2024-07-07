@@ -1,6 +1,7 @@
 
 
 import { Theme } from "../theme.slint";
+import { NalufxTheme } from "../components/themes/index.slint";
 import { BarBackground } from "bar_chart.slint";
 
 export struct BarTileModel {
@@ -19,21 +20,21 @@ component ValueLabel {
 
     HorizontalLayout {
         Text {
-            color: Theme.palette.white;
+            color: NalufxTheme.palette.on-primary;
             vertical-stretch: 0;
             horizontal-alignment: right;
             text: root.text;
-            font-size: Theme.typo.description-light.size;
-            font-weight: Theme.typo.description-light.weight;
+            font-size: NalufxTheme.typography.description-light.size.desktop;
+            font-weight: NalufxTheme.typography.description-light.weight;
         }
 
         Text {
-            color: Theme.palette.white;
+            color: NalufxTheme.palette.on-primary;
             vertical-stretch: 0;
             horizontal-alignment: left;
             text: "°";
-            font-size: Theme.typo.description-light.size;
-            font-weight: Theme.typo.description-light.weight;
+            font-size: NalufxTheme.typography.description-light.size.desktop;
+            font-weight: NalufxTheme.typography.description-light.weight;
         }
     }
 }
@@ -54,11 +55,11 @@ component BarTile {
             spacing: 7px;
 
             i-title := Text {
-                color: Theme.palette.white;
+                color: NalufxTheme.palette.on-primary;
                 vertical-stretch: 0;
                 horizontal-alignment: center;
-                font-size: Theme.typo.description.size;
-                font-weight: Theme.typo.description.weight;
+                font-size: NalufxTheme.typography.description-light.size.desktop;
+                font-weight: NalufxTheme.typography.description-light.weight;
             }
 
             i-icon := Image {
@@ -131,7 +132,7 @@ export component BarTiles {
                     max: display-max;
 
                     in {
-                        animate max { duration: Theme.durations.slow; easing: cubic-bezier(0, 0, 0, 1); }
+                        animate max { duration: NalufxTheme.durations.slow; easing: cubic-bezier(0, 0, 0, 1); }
                     }
                 }
             ]
