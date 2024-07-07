@@ -1,13 +1,9 @@
 import { Button } from "../widgets/widgets.slint";
-import { Card } from "../widgets/widgets.slint";
-import { CardCollectionCell } from "../widgets/widgets.slint";
 import { Carousel } from "../widgets/widgets.slint";
-import { Divider } from "../widgets/widgets.slint";
 import { GroupBox } from "../widgets/group_box.slint";
 import { Images } from "../images.slint";
-import { Page } from "page.slint";
-import { Theme } from "../theme.slint";
 import { NalufxTheme } from "../components/themes/index.slint";
+import { Page } from "page.slint";
 import { Slider } from "../widgets/widgets.slint";
 
 export component About inherits Page {
@@ -38,7 +34,7 @@ export component About inherits Page {
                             padding-left: 0;
                             padding-right: 0;
                             VerticalLayout {
-                                spacing: Theme.spaces.small;
+                                spacing: NalufxTheme.spaces.small;
                                 alignment: center;
                                 Rectangle {
                                     // Container for the responsive image
@@ -55,16 +51,10 @@ export component About inherits Page {
                                     }
                                 }
 
-                                Divider {
-                                    type: "centered";
-                                    thickness: 1px;
-                                    divider_color: NalufxTheme.palette.primary;
-                                }
-
                                 Text {
                                     horizontal-alignment: center;
                                     text: "Finance for the rest of us.";
-                                    color: Theme.palette.teal;
+                                    color: NalufxTheme.palette.secondary;
                                     font-size: NalufxTheme.typography.header-item-light.size.desktop;
                                     font-weight: NalufxTheme.typography.header-item-light.weight;
                                 }
@@ -72,48 +62,13 @@ export component About inherits Page {
                                 Text {
                                     horizontal-alignment: center;
                                     text: "© Copyright 2024 - Sebastien Rousseau. All rights reserved.";
-                                    color: Theme.palette.white;
+                                    color: NalufxTheme.palette.on-primary;
                                     font-size: NalufxTheme.typography.overline.size.desktop;
                                     font-weight: NalufxTheme.typography.overline.weight;
                                 }
                             }
                         }
                     }
-
-                    // GroupBox {
-                    //     HorizontalLayout {
-                    //         alignment: space-around;
-                    //         padding-left: Theme.spaces.medium;
-                    //         padding-right: Theme.spaces.medium;
-                    //         CardCollectionCell {
-                    //             width: 200px;
-                    //             height: 200px;
-                    //             selectable: true;
-                    //             corner-radius: 8px;
-                    //             title: "Example Card";
-                    //             description: "This is a selectable card";
-                    //             image-source: Images.banner;
-                    //             horizontal-image-alignment: Center;
-                    //             vertical-image-alignment: Top;
-                    //         }
-                    //     }
-                    // }
-
-                    // GroupBox {
-                    //     HorizontalLayout {
-                    //         alignment: center;
-                    //         padding-left: Theme.spaces.medium;
-                    //         padding-right: Theme.spaces.medium;
-                    //         Slider {
-                    //             width: 400px;
-                    //             height: 14px;
-                    //             min-value: 0.0;
-                    //             max-value: 100.0;
-                    //             value: 0.0;
-                    //             step: 1.0;
-                    //         }
-                    //     }
-                    // }
                 }
             }
         }

@@ -1,4 +1,4 @@
-import { Colors, DefaultColors } from "color_scheme.slint";
+import { Colors, DefaultColors, Gradients, DefaultGradients } from "color_scheme.slint";
 import { Typo, DefaultFonts } from "font_scheme.slint";
 import { Duration, DefaultDurations } from "duration_scheme.slint";
 import { Space, DefaultSpaces } from "space_scheme.slint";
@@ -13,4 +13,6 @@ export global NalufxTheme {
     in property <Duration> durations: DefaultDurations.durations;
     /// The space scheme of the theme
     in property <Space> spaces: DefaultSpaces.spaces;
+    /// The gradient scheme of the theme
+    in property <Gradients> gradients: DefaultGradients.type;
 }

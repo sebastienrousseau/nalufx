@@ -46,6 +46,25 @@ export struct Colors {
     transparent: brush,
 }
 
+export struct Gradients {
+    /// The Radial gradient used for the primary color.
+    radial_primary: brush,
+    /// The Radial gradient used for the secondary color.
+    radial_secondary: brush,
+    /// The Radial gradient used for the tertiary color.
+    radial_tertiary: brush,
+    /// The Radial gradient used for the error color.
+    radial_error: brush,
+    /// The Linear gradient used for the primary color.
+    linear_primary: brush,
+    /// The Linear gradient used for the secondary color.
+    linear_secondary: brush,
+    /// The Linear gradient used for the tertiary color.
+    linear_tertiary: brush,
+    /// The Linear gradient used for the error color.
+    linear_error: brush,
+}
+
 /// A global set of default colors.
 export global DefaultColors {
     /// The color palette used in the theme.
@@ -53,11 +72,17 @@ export global DefaultColors {
         primary: #6200EE,
         primary-variant: #3700B3,
         on-primary: #FFFFFF,
+        primary-dark: #4B00B8,
+        primary-light: #7F39FB,
         secondary: #03DAC6,
         secondary-variant: #018786,
+        on-secondary: #000000,
+        secondary-dark: #00A69C,
+        secondary-light: #66FFF8,
         tertiary: #FFD600,
         on-tertiary: #000000,
-        on-secondary: #000000,
+        tertiary-dark: #C8A900,
+        tertiary-light: #FFE666,
         background: #FFFFFF,
         on-background: #000000,
         surface: #FFFFFF,
@@ -65,5 +90,20 @@ export global DefaultColors {
         error: #B00020,
         on-error: #FFFFFF,
         transparent: #00000000,
+    };
+}
+
+/// A global set of default gradients.
+export global DefaultGradients {
+    /// Gradients used in the theme.
+    out property <Gradients> type: {
+        radial_primary: @radial-gradient(circle, #6200EE 0%, #3700B3 25%, #000000 100%),
+        radial_secondary: @radial-gradient(circle, #03DAC6 0%, #018786 25%, #000000 100%),
+        radial_tertiary: @radial-gradient(circle, #FFD600 0%, #C8A900 25%, #000000 100%),
+        radial_error: @radial-gradient(circle, #B00020 0%, #B00020 25%, #000000 100%),
+        linear_primary: @linear-gradient(90deg, #6200EE 0%, #3700B3 25%, #000000 100%),
+        linear_secondary: @linear-gradient(90deg, #03DAC6 0%, #018786 25%, #000000 100%),
+        linear_tertiary: @linear-gradient(90deg, #FFD600 0%, #C8A900 25%, #000000 100%),
+        linear_error: @linear-gradient(90deg, #B00020 0%, #B00020 25%, #000000 100%),
     };
 }

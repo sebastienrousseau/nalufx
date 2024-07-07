@@ -1,19 +1,17 @@
-
-
-import { Theme } from "../theme.slint";
+import { NalufxTheme } from "../components/themes/index.slint";
 
 export component GroupBox {
     in property <string> title <=> i-title.text;
     in property <length> spacing;
 
     layout := VerticalLayout {
-        spacing: Theme.spaces.medium;
+        spacing: NalufxTheme.spaces.medium;
 
         i-title := Text {
             horizontal-alignment: left;
-            color: Theme.palette.white;
-            font-size: Theme.typo.header.size;
-            font-weight: Theme.typo.header.weight;
+            color: NalufxTheme.palette.on-primary;
+            font-size: NalufxTheme.typography.label.size.desktop;
+            font-weight: NalufxTheme.typography.label.weight;
         }
 
         i-layout := HorizontalLayout {
