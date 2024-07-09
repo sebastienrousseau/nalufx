@@ -27,7 +27,10 @@ path = "src/main.rs"
 nalufx-core = { path = "../nalufx-core" }
 # chrono = { version = "0.4.38", optional = true, default-features = false, features = ["clock", "std", "wasmbind"]}
 dtt = "0.0.6"
+dotenvy = "0.15.7"
+env_logger = "0.11.3"
 futures = { version = "0.3.30", optional = true }
+log = "0.4.21"
 slint = "1.6.0"
 tokio = { version = "1.38.0", optional = true, features = ["full"] }
 weer_api = { version = "0.1.1", optional = true }

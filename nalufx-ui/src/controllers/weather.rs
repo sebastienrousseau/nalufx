@@ -12,12 +12,13 @@ use weer_api::*;
 
 use std::thread;
 
-const WEATHER_API_KEY: &str = "WEATHER_API";
+// const WEATHER_API_KEY: &str = "WEATHER_API";
 const WEATHER_LAT_KEY: &str = "WEATHER_LAT";
 const WEATHER_LONG_KEY: &str = "WEATHER_LONG";
 const LAT_BERLIN: f32 = 52.520008;
 const LONG_BERLIN: f32 = 13.404954;
 const FORECAST_DAYS: i64 = 3;
+
 
 pub fn setup(window: &MainWindow) -> thread::JoinHandle<()> {
     let window_weak = window.as_weak();
@@ -170,12 +171,20 @@ fn get_icon(window: &MainWindow, condition: &Condition) -> Image {
 }
 
 fn api_key() -> String {
-    if let Some(lat) = option_env!("WEATHER_API") {
+    let api_key = match openai::get_weather_api_key() {
+                Ok(key) => key,
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    return Err(NaluFxError::InvalidData);
+                }
+            };
+    println("WEATHER_API_KEY: {:?}", api_key);
+    if let Some(lat) = option_env!(api_key) {
         return lat.to_string();
     }
 
     #[cfg(not(feature = "mcu-board-support"))]
-    if let Some(lat) = std::env::var_os(WEATHER_API_KEY) {
+    if let Some(lat) = std::env::var_os(api_key) {
         if let Some(lat) = lat.to_str() {
             return lat.to_string();
         }

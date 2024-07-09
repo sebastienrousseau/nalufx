@@ -1,0 +1,13 @@
+export struct ScreenType {
+    mobile: string,
+    desktop: string,
+    tablet: string,
+}
+
+export global DefaultScreenTypes {
+    in property <ScreenType> screenType: {
+        mobile: "Mobile",
+        desktop: "Desktop",
+        tablet: "Tablet",
+    };
+}

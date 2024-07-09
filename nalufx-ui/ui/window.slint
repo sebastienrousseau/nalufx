@@ -1,0 +1,113 @@
+/**
+ * Main application window for NaluFX UI
+ * This file defines the main window and imports the core components and themes
+ */
+
+import {
+    BalanceAdapter,
+    MenuOverviewAdapter,
+    MenuPageAdapter,
+    OverviewAdapter,
+    SettingsAdapter,
+    UsageAdapter,
+    WeatherAdapter
+} from "pages/pages.slint";
+import { BarTileModel } from "widgets/widgets.slint";
+import { HeaderAdapter } from "blocks/blocks.slint";
+import { Images } from "images.slint";
+import { Main } from "main.slint";
+import { NalufxTheme } from "components/themes/index.slint";
+import { Navigation, MenuButton, Menu, Value } from "widgets/widgets.slint";
+import { DefaultScreenTypes, ScreenType } from "components/themes/screen_scheme.slint";
+
+export {
+    BarTileModel,
+    HeaderAdapter,
+    Images,
+    MenuOverviewAdapter,
+    MenuPageAdapter,
+    OverviewAdapter,
+    SettingsAdapter,
+    UsageAdapter,
+    Value,
+    WeatherAdapter
+}
+
+/**
+ * MainWindow component
+ * Defines the main application window with responsive layout for different screen sizes
+ */
+export component MainWindow inherits Window {
+    /**
+     * Current screen size, determined by get-screen-size()
+     * @private
+     */
+    private property <string> screen-size: root.get-screen-size();
+
+    /**
+     * Main application window properties
+     */
+    title: "NaluFX | Market Intelligence and Investment Research";
+    background: NalufxTheme.gradients.radial-primary;
+    preferred-width: 100%;
+    preferred-height: 100%;
+
+    /**
+     * Renders the appropriate layout for desktop screens
+     */
+    if (screen-size == DefaultScreenTypes.screenType.desktop) : Main {
+        preferred-height: 900px;
+        preferred-width: 1440px;
+        width: 100%;
+        height: 100%;
+    }
+
+    /**
+     * Renders the appropriate layout for mobile screens
+     */
+    if (screen-size == DefaultScreenTypes.screenType.mobile) : Main {
+        preferred-height: 812px;
+        preferred-width: 375px;
+        width: 100%;
+        height: 100%;
+    }
+
+    /**
+     * Renders the appropriate layout for tablet screens
+     */
+    if (screen-size == DefaultScreenTypes.screenType.tablet) : Main {
+        preferred-height: 1024px;
+        preferred-width: 768px;
+        width: 100%;
+        height: 100%;
+    }
+
+    /**
+     * Fallback layout in case of an unexpected screen size
+     */
+    if (screen-size != DefaultScreenTypes.screenType.desktop &&
+        screen-size != DefaultScreenTypes.screenType.mobile &&
+        screen-size != DefaultScreenTypes.screenType.tablet) : Main {
+        preferred-height: 100%;
+        preferred-width: 100%;
+        width: 100%;
+        height: 100%;
+    }
+
+    /**
+     * Determines the current screen size based on the window width
+     * @returns {string} The current screen size (mobile, tablet, or desktop)
+     */
+    pure function get-screen-size() -> string {
+        if (root.width <= 480px) {
+            debug("Mobile screen size");
+            return DefaultScreenTypes.screenType.mobile;
+        } else if (root.width <= 1024px) {
+            debug("Tablet screen size");
+            return DefaultScreenTypes.screenType.tablet;
+        } else {
+            debug("Desktop screen size");
+            return DefaultScreenTypes.screenType.desktop;
+        }
+    }
+}
