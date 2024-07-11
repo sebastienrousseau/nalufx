@@ -6,6 +6,7 @@ export global HeaderAdapter {
     in-out property <string> time: "Loading time...";
     in-out property <string> time-suffix: "Loading suffix...";
     in property <image> logo: Images.nalufx-logo;
+    in-out property <string> description: "AI Insights for Funds Management and Research";
 }
 
 export component Header {
@@ -13,6 +14,7 @@ export component Header {
     in property <string> time <=> HeaderAdapter.time;
     in property <string> time-suffix <=> HeaderAdapter.time-suffix;
     in property <image> logo <=> HeaderAdapter.logo;
+    in property <string> description <=> HeaderAdapter.description;
 
     min-height: 50px;
     vertical-stretch: 0;
@@ -23,6 +25,7 @@ export component Header {
 
         Rectangle {
             horizontal-stretch: 1;
+            vertical-stretch: 1;
 
             Text {
                 x: 0px;
@@ -35,15 +38,32 @@ export component Header {
 
         Rectangle {
             horizontal-stretch: 1;
+            vertical-stretch: 1;
 
-            Image {
-                height: 60px;
-                source: logo;
+            VerticalLayout {
+                padding: 20px;
+                spacing: 5px;
+
+                Image {
+                    height: 60px;
+                    source: logo;
+                    padding: 5px;
+                }
+
+                Text {
+                    color: Theme.palette.white;
+                    text: description;
+                    horizontal-alignment: center;
+                    font-size: Theme.typo.header.size;
+                    font-weight: Theme.typo.header.weight;
+                    width: root.width / 2;
+                }
             }
         }
 
         Rectangle {
             horizontal-stretch: 1;
+            vertical-stretch: 1;
 
             Text {
                 x: i-time-suffix.x - 5px - self.width;
@@ -62,6 +82,6 @@ export component Header {
                 font-size: Theme.typo.header-item.size;
                 font-weight: Theme.typo.header-item.weight;
             }
-         }
+        }
     }
 }

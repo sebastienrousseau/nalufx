@@ -285,7 +285,7 @@ async fn save_report(report: &Report, file_path: &str) -> Result<(), NaluFxError
     Ok(())
 }
 
-/// Trait to define common behavior for fund data.
+/// Trait to define common behaviour for fund data.
 trait FundData {
     fn symbol(&self) -> &str;
     fn name(&self) -> &str;

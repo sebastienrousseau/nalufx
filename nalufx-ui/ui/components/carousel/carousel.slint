@@ -1,18 +1,19 @@
 import { NalufxTheme } from "../../components/themes/index.slint";
 import { Images } from "../../images.slint";
 import { Card } from "../card/card.slint";
+import { Popup } from "../popup/popup.slint";
 
-/// Defines the type of carousel behavior.
+/// Defines the type of carousel behaviour: either linear or rotary.
 export enum CarouselType {
     Linear,
     Rotary,
 }
 
 /// A customizable carousel component for displaying a series of images.
+/// This component allows displaying images in a linear or rotary fashion
+/// with support for responsive layout adjustments, scaling, and keyboard navigation.
 ///
 /// Usage example:
-///
-/// ```
 /// Carousel {
 ///     type: CarouselType.Rotary;
 ///     sources: [image1, image2, image3];
@@ -22,13 +23,12 @@ export enum CarouselType {
 ///         debug("Clicked image at index: {}", index);
 ///     }
 /// }
-/// ```
 ///
 export component Carousel inherits Rectangle {
     /// The list of image sources to display in the carousel.
     in-out property <[image]> sources;
 
-    /// The type of carousel behavior (Linear or Rotary).
+    /// The type of carousel behaviour (Linear or Rotary).
     in property <CarouselType> type: CarouselType.Linear;
 
     /// The stretch factor for non-active items.
@@ -55,11 +55,17 @@ export component Carousel inherits Rectangle {
     /// Animation easing function for transitions.
     in property <easing> transition-easing: ease;
 
-    /// Scale factor for non-active items
+    /// Scale factor for non-active items.
     in property <float> non-active-scale: 0.5;
 
-    /// Enable or disable keyboard navigation
+    /// Enable or disable keyboard navigation.
     in property <bool> enable-keyboard-nav: true;
+
+    /// The visibility of the popup component.
+    in-out property <bool> popup-visible: false;
+
+    /// Callback triggered when the popup is closed.
+    callback handle-popup-close();
 
     // Private properties
     /// Array of phantom images used for rotary carousel type.
@@ -79,6 +85,12 @@ export component Carousel inherits Rectangle {
 
     /// Shift amount for rotation.
     private property <int> shift: sources.length / 2;
+
+    /// Titles for each image in the carousel.
+    in property <[string]> titles;
+
+    /// Descriptions for each image in the carousel.
+    in property <[string]> descriptions;
 
     /// Initializes the carousel component.
     init => {
@@ -209,13 +221,35 @@ export component Carousel inherits Rectangle {
                 TouchArea {
                     clicked => {
                         if (index == root.active) {
-                            // Display a text when the active image is clicked
                             debug("Active image clicked: {}", index);
+                            root.popup-visible = true;
                         } else if (index < root.active) {
                             rotate-left();
                         } else {
                             rotate-right();
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    // Popup overlay
+    if (popup-visible) : Rectangle {
+        width: 100%;
+        height: 100%;
+
+        VerticalLayout {
+            alignment: center;
+            HorizontalLayout {
+                alignment: center;
+                Popup {
+                    title: titles[Math.min(active, titles.length - 1)];
+                    description: descriptions[Math.min(active, descriptions.length - 1)];
+                    is-open: true;
+                    close => {
+                        handle-popup-close();
+                        root.popup-visible = false;
                     }
                 }
             }

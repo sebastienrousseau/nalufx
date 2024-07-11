@@ -1,0 +1,75 @@
+import { NalufxTheme } from "../themes/index.slint";
+import { Card } from "../card/card.slint";
+
+export component Popup inherits Card {
+    in-out property <bool> is-open: false;
+
+    callback close();
+
+    width: 300px;
+    height: 300px;
+    background-color: NalufxTheme.palette.background;
+    corner-radius: 15px;
+
+    states [
+        visible when is-open: {
+            opacity: 1;
+        }
+        invisible when !is-open: {
+            opacity: 0;
+        }
+    ]
+
+    animate opacity { duration: 250ms; easing: ease-in-out; }
+
+    VerticalLayout {
+        alignment: space-between;
+
+        Rectangle {
+            height: 40px;
+            HorizontalLayout {
+                alignment: end;
+                padding-right: 10px;
+                close-button := TouchArea {
+                    width: 30px;
+                    height: 30px;
+                    Text {
+                        text: "×";
+                        font-size: 24px;
+                        color: NalufxTheme.palette.on-background;
+                    }
+                    clicked => {
+                        root.close();
+                        root.is-open = false;
+                    }
+                }
+            }
+        }
+
+        // The Card's content will be rendered here automatically
+
+        Rectangle {
+            height: 60px;
+            HorizontalLayout {
+                alignment: center;
+                TouchArea {
+                    width: 120px;
+                    height: 40px;
+                    Rectangle {
+                        border-radius: 20px;
+                        background: NalufxTheme.palette.primary;
+                        Text {
+                            text: "Close";
+                            color: NalufxTheme.palette.on-primary;
+                            font-size: 16px;
+                        }
+                    }
+                    clicked => {
+                        root.close();
+                        root.is-open = false;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -7,7 +7,7 @@ alt="BeonUX logo" width="66" align="right" />
 
 # Menu Component
 
-The `Menu` component is a flexible and customizable UI element that provides menu functionality. It includes a menu button and supports various properties and behaviors to control its appearance and actions.
+The `Menu` component is a flexible and customizable UI element that provides menu functionality. It includes a menu button and supports various properties and behaviours to control its appearance and actions.
 
 ## Features
 

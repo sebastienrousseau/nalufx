@@ -7,7 +7,7 @@
 //! ## Features
 //!
 //! - API handlers for processing cash flow requests and generating predictions
-//! - Configuration settings for customizing the behavior of the library
+//! - Configuration settings for customizing the behaviour of the library
 //! - Error handling and custom error types
 //! - Data models for representing cash flow requests and responses
 //! - Service layer with business logic for fetching data and performing calculations
