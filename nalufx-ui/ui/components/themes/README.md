@@ -4,9 +4,9 @@
 
 <!-- markdownlint-enable MD033 MD041 -->
 
-# BeonUX Theme
+# Slint Schemes
 
-The BeonUX Theme provides various configurations for color, duration, font, screen, and space. These schemes are designed to offer a consistent and customizable styling foundation for your Slint applications. This document provides an overview of each scheme and how to use them.
+The Slint schemes provided include various configurations for color, duration, font, screen, and space. These schemes are designed to provide a consistent and customizable styling foundation for your Slint applications. This document provides an overview of each scheme and how to use them.
 
 ## Table of Contents
 
@@ -190,6 +190,6 @@ component ResponsiveComponent {
 
 ## Conclusion
 
-The BeonUX Theme provides a robust foundation for building consistent and maintainable UI components. Utilize these schemes to streamline your design process and ensure a cohesive user experience.
+These Slint schemes provide a robust foundation for building consistent and maintainable UI components. Utilize these schemes to streamline your design process and ensure a cohesive user experience.
 
 For more information on other components and their usage, refer to the respective documentation files.
