@@ -1,109 +1,237 @@
-/// A struct defining a set of colors used in the theme.
+/// Colors: Defines the color palette for the theme.
+/// 
+/// This struct provides a comprehensive set of colors used throughout the UI,
+/// including primary, secondary, and tertiary colors with their variants,
+/// system colors, and utility colors for various UI elements.
 export struct Colors {
-    /// The primary color.
+    // Primary colors
+    /// The main brand color, used for primary actions and key UI elements.
     primary: brush,
-
-    /// A variant of the primary color.
+    /// A lighter shade of the primary color, useful for hover states or backgrounds.
+    primary-light: brush,
+    /// A darker shade of the primary color, suitable for pressed states or text.
+    primary-dark: brush,
+    /// An alternative primary color for creating contrast or emphasis.
     primary-variant: brush,
 
-    /// The color used on top of the primary color.
-    on-primary: brush,
-
-    /// The secondary color.
+    // Secondary colors
+    /// The secondary brand color, used for less prominent elements or accents.
     secondary: brush,
-
-    /// A variant of the secondary color.
+    /// A lighter shade of the secondary color.
+    secondary-light: brush,
+    /// A darker shade of the secondary color.
+    secondary-dark: brush,
+    /// An alternative secondary color for additional accent options.
     secondary-variant: brush,
 
-    /// The tertiary color.
+    // Tertiary colors
+    /// The tertiary color, providing an additional option for color schemes.
     tertiary: brush,
+    /// A lighter shade of the tertiary color.
+    tertiary-light: brush,
+    /// A darker shade of the tertiary color.
+    tertiary-dark: brush,
+    /// An alternative tertiary color for further design flexibility.
+    tertiary-variant: brush,
 
-    /// The color used on top of the tertiary color.
-    on-tertiary: brush,
-
-    /// The color used on top of the secondary color.
-    on-secondary: brush,
-
-    /// The background color.
-    background: brush,
-
-    /// The color used on top of the background color.
-    on-background: brush,
-
-    /// The surface color.
-    surface: brush,
-
-    /// The color used on top of the surface color.
-    on-surface: brush,
-
-    /// The error color.
-    error: brush,
-
-    /// The color used on top of the error color.
-    on-error: brush,
-
-    /// A transparent color.
+    // Basic colors
+    /// Pure white, typically used for backgrounds in light themes.
+    white: brush,
+    /// Pure black, often used for text in light themes or backgrounds in dark themes.
+    black: brush,
+    /// Fully transparent color, useful for overlays or transitions.
     transparent: brush,
+
+    // Error colors
+    /// Color used to indicate errors or critical information.
+    error: brush,
+    /// A lighter shade of the error color, suitable for backgrounds.
+    error-light: brush,
+    /// A darker shade of the error color, suitable for text.
+    error-dark: brush,
+    /// An alternative error color for additional emphasis options.
+    error-variant: brush,
+
+    // System colors
+    /// System-defined blue color, often used for interactive elements.
+    system-blue: brush,
+    /// System-defined green color, typically used for success or confirmation.
+    system-green: brush,
+    /// System-defined indigo color, providing an additional accent option.
+    system-indigo: brush,
+    /// System-defined orange color, often used for warnings or important notices.
+    system-orange: brush,
+    /// System-defined pink color, useful for highlighting or feminine designs.
+    system-pink: brush,
+    /// System-defined purple color, can be used for luxury or creative themes.
+    system-purple: brush,
+    /// System-defined red color, alternative to the error color for warnings.
+    system-red: brush,
+    /// System-defined teal color, useful for calm or professional themes.
+    system-teal: brush,
+    /// System-defined yellow color, often used for cautionary messages.
+    system-yellow: brush,
+
+    // Gray scales
+    /// Darkest gray, suitable for primary text in light themes.
+    gray1: brush,
+    /// Dark gray, useful for secondary text or icons.
+    gray2: brush,
+    /// Medium gray, can be used for disabled states or tertiary text.
+    gray3: brush,
+    /// Light-medium gray, suitable for borders or dividers.
+    gray4: brush,
+    /// Light gray, useful for backgrounds or inactive states.
+    gray5: brush,
+    /// Lightest gray, can be used for subtle backgrounds or hover states.
+    gray6: brush,
+
+    // Special colors
+    /// Color used for hyperlinks or interactive text.
+    link: brush,
+    /// Color used for placeholder text in input fields.
+    placeholder: brush,
+    /// Color used for separators or dividers between UI elements.
+    separator: brush,
 }
 
+/// Gradients: Defines a set of gradient brushes for advanced styling.
+///
+/// This struct provides both radial and linear gradients for primary, secondary,
+/// tertiary, and error color schemes, allowing for rich visual effects in the UI.
 export struct Gradients {
-    /// The Radial gradient used for the primary color.
-    radial_primary: brush,
-    /// The Radial gradient used for the secondary color.
-    radial_secondary: brush,
-    /// The Radial gradient used for the tertiary color.
-    radial_tertiary: brush,
-    /// The Radial gradient used for the error color.
-    radial_error: brush,
-    /// The Linear gradient used for the primary color.
-    linear_primary: brush,
-    /// The Linear gradient used for the secondary color.
-    linear_secondary: brush,
-    /// The Linear gradient used for the tertiary color.
-    linear_tertiary: brush,
-    /// The Linear gradient used for the error color.
-    linear_error: brush,
+    // Radial gradients
+    /// Radial gradient using the primary color scheme, fading to black.
+    radial-primary: brush,
+    /// Radial gradient using the secondary color scheme, fading to black.
+    radial-secondary: brush,
+    /// Radial gradient using the tertiary color scheme, fading to black.
+    radial-tertiary: brush,
+    /// Radial gradient using the error color scheme, fading to black.
+    radial-error: brush,
+
+    // Linear gradients
+    /// Linear gradient using the primary color scheme, transitioning horizontally.
+    linear-primary: brush,
+    /// Linear gradient using the secondary color scheme, transitioning horizontally.
+    linear-secondary: brush,
+    /// Linear gradient using the tertiary color scheme, transitioning horizontally.
+    linear-tertiary: brush,
+    /// Linear gradient using the error color scheme, transitioning horizontally.
+    linear-error: brush,
 }
 
-/// A global set of default colors.
+/// DefaultColors: Provides a default color palette for the theme.
+///
+/// This global object sets specific color values for all properties defined in the Colors struct.
+/// These values can be used as-is or serve as a starting point for custom themes.
 export global DefaultColors {
-    /// The color palette used in the theme.
+    /// The default color palette used throughout the theme.
     out property <Colors> palette: {
+        // Primary colors
         primary: #6200EE,
-        primary-variant: #3700B3,
-        on-primary: #FFFFFF,
-        primary-dark: #4B00B8,
         primary-light: #7F39FB,
+        primary-dark: #4B00B8,
+        primary-variant: #3700B3,
+
+        // Secondary colors
         secondary: #03DAC6,
-        secondary-variant: #018786,
-        on-secondary: #000000,
-        secondary-dark: #00A69C,
         secondary-light: #66FFF8,
+        secondary-dark: #00A69C,
+        secondary-variant: #018786,
+
+        // Tertiary colors
         tertiary: #FFD600,
-        on-tertiary: #000000,
-        tertiary-dark: #C8A900,
         tertiary-light: #FFE666,
-        background: #FFFFFF,
-        on-background: #000000,
-        surface: #FFFFFF,
-        on-surface: #000000,
-        error: #B00020,
-        on-error: #FFFFFF,
+        tertiary-dark: #C8A900,
+        tertiary-variant: #B29100,
+
+        // Basic colors
+        white: #FFFFFF,
+        black: #000000,
         transparent: #00000000,
+
+        // Error colors
+        error: #B00020,
+        error-light: #FF5C8D,
+        error-dark: #7C0015,
+        error-variant: #FF0055,
+
+        // System colors
+        system-blue: #007AFF,
+        system-green: #34C759,
+        system-indigo: #5856D6,
+        system-orange: #FF9500,
+        system-pink: #FF2D55,
+        system-purple: #AF52DE,
+        system-red: #FF3B30,
+        system-teal: #5AC8FA,
+        system-yellow: #FFCC00,
+
+        // Gray scales
+        gray1: #8E8E93,
+        gray2: #AEAEB2,
+        gray3: #C7C7CC,
+        gray4: #D1D1D6,
+        gray5: #E5E5EA,
+        gray6: #F2F2F7,
+
+        // Special colors
+        link: #007AFF,
+        placeholder: #C7C7CC,
+        separator: #C6C6C8,
     };
 }
 
-/// A global set of default gradients.
+/// DefaultGradients: Provides a default set of gradients for the theme.
+///
+/// This global object defines gradient values using colors from the DefaultColors palette.
+/// These gradients can be used to create depth and visual interest in UI components.
 export global DefaultGradients {
-    /// Gradients used in the theme.
+    /// The default set of gradients used in the theme.
     out property <Gradients> type: {
-        radial_primary: @radial-gradient(circle, #6200EE 0%, #3700B3 25%, #000000 100%),
-        radial_secondary: @radial-gradient(circle, #03DAC6 0%, #018786 25%, #000000 100%),
-        radial_tertiary: @radial-gradient(circle, #FFD600 0%, #C8A900 25%, #000000 100%),
-        radial_error: @radial-gradient(circle, #B00020 0%, #B00020 25%, #000000 100%),
-        linear_primary: @linear-gradient(90deg, #6200EE 0%, #3700B3 25%, #000000 100%),
-        linear_secondary: @linear-gradient(90deg, #03DAC6 0%, #018786 25%, #000000 100%),
-        linear_tertiary: @linear-gradient(90deg, #FFD600 0%, #C8A900 25%, #000000 100%),
-        linear_error: @linear-gradient(90deg, #B00020 0%, #B00020 25%, #000000 100%),
+        // Radial gradients
+        radial-primary: @radial-gradient(circle,
+            DefaultColors.palette.primary 0%,
+            DefaultColors.palette.primary-dark 25%,
+            DefaultColors.palette.black 100%
+        ),
+        radial-secondary: @radial-gradient(circle,
+            DefaultColors.palette.secondary 0%,
+            DefaultColors.palette.secondary-dark 25%,
+            DefaultColors.palette.black 100%
+        ),
+        radial-tertiary: @radial-gradient(circle,
+            DefaultColors.palette.tertiary 0%,
+            DefaultColors.palette.tertiary-dark 25%,
+            DefaultColors.palette.black 100%
+        ),
+        radial-error: @radial-gradient(circle,
+            DefaultColors.palette.error 0%,
+            DefaultColors.palette.error-dark 25%,
+            DefaultColors.palette.black 100%
+        ),
+
+        // Linear gradients
+        linear-primary: @linear-gradient(90deg,
+            DefaultColors.palette.primary 0%,
+            DefaultColors.palette.primary-dark 25%,
+            DefaultColors.palette.black 100%
+        ),
+        linear-secondary: @linear-gradient(90deg,
+            DefaultColors.palette.secondary 0%,
+            DefaultColors.palette.secondary-dark 25%,
+            DefaultColors.palette.black 100%
+        ),
+        linear-tertiary: @linear-gradient(90deg,
+            DefaultColors.palette.tertiary 0%,
+            DefaultColors.palette.tertiary-dark 25%,
+            DefaultColors.palette.black 100%
+        ),
+        linear-error: @linear-gradient(90deg,
+            DefaultColors.palette.error 0%,
+            DefaultColors.palette.error-dark 25%,
+            DefaultColors.palette.black 100%
+        ),
     };
 }
