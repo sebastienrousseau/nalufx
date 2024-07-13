@@ -1,32 +1,42 @@
 import { NalufxTheme } from "../../components/themes/index.slint";
 
+/// Component for displaying axis labels
 export component AxisLabel inherits Text {
     color: NalufxTheme.palette.white;
     horizontal-alignment: center;
 }
 
+/// Struct representing a value on an axis
 export struct AxisValue {
+    /// The numeric value
     value: int,
+    /// The unit of measurement
     unit: string
 }
 
+/// Component for rendering a chart axis
 export component ChartAxis {
+    /// Model for X-axis labels
     in property <[string]> x-model;
+    /// Model for Y-axis values
     in property <[int]> y-model;
+    /// Minimum value for Y-axis
     in property <int> y-min;
+    /// Maximum value for Y-axis
     in property <int> y-max;
+    /// Unit for Y-axis values
     in property <string> y-unit;
 
+    /// Calculated Y-position of the zero line
     private property <length> y-zero: root.height * (1 - (0 - y-min) / (y-max - y-min));
 
+    /// X-axis labels
     VerticalLayout {
         horizontal-stretch: 1;
         alignment: end;
-
         HorizontalLayout {
             spacing: 1px;
-
-            for text in  x-model : Rectangle {
+            for text in x-model : Rectangle {
                 if(text != "") : AxisLabel {
                     text: text;
                     y: parent.height - self.height - 3px;
@@ -35,11 +45,11 @@ export component ChartAxis {
         }
     }
 
+    /// Y-axis labels
     HorizontalLayout {
         alignment: end;
-
         Rectangle {
-            for value in  y-model : AxisLabel {
+            for value in y-model : AxisLabel {
                 y: (value >= 0 ? parent.height * (1 - (value - y-min) / (y-max - y-min)) :
                     y-zero + parent.height * (-1 * value / (y-max - y-min))) - self.height  / 2;
                 text: "\{value}\{y-unit}";

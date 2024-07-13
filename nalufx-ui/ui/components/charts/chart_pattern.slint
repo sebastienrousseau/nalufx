@@ -1,18 +1,23 @@
+import { NalufxTheme } from "../../components/themes/index.slint";
 
-
-import { Theme } from "../../theme.slint";
-
+/// Component representing the background of a bar in the chart
 export component BarBackground inherits Rectangle {
+    /// Rounded corners for the bar background
     border-radius: 2px;
-    background: Theme.palette.bar-background-gradient;
+    /// Gradient background from the theme
+    background: NalufxTheme.palette.transparent;
+    /// Partial transparency for subtle appearance
     opacity: 0.25;
 }
 
+/// Component for creating a pattern of bar backgrounds
 export component ChartPattern {
+    /// Number of bar backgrounds to create in the pattern
     in property <int> count;
 
     HorizontalLayout {
         spacing: 0px;
+        /// Create 'count' number of BarBackground components
         for _ in count : BarBackground {}
     }
 }
