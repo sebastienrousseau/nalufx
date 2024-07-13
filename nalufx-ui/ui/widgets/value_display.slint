@@ -1,6 +1,4 @@
-
-
-import { Theme } from "../theme.slint";
+import { NalufxTheme } from "../components/themes/index.slint";
 
 component ValueDelegate {
     in property <bool> active;
@@ -16,7 +14,7 @@ component ValueDelegate {
             display-value: value;
 
             in {
-                animate display-value { duration: Theme.durations.slow; }
+                animate display-value { duration: NalufxTheme.durations.slow; }
             }
         }
     ]
@@ -26,7 +24,7 @@ component ValueDelegate {
 
         Rectangle {
             min_width: 1px;
-            background: alternative-colors ? Theme.palette.indigo : Theme.palette.purple;
+            background: alternative-colors ? NalufxTheme.palette.system-purple-light : NalufxTheme.palette.system-indigo-light;
             horizontal-stretch: 0;
         }
 
@@ -35,9 +33,9 @@ component ValueDelegate {
             horizontal-stretch: 1;
 
             i-title := Text {
-                color: alternative-colors ? Theme.palette.indigo : Theme.palette.purple;
-                font-size: Theme.typo.label.size;
-                font-weight: Theme.typo.label.weight;
+                color: alternative-colors ? NalufxTheme.palette.system-purple-light : NalufxTheme.palette.system-indigo-light;
+                font-size: NalufxTheme.typography.label.size.desktop;
+                font-weight: NalufxTheme.typography.label.weight;
             }
 
             HorizontalLayout {
@@ -45,18 +43,18 @@ component ValueDelegate {
                 spacing: 5px;
 
                 i-unit := Text {
-                    y: Theme.spaces.small;
+                    y: NalufxTheme.spaces.small;
                     vertical-alignment: center;
-                    color: alternative-colors ? Theme.palette.indigo : Theme.palette.purple;
-                    font-size: Theme.typo.label-light.size;
-                    font-weight: Theme.typo.label-light.weight;
+                    color: alternative-colors ? NalufxTheme.palette.system-purple-light : NalufxTheme.palette.system-indigo-light;
+                    font-size: NalufxTheme.typography.label-light.size.desktop;
+                    font-weight: NalufxTheme.typography.label-light.weight;
                 }
 
                 Text {
-                    color: Theme.palette.white;
+                    color: NalufxTheme.palette.white;
                     text: round(display-value * 100) / 100;
-                    font-size: Theme.typo.value.size;
-                    font-weight: Theme.typo.value.weight;
+                    font-size: NalufxTheme.typography.value.size.desktop;
+                    font-weight: NalufxTheme.typography.value.weight;
                     vertical-alignment: center;
                 }
             }
@@ -84,7 +82,7 @@ export component ValueDisplay {
         width: 100%;
         height: 100%;
         border-radius: 4px;
-        background: alternative-colors ? Theme.palette.nalufx-indigo-gradient : Theme.palette.nalufx-purple-gradient;
+        background: alternative-colors ? NalufxTheme.gradients.system-purple-gradient : NalufxTheme.gradients.system-indigo-gradient;
     }
 
     if(model.length > 0 && !vertical) : HorizontalLayout {

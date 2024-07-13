@@ -1,11 +1,7 @@
-
-
-import { Theme } from "../theme.slint";
+import { NalufxTheme } from "../../components/themes/index.slint";
 
 export component AxisLabel inherits Text {
-    font-size: Theme.typo.label.size;
-    font-weight: Theme.typo.label.weight;
-    color: Theme.palette.white;
+    color: NalufxTheme.palette.white;
     horizontal-alignment: center;
 }
 
@@ -43,13 +39,11 @@ export component ChartAxis {
         alignment: end;
 
         Rectangle {
-            background: green;
-
             for value in  y-model : AxisLabel {
                 y: (value >= 0 ? parent.height * (1 - (value - y-min) / (y-max - y-min)) :
                     y-zero + parent.height * (-1 * value / (y-max - y-min))) - self.height  / 2;
                 text: "\{value}\{y-unit}";
             }
         }
-     }
+    }
 }

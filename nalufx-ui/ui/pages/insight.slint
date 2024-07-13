@@ -1,7 +1,7 @@
 import { Page } from "page.slint";
-import { GroupBox, Value, ValueDisplay, BarChart, Button, DropdownButton, ToggleButton } from "../widgets/widgets.slint";
+import { GroupBox, Value, ValueDisplay, BarChart} from "../widgets/widgets.slint";
 import { Images } from "../images.slint";
-import { Theme } from "../theme.slint";
+import { NalufxTheme } from "../components/themes/index.slint";
 
 export global UsageAdapter {
     in property <string> title: "Insight Overview";
@@ -48,47 +48,49 @@ export component Usage inherits Page {
     GroupBox {
         title: root.title;
 
+        // Rectangle {
+        //     width: 66px;
+        //     height: 100%;
+        //     clip: true;
+
+        //     VerticalLayout {
+        //         alignment: space-between;
+        //         height: 100%;
+
+        //         // Button Icon
+        //         Button {
+        //             iconCenter: Images.arrow-right;
+        //             iconTextSpacing: 0pt;
+        //             clicked => {
+        //                 // Handle button click event for "1M"
+        //             }
+        //         }
+
+        //         // Button Text
+        //         Button {
+        //             buttonText: "1M";
+        //             clicked => {
+        //                 // Handle button click event for "1M"
+        //             }
+        //         }
+
+        //         // Toggle button
+        //         // ToggleButton {
+        //         //     background: NalufxTheme.palette.transparent;
+        //         //     checked: false;
+        //         // }
+
+        //         // Dropdown button
+        //         // DropdownButton {
+        //         //     background: Theme.palette.transparent;
+        //         //     menuItems: ["Option 1", "Option 2", "Option 3"];
+        //         //     selectedItem: root.selectedDropdownItem;
+        //         // }
+        //     }
+        // }
+
         Rectangle {
-            width: 66px;
-            height: 100%;
-            clip: true;
-
-            VerticalLayout {
-                alignment: space-between;
-                height: 180px;
-                // Button Icon
-                Button {
-                    iconCenter: Images.arrow-right;
-                    iconTextSpacing: 0pt;
-                    clicked => {
-                        // Handle button click event for "1M"
-                    }
-                }
-
-                // Button Text
-                Button {
-                    buttonText: "1M";
-                    clicked => {
-                        // Handle button click event for "1M"
-                    }
-                }
-
-                // Toggle button
-                ToggleButton {
-                    background: Theme.palette.transparent;
-                    checked: false;
-                }
-
-                // Dropdown button
-                // DropdownButton {
-                //     background: Theme.palette.transparent;
-                //     menuItems: ["Option 1", "Option 2", "Option 3"];
-                //     selectedItem: root.selectedDropdownItem;
-                // }
-            }
-        }
-
-        Rectangle {
+            background: NalufxTheme.palette.transparent;
             BarChart {
                 preferred-width: 100%;
                 preferred-height: 100%;

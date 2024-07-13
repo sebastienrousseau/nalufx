@@ -1,0 +1,100 @@
+import { NalufxTheme } from "../../components/themes/index.slint";
+import { ChartPattern } from "chart_pattern.slint";
+
+/// Represents a single bar in the chart
+component Bar {
+    in property <length> bar-height;
+    in property <string> tooltip;
+    in property <brush> bar-color: NalufxTheme.palette.transparent;
+
+    callback clicked();
+
+    horizontal-stretch: 1;
+
+    TouchArea {
+        clicked => { root.clicked() }
+
+        Rectangle {
+            border-radius: 2px;
+            y: parent.height - self.height;
+            height: bar-height;
+            clip: true;
+
+            Rectangle {
+                height: root.height;
+                y: parent.height - self.height;
+                background: bar-color;
+            }
+        }
+    }
+}
+
+/// Background for the bar chart
+export component BarBackground inherits Rectangle {
+    border-radius: 0px;
+    background: NalufxTheme.palette.transparent;
+}
+
+/// Main bar chart component
+export component BarChart {
+    /// Data model for the chart
+    in property <[float]> model: [];
+    /// Minimum value for the chart
+    in property <float> min: 0;
+    /// Maximum value for the chart
+    in property <float> max: 100;
+    /// Whether the chart is in active state
+    in property <bool> active: false;
+    /// Spacing between bars
+    in property <length> bar-spacing: 1px;
+    /// Color of the bars
+    in property <brush> bar-color: NalufxTheme.gradients.bar-primary;
+
+    /// Callback when a bar is clicked
+    callback bar-clicked(int);
+
+    /// Effective minimum value for the chart
+    private property <float> effective-min: min < 0 ? min : 0;
+    /// Value range for the chart
+    private property <float> value-range: max - effective-min;
+
+    cache-rendering-hint: true;
+
+    VerticalLayout {
+        ChartPattern {
+            count: model.length;
+        }
+
+        if model.length == 0 : Text {
+            text: "No data available";
+            color: NalufxTheme.palette.white;
+        }
+
+        layout := HorizontalLayout {
+            spacing: bar-spacing;
+            for value[i] in model : Bar {
+                private property <float> display-value: 0;
+                preferred-height: 100%;
+                bar-height: parent.height * (display-value - root.effective-min) / root.value-range;
+                bar-color: bar-color;
+                tooltip: "Value: \{round(value * 100) / 100}";
+                clicked => { root.bar-clicked(i) }
+
+                states [
+                    active when root.active : {
+                        display-value: value;
+                        in {
+                            animate display-value { duration: NalufxTheme.durations.slow; easing: ease-in-out; }
+                        }
+                    }
+                    inactive when !root.active : {
+                        display-value: effective-min;
+                        in {
+                            animate display-value { duration: NalufxTheme.durations.slow; easing: ease-in-out; }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

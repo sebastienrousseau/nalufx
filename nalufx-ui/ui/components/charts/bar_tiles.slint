@@ -1,7 +1,7 @@
 
 
-import { Theme } from "../theme.slint";
-import { NalufxTheme } from "../components/themes/index.slint";
+// import { Theme } from "../../theme.slint";
+import { NalufxTheme } from "../../components/themes/index.slint";
 import { BarBackground } from "bar_chart.slint";
 
 export struct BarTileModel {
@@ -88,7 +88,7 @@ component BarTile {
                         min_width: 12px;
                         border-radius: 6px;
 
-                        background: Theme.palette.lemon-green-light-gradient;
+                        background: NalufxTheme.gradients.radial-secondary;
                     }
                 }
             }

@@ -53,24 +53,50 @@ export struct Colors {
     error-variant: brush,
 
     // System colors
-    /// System-defined blue color, often used for interactive elements.
     system-blue: brush,
-    /// System-defined green color, typically used for success or confirmation.
+    system-blue-light: brush,
+    system-blue-dark: brush,
+    system-blue-variant: brush,
+
     system-green: brush,
-    /// System-defined indigo color, providing an additional accent option.
+    system-green-light: brush,
+    system-green-dark: brush,
+    system-green-variant: brush,
+
     system-indigo: brush,
-    /// System-defined orange color, often used for warnings or important notices.
+    system-indigo-light: brush,
+    system-indigo-dark: brush,
+    system-indigo-variant: brush,
+
     system-orange: brush,
-    /// System-defined pink color, useful for highlighting or feminine designs.
+    system-orange-light: brush,
+    system-orange-dark: brush,
+    system-orange-variant: brush,
+
     system-pink: brush,
-    /// System-defined purple color, can be used for luxury or creative themes.
+    system-pink-light: brush,
+    system-pink-dark: brush,
+    system-pink-variant: brush,
+
     system-purple: brush,
-    /// System-defined red color, alternative to the error color for warnings.
+    system-purple-light: brush,
+    system-purple-dark: brush,
+    system-purple-variant: brush,
+
     system-red: brush,
-    /// System-defined teal color, useful for calm or professional themes.
+    system-red-light: brush,
+    system-red-dark: brush,
+    system-red-variant: brush,
+
     system-teal: brush,
-    /// System-defined yellow color, often used for cautionary messages.
+    system-teal-light: brush,
+    system-teal-dark: brush,
+    system-teal-variant: brush,
+
     system-yellow: brush,
+    system-yellow-light: brush,
+    system-yellow-dark: brush,
+    system-yellow-variant: brush,
 
     // Gray scales
     /// Darkest gray, suitable for primary text in light themes.
@@ -119,6 +145,27 @@ export struct Gradients {
     linear-tertiary: brush,
     /// Linear gradient using the error color scheme, transitioning horizontally.
     linear-error: brush,
+
+    /// Bar Gradients
+    /// Bar gradient using the primary color scheme, transitioning vertically.
+    bar-primary: brush,
+    /// Bar gradient using the secondary color scheme, transitioning vertically.
+    bar-secondary: brush,
+    /// Bar gradient using the tertiary color scheme, transitioning vertically.
+    bar-tertiary: brush,
+    /// Bar gradient using the error color scheme, transitioning vertically.
+    bar-error: brush,
+
+    /// System gradients
+    system-blue-gradient: brush,
+    system-green-gradient: brush,
+    system-indigo-gradient: brush,
+    system-orange-gradient: brush,
+    system-pink-gradient: brush,
+    system-purple-gradient: brush,
+    system-red-gradient: brush,
+    system-teal-gradient: brush,
+    system-yellow-gradient: brush,
 }
 
 /// DefaultColors: Provides a default color palette for the theme.
@@ -159,14 +206,49 @@ export global DefaultColors {
 
         // System colors
         system-blue: #007AFF,
+        system-blue-light: #52A8FF,
+        system-blue-dark: #004999,
+        system-blue-variant: #0055CC,
+
         system-green: #34C759,
+        system-green-light: #52FA7A,
+        system-green-dark: #248A3D,
+        system-green-variant: #28A745,
+
         system-indigo: #5856D6,
+        system-indigo-light: #7E7CFF,
+        system-indigo-dark: #3B3A8F,
+        system-indigo-variant: #4744B7,
+
         system-orange: #FF9500,
+        system-orange-light: #FFB852,
+        system-orange-dark: #CC7600,
+        system-orange-variant: #E68600,
+
         system-pink: #FF2D55,
+        system-pink-light: #FF5277,
+        system-pink-dark: #CC2444,
+        system-pink-variant: #E6264C,
+
         system-purple: #AF52DE,
+        system-purple-light: #CE52FA,
+        system-purple-dark: #7A39B0,
+        system-purple-variant: #9545C4,
+
         system-red: #FF3B30,
+        system-red-light: #FF5252,
+        system-red-dark: #CC2F26,
+        system-red-variant: #E6352B,
+
         system-teal: #5AC8FA,
+        system-teal-light: #52E5FF,
+        system-teal-dark: #3E8AAD,
+        system-teal-variant: #50B4E1,
+
         system-yellow: #FFCC00,
+        system-yellow-light: #FFE552,
+        system-yellow-dark: #CCA300,
+        system-yellow-variant: #E6B800,
 
         // Gray scales
         gray1: #8E8E93,
@@ -188,9 +270,8 @@ export global DefaultColors {
 /// This global object defines gradient values using colors from the DefaultColors palette.
 /// These gradients can be used to create depth and visual interest in UI components.
 export global DefaultGradients {
-    /// The default set of gradients used in the theme.
     out property <Gradients> type: {
-        // Radial gradients
+        // Radial gradients (keeping these as is since they're different)
         radial-primary: @radial-gradient(circle,
             DefaultColors.palette.primary 0%,
             DefaultColors.palette.primary-dark 25%,
@@ -213,25 +294,60 @@ export global DefaultGradients {
         ),
 
         // Linear gradients
-        linear-primary: @linear-gradient(90deg,
-            DefaultColors.palette.primary 0%,
-            DefaultColors.palette.primary-dark 25%,
-            DefaultColors.palette.black 100%
+        linear-primary: @linear-gradient(135deg,
+            #4B00B8 0%, #5700DE 25%, #6200EE 50%, #5700DE 75%, #4B00B8 100%
         ),
-        linear-secondary: @linear-gradient(90deg,
-            DefaultColors.palette.secondary 0%,
-            DefaultColors.palette.secondary-dark 25%,
-            DefaultColors.palette.black 100%
+        linear-secondary: @linear-gradient(135deg,
+            #00A69C 0%, #01C0B4 25%, #03DAC6 50%, #01C0B4 75%, #00A69C 100%
         ),
-        linear-tertiary: @linear-gradient(90deg,
-            DefaultColors.palette.tertiary 0%,
-            DefaultColors.palette.tertiary-dark 25%,
-            DefaultColors.palette.black 100%
+        linear-tertiary: @linear-gradient(135deg,
+            #C8A900 0%, #E6C000 25%, #FFD600 50%, #E6C000 75%, #C8A900 100%
         ),
-        linear-error: @linear-gradient(90deg,
-            DefaultColors.palette.error 0%,
-            DefaultColors.palette.error-dark 25%,
-            DefaultColors.palette.black 100%
+        linear-error: @linear-gradient(135deg,
+            #7C0015 0%, #94001A 25%, #B00020 50%, #94001A 75%, #7C0015 100%
+        ),
+
+        // Bar gradients
+        bar-primary: @linear-gradient(135deg,
+            #4B00B8 0%, #5700DE 25%, #6200EE 50%, #5700DE 75%, #4B00B8 100%
+        ),
+        bar-secondary: @linear-gradient(135deg,
+            #00A69C 0%, #01C0B4 25%, #03DAC6 50%, #01C0B4 75%, #00A69C 100%
+        ),
+        bar-tertiary: @linear-gradient(135deg,
+            #C8A900 0%, #E6C000 25%, #FFD600 50%, #E6C000 75%, #C8A900 100%
+        ),
+        bar-error: @linear-gradient(135deg,
+            #7C0015 0%, #94001A 25%, #B00020 50%, #94001A 75%, #7C0015 100%
+        ),
+
+        // System gradients (keeping these as they were in your last update)
+        system-blue-gradient: @linear-gradient(135deg,
+            #002E5C 0%, #004C99 25%, #007AFF 50%, #004C99 75%, #002E5C 100%
+        ),
+        system-green-gradient: @linear-gradient(135deg,
+            #164D23 0%, #218C3A 25%, #34C759 50%, #218C3A 75%, #164D23 100%
+        ),
+        system-indigo-gradient: @linear-gradient(135deg,
+            #242459 0%, #3B3A8F 25%, #5856D6 50%, #3B3A8F 75%, #242459 100%
+        ),
+        system-orange-gradient: @linear-gradient(135deg,
+            #854200 0%, #CC7600 25%, #FF9500 50%, #CC7600 75%, #854200 100%
+        ),
+        system-pink-gradient: @linear-gradient(135deg,
+            #85162C 0%, #CC2444 25%, #FF2D55 50%, #CC2444 75%, #85162C 100%
+        ),
+        system-purple-gradient: @linear-gradient(135deg,
+            #4E2570 0%, #7A39B0 25%, #AF52DE 50%, #7A39B0 75%, #4E2570 100%
+        ),
+        system-red-gradient: @linear-gradient(135deg,
+            #851A18 0%, #CC2F26 25%, #FF3B30 50%, #CC2F26 75%, #851A18 100%
+        ),
+        system-teal-gradient: @linear-gradient(135deg,
+            #285770 0%, #3E8AAD 25%, #5AC8FA 50%, #3E8AAD 75%, #285770 100%
+        ),
+        system-yellow-gradient: @linear-gradient(135deg,
+            #856900 0%, #CCA300 25%, #FFCC00 50%, #CCA300 75%, #856900 100%
         ),
     };
 }

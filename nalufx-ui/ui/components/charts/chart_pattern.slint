@@ -1,6 +1,6 @@
 
 
-import { Theme } from "../theme.slint";
+import { Theme } from "../../theme.slint";
 
 export component BarBackground inherits Rectangle {
     border-radius: 2px;
@@ -12,7 +12,7 @@ export component ChartPattern {
     in property <int> count;
 
     HorizontalLayout {
-        spacing: 1px;
+        spacing: 0px;
         for _ in count : BarBackground {}
     }
 }
