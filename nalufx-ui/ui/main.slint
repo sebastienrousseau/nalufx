@@ -1,100 +1,96 @@
-
-
 import { Header, HeaderAdapter } from "blocks/blocks.slint";
 import { Images } from "images.slint";
-import { Theme } from "theme.slint";
 import { NalufxTheme } from "components/themes/index.slint";
 import { Menu, PageScrollView, PageContainer } from "widgets/widgets.slint";
 import { MenuPage } from "pages/pages.slint";
 import { Balance, Overview, Usage, UsageAdapter, Weather, Stocks, About } from "pages/pages.slint";
 
+/// Main component representing the entire application interface
 export component Main {
     Rectangle {
+        // Set the background using a radial gradient from the theme
         background: NalufxTheme.gradients.radial_primary;
 
         VerticalLayout {
             padding-bottom: 50px;
 
+            // Header component at the top of the layout
             Header {}
 
+            // Scrollable view containing multiple pages
             i-page-scroll-view := PageScrollView {
                 vertical-stretch: 1;
-                page-count: 6;
+                page-count: 6;  // Total number of pages
 
+                // Overview page
                 PageContainer {
                     clicked => { i-page-scroll-view.toggle-selection(self.index, self.x); }
-
                     index: 0;
                     selected <=> i-page-scroll-view.selection;
                     selected-width: i-page-scroll-view.selected-width;
                     selected-height: i-page-scroll-view.selected-height;
                     selected-h-offset: i-page-scroll-view.selected-h-offset;
-
                     Overview {}
                 }
 
+                // Usage page
                 PageContainer {
                     clicked => { i-page-scroll-view.toggle-selection(self.index, self.x); }
-
                     index: 1;
                     selected <=> i-page-scroll-view.selection;
                     selected-width: i-page-scroll-view.selected-width;
                     selected-height: i-page-scroll-view.selected-height;
                     selected-h-offset: i-page-scroll-view.selected-h-offset;
-
                     Usage {}
                 }
 
+                // Balance page
                 PageContainer {
                     clicked => { i-page-scroll-view.toggle-selection(self.index, self.x); }
-
                     index: 2;
                     selected <=> i-page-scroll-view.selection;
                     selected-width: i-page-scroll-view.selected-width;
                     selected-height: i-page-scroll-view.selected-height;
                     selected-h-offset: i-page-scroll-view.selected-h-offset;
-
                     Balance {}
                 }
 
+                // Weather page
                 PageContainer {
                     clicked => { i-page-scroll-view.toggle-selection(self.index, self.x); }
-
                     index: 3;
                     selected <=> i-page-scroll-view.selection;
                     selected-width: i-page-scroll-view.selected-width;
                     selected-height: i-page-scroll-view.selected-height;
                     selected-h-offset: i-page-scroll-view.selected-h-offset;
-
                     Weather {}
                 }
 
+                // Stocks page
                 PageContainer {
                     clicked => { i-page-scroll-view.toggle-selection(self.index, self.x); }
-
                     index: 4;
                     selected <=> i-page-scroll-view.selection;
                     selected-width: i-page-scroll-view.selected-width;
                     selected-height: i-page-scroll-view.selected-height;
                     selected-h-offset: i-page-scroll-view.selected-h-offset;
-
                     Stocks {}
                 }
 
+                // About page
                 PageContainer {
                     clicked => { i-page-scroll-view.toggle-selection(self.index, self.x); }
-
                     index: 5;
                     selected <=> i-page-scroll-view.selection;
                     selected-width: i-page-scroll-view.selected-width;
                     selected-height: i-page-scroll-view.selected-height;
                     selected-h-offset: i-page-scroll-view.selected-h-offset;
-
                     About {}
                 }
             }
         }
 
+        // Menu component overlaying the main content
         i-menu := Menu {
             stays-open: true;
             preferred-width: 100%;
@@ -104,10 +100,12 @@ export component Main {
             menu-width: root.width / 3;
             menu-height: root.height - 75px;
 
+            // Reset menu page index when opened
             opend => {
                 i-menu-page.current-index = 0;
             }
 
+            // Menu page component
             i-menu-page := MenuPage {
                 close => {
                     i-menu.hide();

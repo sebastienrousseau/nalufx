@@ -1,14 +1,18 @@
 import { FloatButton } from "../components/button/float_button.slint";
 import { Images } from "../images.slint";
-import { Theme } from "../theme.slint";
 import { NalufxTheme } from "../components/themes/index.slint";
 
+/// Represents a custom scrollbar component
 component ScrollBar {
     private property <length> ref-width: self.width - 4px;
 
+    /// Size of the visible portion of the scrollable content
     in-out property <length> page-size;
+    /// Current scroll position
     in-out property <length> value;
+    /// Maximum scrollable length
     in-out property <length> maximum;
+    /// Whether the scrollbar is interactive
     in property <bool> enabled <=> i-ta.enabled;
 
     min-height: 14px;
@@ -48,16 +52,25 @@ component ScrollBar {
     }
 }
 
+/// Represents a container for a page in the scroll view
 export component PageContainer {
+    /// Callback for when the container is clicked
     callback clicked <=> i-touch-area.clicked;
 
+    /// Whether the background should be transparent
     in property <bool> transparent-background: true;
+    /// X-coordinate of the mouse within the container
     out property <length> mouse-x: i-touch-area.mouse-x;
 
+    /// Index of the currently selected page
     in property <int> selected;
+    /// Index of this page container
     in property <int> index;
+    /// Height of the selected page
     in property <length> selected-height;
+    /// Width of the selected page
     in property <length> selected-width;
+    /// Horizontal offset of the selected page
     in property <length> selected-h-offset;
 
     min-width: 320px;
@@ -66,7 +79,7 @@ export component PageContainer {
 
     i-rect := Rectangle {
         height: parent.height;
-        animate opacity { duration: Theme.durations.medium; }
+        animate opacity { duration: NalufxTheme.durations.medium; }
 
         i-touch-area := TouchArea {}
 
@@ -91,8 +104,8 @@ export component PageContainer {
             min-width: selected-width;
             i-rect.height: selected-height;
             i-rect.y: (self.height - selected-height) /2 + selected-h-offset;
-            out { animate i-rect.y, i-rect.height { duration: Theme.durations.medium; } }
-            in { animate i-rect.y, i-rect.height { duration: Theme.durations.medium; } }
+            out { animate i-rect.y, i-rect.height { duration: NalufxTheme.durations.medium; } }
+            in { animate i-rect.y, i-rect.height { duration: NalufxTheme.durations.medium; } }
             cache-rendering-hint: false;
         }
         shrink when selected != -1 : {
@@ -101,18 +114,25 @@ export component PageContainer {
         }
     ]
 
-    animate min-width { duration: Theme.durations.medium; }
+    animate min-width { duration: NalufxTheme.durations.medium; }
 }
 
+/// Represents a scrollable view containing multiple pages
 export component PageScrollView {
+    /// Number of pages in the scroll view
     in property <int> page-count: 1;
+    /// Index of the currently selected page
     out property <int> selection: -1;
+    /// Height of the selected page
     out property <length> selected-height : root.height - i-layout.spacing;
+    /// Width of the selected page
     out property <length> selected-width: i-flickable.width - i-layout.spacing * 2;
+    /// Horizontal offset of the selected page
     out property <length> selected-h-offset:  (root.height - i-flick-container.height)/2;
     private property <length> item-width: i-flickable.viewport-width / page-count;
     private property <length> saved-item-width: item-width;
 
+    /// Toggles the selection state of a page
     public function toggle-selection(idx: int, x: length) {
         if (selection >= 0) {
             i-flickable.viewport-x = min(0px, max(i-flickable.width - saved-item-width * page-count , -x + i-flickable.width / 2 - saved-item-width / 2));
@@ -124,10 +144,12 @@ export component PageScrollView {
         }
     }
 
+    /// Scrolls the view to the left
     function scroll-left() {
         i-flickable.viewport-x = min(i-flickable.viewport-x + item-width, 0);
     }
 
+    /// Scrolls the view to the right
     function scroll-right() {
         i-flickable.viewport-x = max(i-flickable.viewport-x - item-width,  i-flickable.width - i-flickable.viewport-width);
     }
@@ -138,7 +160,7 @@ export component PageScrollView {
             i-flickable := Flickable {
                 y: 0;
                 height: selection == -1 ? parent.height : selected-height ;
-                animate viewport-x { duration: Theme.durations.medium;  }
+                animate viewport-x { duration: NalufxTheme.durations.medium;  }
                 viewport-height: i-flickable.height;
                 i-layout := HorizontalLayout {
                     y: (i-flick-container.height - self.height)/2;
@@ -159,7 +181,7 @@ export component PageScrollView {
             padding-left: 25px;
             padding-right: 25px;
             opacity: selection != -1 ? 0 : 1;
-            animate opacity { duration: Theme.durations.medium; }
+            animate opacity { duration: NalufxTheme.durations.medium; }
 
             FloatButton {
                 visible: i-flickable.viewport-x < 0;
@@ -196,5 +218,4 @@ export component PageScrollView {
             }
         }
     }
-
 }
