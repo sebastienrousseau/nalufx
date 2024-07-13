@@ -1,5 +1,5 @@
 import { Colors, DefaultColors, Gradients, DefaultGradients } from "color_scheme.slint";
-import { Duration, DefaultDurations } from "duration_scheme.slint";
+import { Durations, DefaultDurations } from "duration_scheme.slint";
 import { ScreenType, DefaultScreenTypes } from "screen_scheme.slint";
 import { Space, DefaultSpaces } from "space_scheme.slint";
 import { Typo, DefaultFonts } from "font_scheme.slint";
@@ -11,7 +11,7 @@ export global NalufxTheme {
     /// The typography of the theme
     in property <Typo> typography: DefaultFonts.typography;
     /// The duration scheme of the theme
-    in property <Duration> durations: DefaultDurations.duration;
+    in property <Durations> durations: DefaultDurations.durations;
     /// The space scheme of the theme
     in property <Space> spaces: DefaultSpaces.space;
     /// The gradient scheme of the theme

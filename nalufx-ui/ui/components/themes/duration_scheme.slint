@@ -1,13 +1,35 @@
-export struct Duration {
+/// Defines a structure for different animation durations.
+/// This struct provides a set of standardized duration values for animations.
+export struct Durations {
+    /// Duration for fast animations.
+    /// Typically used for quick, responsive interactions.
     fast: duration,
+
+    /// Duration for medium-speed animations.
+    /// Suitable for most standard animations in the interface.
     medium: duration,
+
+    /// Duration for slow animations.
+    /// Used for emphasizing changes or for more dramatic effects.
     slow: duration,
 }
 
+/// Provides default duration values for animations.
+/// These defaults can be used throughout the application for consistent animation timing.
 export global DefaultDurations {
-    in property <Duration> duration: {
+    /// The set of default duration values.
+    /// This property defines the standard durations for different animation speeds.
+    in property <Durations> durations: {
+        /// Fast animation duration: 125ms
+        /// Suitable for quick UI responses like button presses or small scale changes.
         fast: 125ms,
+
+        /// Medium animation duration: 200ms
+        /// Good for standard transitions like page changes or moderate scale animations.
         medium: 200ms,
+
+        /// Slow animation duration: 500ms
+        /// Ideal for emphasizing important changes or for more dramatic visual effects.
         slow: 500ms,
     };
 }
