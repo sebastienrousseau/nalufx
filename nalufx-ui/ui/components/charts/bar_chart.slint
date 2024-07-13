@@ -3,23 +3,24 @@ import { ChartPattern } from "chart_pattern.slint";
 
 /// Represents a single bar in the chart
 component Bar {
+    /// Height of the bar
     in property <length> bar-height;
+    /// Tooltip text for the bar
     in property <string> tooltip;
+    /// Color of the bar, defaults to transparent
     in property <brush> bar-color: NalufxTheme.palette.transparent;
-
+    /// Callback triggered when the bar is clicked
     callback clicked();
 
     horizontal-stretch: 1;
 
     TouchArea {
         clicked => { root.clicked() }
-
         Rectangle {
             border-radius: 2px;
             y: parent.height - self.height;
             height: bar-height;
             clip: true;
-
             Rectangle {
                 height: root.height;
                 y: parent.height - self.height;
@@ -50,10 +51,10 @@ export component BarChart {
     /// Color of the bars
     in property <brush> bar-color: NalufxTheme.gradients.bar-primary;
 
-    /// Callback when a bar is clicked
+    /// Callback triggered when a bar is clicked, returns the index of the clicked bar
     callback bar-clicked(int);
 
-    /// Effective minimum value for the chart
+    /// Effective minimum value for the chart, ensures non-negative values
     private property <float> effective-min: min < 0 ? min : 0;
     /// Value range for the chart
     private property <float> value-range: max - effective-min;
@@ -76,7 +77,7 @@ export component BarChart {
                 private property <float> display-value: 0;
                 preferred-height: 100%;
                 bar-height: parent.height * (display-value - root.effective-min) / root.value-range;
-                bar-color: bar-color;
+                bar-color: root.bar-color;
                 tooltip: "Value: \{round(value * 100) / 100}";
                 clicked => { root.bar-clicked(i) }
 

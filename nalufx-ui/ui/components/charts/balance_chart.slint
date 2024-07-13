@@ -1,17 +1,15 @@
-
-
 import { Theme } from "../../theme.slint";
 import { NalufxTheme } from "../../components/themes/index.slint";
 import { ChartAxis, AxisLabel, AxisValue } from "./chart_axis.slint";
 import { ChartPattern, BarBackground } from "./chart_pattern.slint";
 
+/// Represents an upward bar in the chart
 component UpBar {
     VerticalLayout {
         Rectangle {
             height: 0.6 * root.height;
             background: Theme.palette.alternative-bar-gradient;
         }
-
         Rectangle {
             height: 0.4 * root.height;
             background: Theme.palette.alternative-light-bar-gradient;
@@ -19,18 +17,17 @@ component UpBar {
     }
 }
 
+/// Represents a downward bar in the chart
 component DownBar {
     VerticalLayout {
         Rectangle {
             height: 0.37 * root.height;
             background: Theme.palette.inverted-bar-gradient;
         }
-
         Rectangle {
             height: 0.26 * root.height;
             background: Theme.palette.inverted-alternative-bar-gradient;
         }
-
         Rectangle {
             height: 0.37 * root.height;
             background: Theme.palette.inverted-alternative-bar-gradient;
@@ -38,17 +35,27 @@ component DownBar {
     }
 }
 
+/// Main balance chart component
 export component BalanceChart {
+    /// Minimum value for the chart
     in property <float> min;
+    /// Maximum value for the chart
     in property <float> max;
+    /// Model for X-axis labels
     in property <[string]> x-axis-model;
+    /// Model for Y-axis values
     in property <[int]> y-axis-model;
+    /// Unit for Y-axis values
     in property <string> y-unit;
+    /// Data model for the chart
     in property <[float]> model;
+    /// Whether the chart is in active state
     in property <bool> active;
 
+    /// Calculated Y-position of the zero line
     private property <length> zero: root.height * (1 - (0. - min) / (max - min));
 
+    /// Chart pattern for the area below zero
     i-zero-pattern := ChartPattern {
         preferred-width: 100%;
         preferred-height: 100%;
@@ -58,6 +65,7 @@ export component BalanceChart {
         cache-rendering-hint: true;
     }
 
+    /// Chart pattern for the area above zero
     ChartPattern {
         preferred-width: 100%;
         preferred-height: 100%;
@@ -67,6 +75,7 @@ export component BalanceChart {
         cache-rendering-hint: true;
     }
 
+    /// Axis component for the chart
     ChartAxis {
         preferred-width: 100%;
         preferred-height: 100%;
@@ -78,22 +87,24 @@ export component BalanceChart {
         y-unit: root.y-unit;
     }
 
+    /// Container for the chart bars
     Rectangle {
         cache-rendering-hint: true;
         HorizontalLayout {
             padding-left: 6px;
             padding-right: 6px;
             spacing: 10px;
-
             for value[index] in model : Rectangle {
                 private property <float> display-value;
 
+                /// Upward bar for positive values
                 if(value > 0.0) : UpBar {
                     width: 100%;
                     y: zero - self.height;
                     height: parent.height * (display-value / (root.max - root.min));
                 }
 
+                /// Downward bar for negative values
                 if(value < 0.0) : DownBar {
                     y: zero;
                     width: 100%;
@@ -103,7 +114,6 @@ export component BalanceChart {
                 states [
                     active when active : {
                         display-value: value;
-
                         in {
                             animate display-value { duration: NalufxTheme.durations.slow; easing: ease-in-out; }
                         }
