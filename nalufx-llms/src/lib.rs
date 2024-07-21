@@ -6,11 +6,11 @@
 #![crate_name = "nalufx_llms"]
 #![crate_type = "lib"]
 
-extern crate serde;
 extern crate actix_web;
 extern crate dotenvy;
 extern crate log;
 extern crate reqwest;
+extern crate serde;
 extern crate serde_json;
 
 /// This module contains the logic for interacting with the OpenAI API.

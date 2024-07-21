@@ -1,5 +1,3 @@
-use chrono::Utc;
-use chrono::Datelike;
 use crate::{
     errors::NaluFxError,
     services::{
@@ -13,6 +11,8 @@ use crate::{
         date::validate_date,
     },
 };
+use chrono::Datelike;
+use chrono::Utc;
 use nalufx_llms::llms::LLM;
 use reqwest::Client;
 

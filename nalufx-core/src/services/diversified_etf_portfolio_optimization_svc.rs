@@ -41,7 +41,10 @@ pub async fn generate_analysis(
     initial_investment: f64,
 ) -> Result<(), NaluFxError> {
     let date = Utc::now().format("%Y-%m-%d").to_string();
-    let filename = format!("./reports/{}_03_diversified_etf_portfolio_optimization.md", date);
+    let filename = format!(
+        "./reports/{}_03_diversified_etf_portfolio_optimization.md",
+        date
+    );
     let mut file = File::create(&filename)?;
 
     // Fetch historical closing prices for each ETF
@@ -180,7 +183,10 @@ pub async fn generate_analysis(
         writeln!(file, "{}", benchmark_comparison)?;
 
         // Print the report for the selected ETF
-        let fund_overview = format!("\n## Fund Overview\nWe have identified the top-performing ETF as follows: **{}**\n", best_etf);
+        let fund_overview = format!(
+            "\n## Fund Overview\nWe have identified the top-performing ETF as follows: **{}**\n",
+            best_etf
+        );
         println!("{}", fund_overview);
         writeln!(file, "{}", fund_overview)?;
 
@@ -219,7 +225,8 @@ pub async fn generate_analysis(
 
         // Print each day's sentiment score with description and vertical delimiters
         let mut sentiment_table_rows = String::new();
-        for (i, (score, description)) in best_sentiment.iter().zip(descriptions.iter()).enumerate() {
+        for (i, (score, description)) in best_sentiment.iter().zip(descriptions.iter()).enumerate()
+        {
             let row = format!("| Day {} | {:.2} | {} |", i + 1, score, description);
             println!("{}", row);
             sentiment_table_rows.push_str(&row);
@@ -338,7 +345,14 @@ pub async fn generate_analysis(
             let allocation_amount = allocation * initial_investment;
             let allocation_date = today + Duration::days(i as i64);
             let allocation_percentage = allocation * 100.0;
-            let allocation_detail = format!("- Day {}: {} - Allocate {} ({:.2}%) to {}\n", i + 1, allocation_date.format("%Y-%m-%d"), format_currency(allocation_amount), allocation_percentage, best_etf);
+            let allocation_detail = format!(
+                "- Day {}: {} - Allocate {} ({:.2}%) to {}\n",
+                i + 1,
+                allocation_date.format("%Y-%m-%d"),
+                format_currency(allocation_amount),
+                allocation_percentage,
+                best_etf
+            );
             println!("{}", allocation_detail);
             writeln!(file, "{}", allocation_detail)?;
         }

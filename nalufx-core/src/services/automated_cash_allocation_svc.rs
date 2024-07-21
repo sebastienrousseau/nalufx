@@ -1,8 +1,8 @@
+use crate::models::allocation_dm::AllocationOrder;
+use crate::utils::currency::format_currency;
 use nalufx_llms::llms::LLM;
 use reqwest::Client;
 use std::collections::HashMap;
-use crate::utils::currency::format_currency;
-use crate::models::allocation_dm::AllocationOrder;
 
 /// This function generates a comprehensive analysis report for a given portfolio.
 ///

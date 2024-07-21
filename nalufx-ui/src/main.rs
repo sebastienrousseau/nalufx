@@ -1,5 +1,8 @@
 #![no_std]
-#![cfg_attr(all(feature = "mcu-board-support", not(feature = "simulator")), no_main)]
+#![cfg_attr(
+    all(feature = "mcu-board-support", not(feature = "simulator")),
+    no_main
+)]
 
 use nalufx_ui_lib::main as lib_main;
 

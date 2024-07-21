@@ -5,7 +5,6 @@ import { OverviewAdapter } from "overview.slint";
 import { Page } from "page.slint";
 import { StocksAdapter } from "stocks.slint";
 import { UsageAdapter } from "insight.slint";
-import { WeatherAdapter } from "weather.slint";
 import { GroupBox, Value, ValueDisplay, BarChart, BarTileModel, Tile, BarTiles, BalanceChart } from "../widgets/widgets.slint";
 
 
@@ -49,21 +48,6 @@ export component BarChartTile {
         i-bar-chart := BarChart {
             horizontal-stretch: 1;
         }
-    }
-}
-
-export component WeatherTile {
-    in property <string> title <=> i-group-box.title;
-    in property <image> current-temperature-icon <=> i-tile.icon;
-    in property <string> current-temperature <=> i-tile.value;
-    in property <string> current-day <=> i-tile.text;
-    in property <string> current-weather-description <=> i-tile.sub-text;
-    in property <[BarTileModel]> week-model <=> i-bar-tiles.model;
-
-    i-group-box := GroupBox {
-        spacing: 1px;
-        i-tile := Tile {}
-        i-bar-tiles := BarTiles {}
     }
 }
 
@@ -133,15 +117,6 @@ export component Dashboard inherits Page {
                 max <=> BalanceAdapter.max;
                 y-unit <=> BalanceAdapter.y-unit;
                 title <=> BalanceAdapter.title;
-            }
-
-            WeatherTile {
-                title <=> WeatherAdapter.title;
-                current-temperature-icon <=> WeatherAdapter.current-temperature-icon;
-                current-temperature <=> WeatherAdapter.current-temperature;
-                current-day <=> WeatherAdapter.current-day;
-                current-weather-description <=> WeatherAdapter.current-weather-description;
-                week-model <=> WeatherAdapter.week-model;
             }
         }
 

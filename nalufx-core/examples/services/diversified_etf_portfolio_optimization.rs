@@ -11,17 +11,16 @@
 //! 2. Enter the ticker symbols for ETFs separated by commas (e.g., SPY,GLD) when prompted.
 //! 3. Enter the initial investment amount when prompted.
 //! 4. The code will fetch historical data for each ETF, perform analysis, and generate a report with investment recommendations for the best-performing ETF.
+use nalufx::services::diversified_etf_portfolio_optimization_svc::generate_analysis;
 use nalufx::{
     errors::NaluFxError,
-    utils::{
-        input::get_input, ticker::validate_ticker, validation::validate_positive_float
-    },
+    utils::{input::get_input, ticker::validate_ticker, validation::validate_positive_float},
 };
-use nalufx::services::diversified_etf_portfolio_optimization_svc::generate_analysis;
 
 #[tokio::main]
 pub(crate) async fn main() -> Result<(), NaluFxError> {
-    let tickers_input = get_input("Enter the ticker symbols separated by commas (e.g., SQQQ,SPY,SOXL,XLF):")?;
+    let tickers_input =
+        get_input("Enter the ticker symbols separated by commas (e.g., SQQQ,SPY,SOXL,XLF):")?;
     let tickers: Vec<String> = tickers_input
         .split(',')
         .map(|s| s.trim().to_string())

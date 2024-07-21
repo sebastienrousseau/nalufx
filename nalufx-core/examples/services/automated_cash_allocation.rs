@@ -16,18 +16,18 @@
 //! The generated report will be saved to `data/allocation_report.json`.
 
 use csv::Reader;
-use nalufx_llms::llms::{LLM, openai, openai::OpenAI};
 use nalufx::{
     errors::NaluFxError,
     services::automated_cash_allocation_svc::generate_analysis,
-    utils::{currency::format_currency, date::validate_date, input::get_input}
+    utils::{currency::format_currency, date::validate_date, input::get_input},
 };
+use nalufx_llms::llms::{openai, openai::OpenAI, LLM};
 use reqwest::{header, Client};
 use serde::Serialize;
 use std::{collections::HashMap, io::BufReader};
 use tokio::{fs, io::AsyncReadExt};
 
-use nalufx::models::allocation_dm::{AllocationOrder, Etf, MutualFund, AllocationRules};
+use nalufx::models::allocation_dm::{AllocationOrder, AllocationRules, Etf, MutualFund};
 
 /// Represents a report of allocation orders.
 #[derive(Debug, Serialize)]
@@ -42,7 +42,8 @@ struct Report {
 #[tokio::main]
 pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Get user input for LLM choice
-    let llm_choice = get_input("Enter the LLM to use (e.g., openai, claude, gemini, llama, mistral, ollama):")?;
+    let llm_choice =
+        get_input("Enter the LLM to use (e.g., openai, claude, gemini, llama, mistral, ollama):")?;
     let (llm, api_key): (Box<dyn LLM>, String) = match llm_choice.as_str() {
         "openai" => {
             let api_key = match openai::get_openai_api_key() {
@@ -53,7 +54,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                 }
             };
             (Box::new(OpenAI), api_key)
-        },
+        }
         // Add other cases for different LLMs with their respective API key functions
         _ => {
             eprintln!("Unsupported LLM choice");
@@ -91,7 +92,8 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Step 2: Determine allocation percentages
     let allocation_rules = load_allocation_rules("data/allocation_rules.json").await?;
     let mut etf_allocation = allocate_funds(&etf_data, allocation_rules.etf_percentage);
-    let mut mutual_fund_allocation = allocate_funds(&mutual_fund_data, allocation_rules.mutual_fund_percentage);
+    let mut mutual_fund_allocation =
+        allocate_funds(&mutual_fund_data, allocation_rules.mutual_fund_percentage);
 
     // Step 3: Fetch real-time prices for all symbols
     let all_symbols: Vec<String> = etf_data
@@ -279,9 +281,7 @@ async fn save_report(report: &Report, file_path: &str) -> Result<(), NaluFxError
     })?;
     let std_file = file.into_std().await;
     let writer = std::io::BufWriter::new(std_file);
-    serde_json::to_writer_pretty(writer, report).map_err(|_e| {
-        NaluFxError::InvalidData
-    })?;
+    serde_json::to_writer_pretty(writer, report).map_err(|_e| NaluFxError::InvalidData)?;
     Ok(())
 }
 
@@ -326,7 +326,10 @@ async fn fetch_real_time_prices(
 ) -> Result<HashMap<String, (f64, f64)>, reqwest::Error> {
     let mut headers = header::HeaderMap::new();
     let _ = headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
-    let _ = headers.insert("Accept", header::HeaderValue::from_static("application/json"));
+    let _ = headers.insert(
+        "Accept",
+        header::HeaderValue::from_static("application/json"),
+    );
     let _ = headers.insert("Cookie", header::HeaderValue::from_static("YahooFcUrl"));
 
     let client = Client::builder().default_headers(headers).build()?;
@@ -342,8 +345,14 @@ async fn fetch_real_time_prices(
         let data: serde_json::Value = response.json().await?;
         if let Some(result) = data["chart"]["result"].as_array() {
             if let Some(_timestamps) = result.get(0).and_then(|r| r["timestamp"].as_array()) {
-                if let Some(closes) = result.get(0).and_then(|r| r["indicators"]["quote"][0]["close"].as_array()) {
-                    if let (Some(start_price), Some(end_price)) = (closes.first().and_then(|v| v.as_f64()), closes.last().and_then(|v| v.as_f64())) {
+                if let Some(closes) = result
+                    .get(0)
+                    .and_then(|r| r["indicators"]["quote"][0]["close"].as_array())
+                {
+                    if let (Some(start_price), Some(end_price)) = (
+                        closes.first().and_then(|v| v.as_f64()),
+                        closes.last().and_then(|v| v.as_f64()),
+                    ) {
                         let _ = prices.insert(symbol.clone(), (start_price, end_price));
                     }
                 }

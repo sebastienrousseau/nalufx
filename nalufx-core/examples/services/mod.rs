@@ -42,9 +42,7 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
 
     // Print the options to the user
     println!("Choose an example to run:\n");
-    println!(
-        "1. Automate Cash Allocation - Automatically allocate cash to ETFs and mutual funds."
-    );
+    println!("1. Automate Cash Allocation - Automatically allocate cash to ETFs and mutual funds.");
     println!("2. Analyze Bellwether Stock - Perform in-depth analysis of a key stock to gauge market trends.");
     println!("3. Optimize ETF Portfolio - Find the optimal allocation for your ETF investments.");
     println!("4. Create ESG Portfolio - Build a socially responsible investment portfolio.");

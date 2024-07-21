@@ -15,8 +15,6 @@
 
 use chrono::{DateTime, Utc};
 use log::error;
-use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
-use nalufx_llms::models::openai_dm::OpenAIResponse;
 use nalufx::{
     errors::NaluFxError,
     services::fetch_data_svc::fetch_data,
@@ -25,6 +23,8 @@ use nalufx::{
         validation::validate_positive_float,
     },
 };
+use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
+use nalufx_llms::models::openai_dm::OpenAIResponse;
 use reqwest::Client;
 use serde_json::json;
 
