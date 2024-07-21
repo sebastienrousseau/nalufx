@@ -1,4 +1,5 @@
 import { Header, HeaderAdapter } from "blocks/blocks.slint";
+import { Footer, FooterAdapter } from "blocks/blocks.slint";
 import { Images } from "images.slint";
 import { NalufxTheme } from "components/themes/index.slint";
 import { Menu, PageScrollView, PageContainer } from "widgets/widgets.slint";
@@ -77,6 +78,9 @@ export component Main {
                     About {}
                 }
             }
+
+            // Footer component at the top of the layout
+            Footer {}
         }
 
         // Menu component overlaying the main content

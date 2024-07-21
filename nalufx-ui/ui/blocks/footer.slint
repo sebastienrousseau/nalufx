@@ -1,0 +1,30 @@
+import { NalufxTheme } from "../components/themes/index.slint";
+import { Images } from "../images.slint";
+
+export global FooterAdapter {
+    in-out property <string> copyright: "© Copyright 2024 - NaluFX. All rights reserved.";
+}
+
+export component Footer {
+    in property <string> copyright <=> FooterAdapter.copyright;
+
+    min-height: 50px;
+    vertical-stretch: 0;
+
+    HorizontalLayout {
+        padding: 20px;
+        spacing: 5px;
+
+        Rectangle {
+            horizontal-stretch: 1;
+            vertical-stretch: 1;
+
+            Text {
+                horizontal-alignment: right;
+                color: NalufxTheme.palette.white;
+                text: copyright;
+                font-weight: NalufxTheme.typography.header-item-light.weight;
+            }
+        }
+    }
+}

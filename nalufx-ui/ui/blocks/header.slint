@@ -1,4 +1,4 @@
-import { Theme } from "../theme.slint";
+import { NalufxTheme } from "../components/themes/index.slint";
 import { Images } from "../images.slint";
 
 export global HeaderAdapter {
@@ -29,10 +29,9 @@ export component Header {
 
             Text {
                 x: 0px;
-                color: Theme.palette.white;
+                color: NalufxTheme.palette.white;
                 text: date;
-                font-size: Theme.typo.header-item.size;
-                font-weight: Theme.typo.header-item.weight;
+                font-weight: NalufxTheme.typography.header-item.weight;
             }
         }
 
@@ -51,11 +50,10 @@ export component Header {
                 }
 
                 Text {
-                    color: Theme.palette.white;
+                    color: NalufxTheme.palette.white;
                     text: description;
                     horizontal-alignment: center;
-                    font-size: Theme.typo.header.size;
-                    font-weight: Theme.typo.header.weight;
+                    font-weight: NalufxTheme.typography.header.weight;
                     width: root.width / 2;
                 }
             }
@@ -68,19 +66,17 @@ export component Header {
             Text {
                 x: i-time-suffix.x - 5px - self.width;
                 horizontal-alignment: right;
-                color: Theme.palette.white;
+                color: NalufxTheme.palette.white;
                 text: time;
-                font-size: Theme.typo.header-item.size;
-                font-weight: Theme.typo.header-item.weight;
+                font-weight: NalufxTheme.typography.header-item-light.weight;
             }
 
             i-time-suffix := Text {
                 x: parent.width - self.width;
                 horizontal-stretch: 0;
-                color: Theme.palette.shark-gray;
+                color: NalufxTheme.palette.white;
                 text: time-suffix;
-                font-size: Theme.typo.header-item.size;
-                font-weight: Theme.typo.header-item.weight;
+                font-weight: NalufxTheme.typography.header-item-light.weight;
             }
         }
     }

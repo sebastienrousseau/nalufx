@@ -56,11 +56,9 @@ export component StocksTile {
 
     i-group-box := GroupBox {
         spacing: 1px;
-        i-tile := Tile {}
+        i-tile := Tile { }
     }
 }
-
-
 
 export component BalanceTile {
     in property <[string]> x-axis-model;
@@ -98,14 +96,14 @@ export component Dashboard inherits Page {
                 title: OverviewAdapter.funds-title;
                 model: OverviewAdapter.funds-model;
                 active: root.active;
-             }
+            }
 
-             ValueTile {
+            ValueTile {
                 title: OverviewAdapter.transactions-title;
                 model: OverviewAdapter.transactions-model;
                 alternative-colors: true;
                 active: root.active;
-             }
+            }
         }
 
         Row {
@@ -131,6 +129,7 @@ export component Dashboard inherits Page {
                 active: root.active;
             }
         }
+
         Row {
             StocksTile {
                 colspan: 2;
