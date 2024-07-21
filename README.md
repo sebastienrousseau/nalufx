@@ -10,11 +10,19 @@ A Rust library designed to optimize cash allocation across complex fund structur
 [![Docs.rs][docs-badge]][08]
 [![License][license-badge]][02]
 
-![divider][divider]
+## Important Notice
+
+1. **Early Stage Development:** NaluFX is currently in its early stages of development and should be considered experimental. The codebase is evolving, and significant changes may occur as the project matures.
+
+2. **Research and Analysis Only:** The predictions and suggestions provided by NaluFX are intended for research and analysis purposes only. They should not be construed as investment recommendations or financial advice. Always consult with a qualified financial advisor before making investment decisions.
+
+3. **Educational Project:** NaluFX originated as a side project to explore and study cash allocation algorithms and theories. Its primary purpose is educational and for academic research in the field of financial technology.
+
+Users are encouraged to approach NaluFX as a learning tool and contribute to its development with this understanding in mind.
 
 ## Overview
 
-NaluFX (NFX) is a Rust library that provides sophisticated tools for financial modelling, data fetching, and processing, with a focus on optimizing cash allocation across complex fund structures. It leverages AI-driven predictions and suggestions to enhance decision-making processes.
+NaluFX (NFX) is an experimental Rust library that provides sophisticated tools for financial modelling, data fetching, and processing, with a focus on optimizing cash allocation across complex fund structures. It leverages AI-driven predictions and suggestions to enhance decision-making processes. Developed as an educational project, NaluFX aims to explore cash allocation algorithms and theories for study and research purposes.
 
 ## Features
 
@@ -217,7 +225,6 @@ A special thank you goes to the [Rust Reddit](https://www.reddit.com/r/rust/) co
 [09]: https://lib.rs/crates/nalufx
 
 [crates-badge]: https://img.shields.io/crates/v/nalufx.svg?style=for-the-badge 'Crates.io'
-[divider]: https://kura.pro/common/images/elements/divider.svg "divider"
 [docs-badge]: https://img.shields.io/docsrs/nalufx.svg?style=for-the-badge 'Docs.rs'
 [libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.1-orange.svg?style=for-the-badge 'Lib.rs'
 [license-badge]: https://img.shields.io/crates/l/nalufx.svg?style=for-the-badge 'License'
