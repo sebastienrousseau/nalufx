@@ -1,28 +1,54 @@
+import { NalufxTheme } from "../components/themes/index.slint";
 
-
-import { Theme } from "../theme.slint";
-
+/**
+ * Page Component
+ *
+ * A reusable component that represents a single page in a multi-page layout.
+ * It handles its own positioning based on the current index and animates
+ * transitions between pages.
+ */
 export component Page inherits Rectangle {
+    /// The index of this page in the page sequence.
     in property <int> index;
+
+    /// The index of the currently active page.
     in property <int> current-index;
+
+    /// Indicates whether this page is currently active.
     out property <bool> active: index == current-index;
 
-    padding-left: 14px;
-    padding-right: 14px;
-    padding-top: 14px;
-    padding-bottom: 14px;
+    /// Left padding of the page content.
+    padding-left: 10px;
+
+    /// Right padding of the page content.
+    padding-right: 10px;
+
+    /// Top padding of the page content.
+    padding-top: 10px;
+
+    /// Bottom padding of the page content.
+    padding-bottom: 10px;
+
+    /// X-coordinate of the page, calculated based on its index relative to the current page.
     x: (index - current-index) * self.width;
+
+    /// Width of the page, set to full width of the parent container.
     width: 100%;
+
+    /// Height of the page, set to full height of the parent container.
     height: 100%;
 
-    animate x { duration: Theme.durations.fast; }
+    /// Animation for the x-coordinate transitions.
+    animate x { duration: NalufxTheme.durations.fast; }
 
+    /// Grid layout for the page content.
     GridLayout {
         padding-left: root.padding-left;
         padding-right: root.padding-right;
         padding-top: root.padding-top;
         padding-bottom: root.padding-bottom;
 
+        /// Placeholder for child elements.
         @children
     }
 }

@@ -1,0 +1,54 @@
+import { NalufxTheme } from "../components/themes/index.slint";
+import { Images } from "../images.slint";
+
+/**
+ * TagLineAdapter
+ *
+ * A global adapter for managing the application's tagline.
+ * It provides a centralized way to update and access the tagline across the application.
+ */
+export global TagLineAdapter {
+    /// The current tagline of the application.
+    in-out property <string> tagline: "Finance for the rest of us.";
+}
+
+/**
+ * TagLine Component
+ *
+ * This component displays the application's tagline.
+ * It uses the global TagLineAdapter to access the current tagline.
+ */
+export component TagLine {
+    /// The tagline text to be displayed. Bound to the global TagLineAdapter.
+    in property <string> tagline <=> TagLineAdapter.tagline;
+
+    /// Minimum height of the TagLine component.
+    min-height: 50px;
+
+    /// Horizontal stretch factor.
+    horizontal-stretch: 1;
+
+    /// Vertical stretch factor.
+    vertical-stretch: 0;
+
+    HorizontalLayout {
+        Rectangle {
+            horizontal-stretch: 1;
+            vertical-stretch: 1;
+
+            Text {
+                /// Alignment of the tagline text.
+                horizontal-alignment: right;
+
+                /// Color of the tagline text.
+                color: NalufxTheme.palette.secondary;
+
+                /// The tagline text to be displayed.
+                text: tagline;
+
+                /// Font size of the tagline text.
+                font-size: NalufxTheme.typography.header-item-light.size.desktop;
+            }
+        }
+    }
+}

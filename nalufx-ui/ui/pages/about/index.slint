@@ -1,0 +1,69 @@
+import { Button, Carousel, Slider } from "../../widgets/widgets.slint";
+import { GroupBox } from "../../widgets/group_box.slint";
+import { Images } from "../../images.slint";
+import { NalufxTheme } from "../../components/themes/index.slint";
+import { Page } from "../page.slint";
+import { TagLine } from "../../blocks/tagline.slint";
+
+/**
+ * About Component
+ *
+ * This component represents the About page of the application.
+ * It displays the application logo, tagline, and copyright information.
+ */
+export component About inherits Page {
+    Rectangle {
+        width: 100%;
+        height: 100%;
+
+        VerticalLayout {
+            width: 100%;
+            height: 100%;
+            spacing: 0;
+
+            // Main content area
+            Rectangle {
+                width: 100%;
+                height: 100%;
+
+                VerticalLayout {
+                    preferred-width: 100%;
+                    preferred-height: 100%;
+                    alignment: center;
+                    spacing: 0;
+
+                    GroupBox {
+                        HorizontalLayout {
+                            alignment: center;
+                            padding-left: 0;
+                            padding-right: 0;
+
+                            VerticalLayout {
+                                spacing: NalufxTheme.spaces.small;
+                                alignment: center;
+
+                                // Logo container
+                                Rectangle {
+                                    width: 100%;
+                                    height: 100px;
+                                    clip: true;
+
+                                    Image {
+                                        width: parent.width * 0.7618;
+                                        height: parent.height * 0.7618;
+                                        preferred-height: 200px;
+                                        source: Images.nalufx-banner;
+                                        image-fit: contain;
+                                    }
+                                }
+
+                                // Tagline
+                                TagLine {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
