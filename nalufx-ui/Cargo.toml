@@ -7,7 +7,10 @@ description = "" # A short description of the package.
 edition.workspace = true # The edition is defined in the workspace.
 exclude.workspace = true # Files to exclude are defined in the workspace.
 homepage.workspace = true # The homepage URL is defined in the workspace.
-include = ["src/**/*", "README.md"] # Files to include when publishing the package.
+include = [
+    "src/**/*",
+    "README.md",
+] # Files to include when publishing the package.
 license.workspace = true # The license is defined in the workspace.
 name = "nalufx-ui" # The name of the package.
 repository.workspace = true # The repository URL is defined in the workspace.
@@ -16,31 +19,28 @@ version.workspace = true # The version is defined in the workspace.
 
 [lib]
 crate-type = ["cdylib", "lib"] # The type of the library.
-name = "nalufx_ui" # The name of the library.
-path = "src/lib.rs" # The path to the library file.
+name = "nalufx_ui"             # The name of the library.
+path = "src/lib.rs"            # The path to the library file.
 
 [[bin]]
-name = "nalufx-ui"
-path = "src/main.rs"
+name = "nalufx-ui"   # The name of the binary file.
+path = "src/main.rs" # The path to the binary file.
 
 [dependencies]
-nalufx-core = { path = "../nalufx-core" }
-# chrono = { version = "0.4.38", optional = true, default-features = false, features = ["clock", "std", "wasmbind"]}
-dtt = "0.0.6"
-dotenvy = "0.15.7"
-env_logger = "0.11.3"
-futures = { version = "0.3.30", optional = true }
-log = "0.4.21"
-slint = "1.6.0"
-tokio = { version = "1.38.0", optional = true, features = ["full"] }
-weer_api = { version = "0.1.1", optional = true }
+nalufx-core = { path = "../nalufx-core" }         # The nalufx-core dependency.
+dotenvy = "0.15.7"                                # A dotenv implementation for Rust.
+dtt = "0.0.6"                                     # The dtt dependency.
+env_logger = "0.11.3"                             # Logging for Rust.
+futures = { version = "0.3.30", optional = true } # Asynchronous programming in Rust.
+log = "0.4.22"                                    # Logging for Rust.
+slint = "1.7.0"                                   # The slint dependency.
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen = { version = "0.2.92" }
-web-sys = { version = "0.3.69", features=["console"] }
-console_error_panic_hook = "0.1.7"
+console_error_panic_hook = "0.1.7"                       # Panic hook for better error messages in the browser.
+wasm-bindgen = { version = "0.2.92" }                    # Bindings between WebAssembly and JavaScript.
+web-sys = { version = "0.3.69", features = ["console"] } # Web APIs for Rust.
 
 [build-dependencies]
 # Dependencies for build scripts.
-slint-build = "1.6.0"
+slint-build = "1.7.0"   # The slint build dependency.
 version_check = "0.9.4" # Check the Rust version used to compile the package.
