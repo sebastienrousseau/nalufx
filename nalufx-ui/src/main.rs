@@ -1,5 +1,5 @@
 //! Entry point for the application.
-//! 
+//!
 //! This module provides the main function that serves as the entry point
 //! for the application, delegating to the `lib_main` function from the
 //! `nalufx_ui_lib` crate.
@@ -9,7 +9,7 @@
     no_main
 )]
 
-use nalufx_ui_lib::main as lib_main;
+use nalufx_ui::main as lib_main;
 
 /// The entry point of the application.
 ///

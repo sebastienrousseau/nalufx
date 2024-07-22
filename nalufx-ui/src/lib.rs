@@ -3,14 +3,13 @@
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
+use crate::ui::{HeaderAdapter, MainWindow, MenuOverviewAdapter, SettingsAdapter};
 use slint::*;
 
-/// This module contains the generated UI code.
+/// This module contains the generated UI code for the application.
 pub mod ui {
     slint::include_modules!();
 }
-
-use ui::*;
 
 /// Module containing various controllers for the application.
 pub mod controllers {
@@ -59,32 +58,28 @@ pub fn main() {
 /// Returns a Timer instance managing the kiosk mode updates.
 fn kiosk_timer(window: &MainWindow) -> Timer {
     let kiosk_mode_timer = Timer::default();
-    kiosk_mode_timer.start(
-        TimerMode::Repeated,
-        std::time::Duration::from_secs(4),
-        {
-            let window_weak = window.as_weak();
-            move || {
-                let window = window_weak.upgrade().expect("Window was dropped");
-                let settings = SettingsAdapter::get(&window);
-                let menu_overview = MenuOverviewAdapter::get(&window);
+    kiosk_mode_timer.start(TimerMode::Repeated, std::time::Duration::from_secs(4), {
+        let window_weak = window.as_weak();
+        move || {
+            let window = window_weak.upgrade().expect("Window was dropped");
+            let settings = SettingsAdapter::get(&window);
+            let menu_overview = MenuOverviewAdapter::get(&window);
 
-                if !settings.get_kiosk_mode_checked() {
-                    return;
-                }
-
-                let current_page = menu_overview.get_current_page();
-                let count = menu_overview.get_count();
-
-                let new_page = if current_page >= count - 1 {
-                    0
-                } else {
-                    current_page + 1
-                };
-
-                menu_overview.set_current_page(new_page);
+            if !settings.get_kiosk_mode_checked() {
+                return;
             }
-        },
-    );
+
+            let current_page = menu_overview.get_current_page();
+            let count = menu_overview.get_count();
+
+            let new_page = if current_page >= count - 1 {
+                0
+            } else {
+                current_page + 1
+            };
+
+            menu_overview.set_current_page(new_page);
+        }
+    });
     kiosk_mode_timer
 }

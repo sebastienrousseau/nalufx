@@ -16,7 +16,7 @@ version.workspace = true # The version is defined in the workspace.
 
 [lib]
 crate-type = ["cdylib", "lib"] # The type of the library.
-name = "nalufx_ui_lib" # The name of the library.
+name = "nalufx_ui" # The name of the library.
 path = "src/lib.rs" # The path to the library file.
 
 [[bin]]

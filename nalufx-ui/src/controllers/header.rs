@@ -1,6 +1,8 @@
-use crate::ui::*;
-use slint::Timer;
+use crate::HeaderAdapter;
+use crate::MainWindow;
 use dtt::DateTime;
+use slint::ComponentHandle;
+use slint::Timer;
 
 /// Sets up a timer to update the date and time in the header of the application.
 ///
@@ -12,15 +14,6 @@ use dtt::DateTime;
 ///
 /// * A `Timer` instance that is started and configured to update the date and time.
 ///
-/// # Example
-///
-/// ```rust
-/// use crate::ui::*;
-/// use slint::Timer;
-///
-/// let main_window = MainWindow::new();
-/// let update_timer = setup(&main_window);
-/// ```
 pub fn setup(window: &MainWindow) -> Timer {
     // Create a new timer with default settings
     let update_timer = Timer::default();
@@ -57,18 +50,6 @@ pub fn setup(window: &MainWindow) -> Timer {
 /// # Returns
 ///
 /// This function does not return any value.
-///
-/// # Example
-///
-/// ```rust
-/// use crate::ui::*;
-/// use slint::Timer;
-///
-/// let main_window = MainWindow::new();
-/// let update_timer = setup(&main_window);
-/// // After some time, the timer will fire and call this function
-/// update(&main_window.global::<HeaderAdapter>());
-/// ```
 fn update(header_adapter: &HeaderAdapter) {
     let dt = DateTime::new();
     let year = dt.year;

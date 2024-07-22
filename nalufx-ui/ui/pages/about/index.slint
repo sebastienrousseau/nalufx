@@ -12,55 +12,45 @@ import { TagLine } from "../../blocks/tagline.slint";
  * It displays the application logo, tagline, and copyright information.
  */
 export component About inherits Page {
+    // Main content area
     Rectangle {
         width: 100%;
         height: 100%;
+        background: NalufxTheme.palette.transparent;
 
         VerticalLayout {
-            width: 100%;
-            height: 100%;
+            preferred-width: 100%;
+            preferred-height: 100%;
+            alignment: center;
             spacing: 0;
 
-            // Main content area
-            Rectangle {
-                width: 100%;
-                height: 100%;
-
-                VerticalLayout {
-                    preferred-width: 100%;
-                    preferred-height: 100%;
+            GroupBox {
+                HorizontalLayout {
                     alignment: center;
-                    spacing: 0;
+                    padding-left: 0;
+                    padding-right: 0;
 
-                    GroupBox {
-                        HorizontalLayout {
-                            alignment: center;
-                            padding-left: 0;
-                            padding-right: 0;
+                    VerticalLayout {
+                        spacing: NalufxTheme.spaces.small;
+                        alignment: center;
 
-                            VerticalLayout {
-                                spacing: NalufxTheme.spaces.small;
-                                alignment: center;
-
-                                // Logo container
+                        // Logo container
                                 Rectangle {
-                                    width: 100%;
-                                    height: 100px;
-                                    clip: true;
+                            width: 100%;
+                            height: 100px;
+                            clip: true;
 
-                                    Image {
-                                        width: parent.width * 0.7618;
-                                        height: parent.height * 0.7618;
-                                        preferred-height: 200px;
-                                        source: Images.nalufx-banner;
-                                        image-fit: contain;
-                                    }
-                                }
-
-                                // Tagline
-                                TagLine {}
+                            Image {
+                                width: parent.width * 0.7618;
+                                height: parent.height * 0.7618;
+                                preferred-height: 200px;
+                                source: Images.nalufx-banner;
+                                image-fit: contain;
                             }
                         }
+
+                        // Tagline
+                                TagLine { }
                     }
                 }
             }
