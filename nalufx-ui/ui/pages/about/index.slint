@@ -4,6 +4,7 @@ import { Images } from "../../images.slint";
 import { NalufxTheme } from "../../components/themes/index.slint";
 import { Page } from "../page.slint";
 import { TagLine } from "../../blocks/tagline.slint";
+import { TabWidget } from "../../components/tab/index.slint";
 
 /**
  * About Component
@@ -55,5 +56,14 @@ export component About inherits Page {
                 }
             }
         }
-    }
+
+                TabWidget {
+    tabs: [
+        { text: "Home", icon: Images.aapl-logo, description: "Main page" },
+        { text: "Profile", icon: Images.amzn-logo, description: "User profile" },
+        { text: "Settings", icon: Images.googl-logo, description: "App settings" },
+    ];
+    selected-tab: 0;
 }
+            }
+        }

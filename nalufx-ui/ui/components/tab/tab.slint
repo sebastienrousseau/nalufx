@@ -1,0 +1,139 @@
+import { NalufxTheme } from "../../components/themes/index.slint";
+import { Images } from "../../images.slint";
+
+/**
+ * Tab Component
+ *
+ * A customizable tab component for use in horizontal or vertical tab-based interfaces.
+ * It features a selectable area with text, optional icon, and visual feedback.
+ */
+export component Tab inherits Rectangle {
+    in property <string> title;
+    in property <string> description;
+    in-out property <bool> selected;
+    in property <image> icon;
+    in property <bool> is-vertical;
+    callback clicked;
+
+    min-height: is-vertical ? 60px : 40px;
+    min-width: is-vertical ? 200px : 100px;
+    horizontal-stretch: 1;
+    vertical-stretch: 0;
+    border-radius: is-vertical ? (4px) : (4px);
+    background: selected ? NalufxTheme.palette.primary.brighter(66%) : NalufxTheme.palette.transparent;
+    animate background { duration: 200ms; }
+
+    private property <bool> has-icon: icon.width > 0 && icon.height > 0;
+
+    HorizontalLayout {
+        padding: 8px;
+        spacing: 8px;
+
+        if (root.has-icon) : Image {
+            source: root.icon;
+            width: 24px;
+            height: 24px;
+            colorize: NalufxTheme.palette.transparent;
+            animate colorize { duration: 200ms; }
+        }
+
+        VerticalLayout {
+            spacing: 4px;
+
+            title-text := Text {
+                text: root.title;
+                horizontal-alignment: left;
+                vertical-alignment: center;
+                font-size: 14px;
+                font-weight: root.selected ? 700 : 400;
+                color: root.selected ? NalufxTheme.palette.white : NalufxTheme.palette.white;
+                animate color { duration: 200ms; }
+            }
+
+            if (root.is-vertical && root.description != "") : Text {
+                text: root.description;
+                horizontal-alignment: left;
+                vertical-alignment: center;
+                font-size: 12px;
+                color: root.selected ? NalufxTheme.palette.primary : NalufxTheme.palette.white;
+                animate color { duration: 200ms; }
+                wrap: word-wrap;
+            }
+        }
+    }
+
+    TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+/**
+ * TabWidget Component
+ *
+ * A container for multiple Tab components, managing their layout and selection state.
+ * Supports both horizontal and vertical layouts.
+ */
+export component TabWidget inherits Rectangle {
+    in property <[{text: string, icon: image, description: string}]> tabs;
+    in-out property <int> selected-tab;
+    in property <bool> is-vertical;
+    in property <length> tab-bar-width: 200px;
+    in property <length> tab-bar-height: 71px;
+
+    vertical-stretch: 1;
+    background: NalufxTheme.palette.transparent;
+
+    HorizontalLayout {
+        // Tab bar background pane
+        Rectangle {
+            width: root.is-vertical ? root.tab-bar-width : parent.width;
+            height: root.is-vertical ? root.tab-bar-height : 40px;
+            background: NalufxTheme.palette.primary.darker(60%);
+
+            if (root.is-vertical) : VerticalLayout {
+                for tab[index] in tabs : Tab {
+                    title: tab.text;
+                    icon: tab.icon;
+                    description: tab.description;
+                    selected: index == root.selected-tab;
+                    is-vertical: true;
+                    clicked => {
+                        root.selected-tab = index;
+                    }
+                }
+            }
+
+            if (!root.is-vertical) : HorizontalLayout {
+                alignment: start;
+                height: 40px;
+
+                for tab[index] in tabs : Tab {
+                    title: tab.text;
+                    icon: tab.icon;
+                    selected: index == root.selected-tab;
+                    is-vertical: false;
+                    clicked => {
+                        root.selected-tab = index;
+                    }
+                }
+            }
+        }
+
+        // Tab pane
+        Rectangle {
+            background: NalufxTheme.palette.secondary;
+            border-radius: root.is-vertical ? (4px) : (4px);
+            clip: true;
+
+            @children
+        }
+    }
+}
+
+export struct TabItem {
+    text: string,
+    icon: image
+}

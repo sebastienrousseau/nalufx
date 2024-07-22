@@ -1,7 +1,7 @@
 import { NalufxTheme } from "../../components/themes/index.slint";
 import { Images } from "../../images.slint";
 import { Card } from "../card/card.slint";
-import { Popup } from "../popup/popup.slint";
+import { Modal } from "../modal/modal.slint";
 
 /// Defines the type of carousel behaviour: either linear or rotary.
 export enum CarouselType {
@@ -61,11 +61,11 @@ export component Carousel inherits Rectangle {
     /// Enable or disable keyboard navigation.
     in property <bool> enable-keyboard-nav: true;
 
-    /// The visibility of the popup component.
-    in-out property <bool> popup-visible: false;
+    /// The visibility of the modal component.
+    in-out property <bool> modal-visible: false;
 
-    /// Callback triggered when the popup is closed.
-    callback handle-popup-close();
+    /// Callback triggered when the modal is closed.
+    callback handle-modal-close();
 
     // Private properties
     /// Array of phantom images used for rotary carousel type.
@@ -222,7 +222,7 @@ export component Carousel inherits Rectangle {
                     clicked => {
                         if (index == root.active) {
                             debug("Active image clicked: {}", index);
-                            root.popup-visible = true;
+                            root.modal-visible = true;
                         } else if (index < root.active) {
                             rotate-left();
                         } else {
@@ -234,8 +234,8 @@ export component Carousel inherits Rectangle {
         }
     }
 
-    // Popup overlay
-    if (popup-visible) : Rectangle {
+    // Modal overlay
+    if (modal-visible) : Rectangle {
         width: 100%;
         height: 100%;
 
@@ -243,13 +243,13 @@ export component Carousel inherits Rectangle {
             alignment: center;
             HorizontalLayout {
                 alignment: center;
-                Popup {
+                Modal {
                     title: titles[Math.min(active, titles.length - 1)];
                     description: descriptions[Math.min(active, descriptions.length - 1)];
                     is-open: true;
                     close => {
-                        handle-popup-close();
-                        root.popup-visible = false;
+                        handle-modal-close();
+                        root.modal-visible = false;
                     }
                 }
             }
