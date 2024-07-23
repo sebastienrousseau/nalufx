@@ -8,18 +8,31 @@ import { Images } from "../../images.slint";
  * It features a selectable area with text, optional icon, and visual feedback.
  */
 export component Tab inherits Rectangle {
+    /// The title text of the tab
     in property <string> title;
+    /// Optional description text for the tab (used in vertical layout)
     in property <string> description;
+    /// Whether the tab is currently selected
     in-out property <bool> selected;
+    /// Optional icon for the tab
     in property <image> icon;
+    /// Whether the tab is in a vertical layout
     in property <bool> is-vertical;
+    /// The index of the tab within its parent TabWidget
+    in property <int> tab-index;
+    /// Whether the tab currently has keyboard focus
+    in-out property <bool> has-focus;
+    /// Callback triggered when the tab is clicked
     callback clicked;
+
+    accessible-role: tab;
+    accessible-label: title;
 
     min-height: is-vertical ? 60px : 40px;
     min-width: is-vertical ? 200px : 100px;
-    horizontal-stretch: 1;
+    horizontal-stretch: 0;
     vertical-stretch: 0;
-    border-radius: is-vertical ? (4px) : (4px);
+    border-radius: 4px;
     background: selected ? NalufxTheme.palette.primary.brighter(66%) : NalufxTheme.palette.transparent;
     animate background { duration: 200ms; }
 
@@ -29,7 +42,7 @@ export component Tab inherits Rectangle {
         padding: 8px;
         spacing: 8px;
 
-        if (root.has-icon) : Image {
+        if (root.has-icon): Image {
             source: root.icon;
             width: 24px;
             height: 24px;
@@ -50,7 +63,7 @@ export component Tab inherits Rectangle {
                 animate color { duration: 200ms; }
             }
 
-            if (root.is-vertical && root.description != "") : Text {
+            if (root.is-vertical && root.description != ""): Text {
                 text: root.description;
                 horizontal-alignment: left;
                 vertical-alignment: center;
@@ -60,6 +73,13 @@ export component Tab inherits Rectangle {
                 wrap: word-wrap;
             }
         }
+    }
+
+    // Keyboard focus indicator
+    Rectangle {
+        border-width: root.has-focus ? 2px : 0px;
+        border-color: NalufxTheme.palette.secondary-variant;
+        border-radius: 4px;
     }
 
     TouchArea {
@@ -74,17 +94,26 @@ export component Tab inherits Rectangle {
  * TabWidget Component
  *
  * A container for multiple Tab components, managing their layout and selection state.
- * Supports both horizontal and vertical layouts.
+ * Supports both horizontal and vertical layouts, and different horizontal alignments.
  */
 export component TabWidget inherits Rectangle {
+    /// The list of tabs to display
     in property <[{text: string, icon: image, description: string}]> tabs;
+    /// The index of the currently selected tab
     in-out property <int> selected-tab;
+    /// Whether to use a vertical layout for tabs
     in property <bool> is-vertical;
+    /// The width of the tab bar in vertical layout
     in property <length> tab-bar-width: 200px;
+    /// The height of the tab bar in horizontal layout
     in property <length> tab-bar-height: 71px;
+    /// The horizontal alignment of tabs in horizontal layout ("left", "center", or "right")
+    in property <string> horizontal-alignment: "left";
 
     vertical-stretch: 1;
     background: NalufxTheme.palette.transparent;
+
+    accessible-role: tab-list;
 
     HorizontalLayout {
         // Tab bar background pane
@@ -93,28 +122,32 @@ export component TabWidget inherits Rectangle {
             height: root.is-vertical ? root.tab-bar-height : 40px;
             background: NalufxTheme.palette.primary.darker(60%);
 
-            if (root.is-vertical) : VerticalLayout {
-                for tab[index] in tabs : Tab {
+            if (root.is-vertical): VerticalLayout {
+                for tab[index] in tabs: Tab {
                     title: tab.text;
                     icon: tab.icon;
                     description: tab.description;
                     selected: index == root.selected-tab;
                     is-vertical: true;
+                    tab-index: index;
+                    has-focus: focus-scope.has-focus && index == root.selected-tab;
                     clicked => {
                         root.selected-tab = index;
                     }
                 }
             }
 
-            if (!root.is-vertical) : HorizontalLayout {
-                alignment: start;
+            if (!root.is-vertical): HorizontalLayout {
+                alignment: root.horizontal-alignment == "left" ? start : root.horizontal-alignment == "center" ? center : end;
                 height: 40px;
 
-                for tab[index] in tabs : Tab {
+                for tab[index] in tabs: Tab {
                     title: tab.text;
                     icon: tab.icon;
                     selected: index == root.selected-tab;
                     is-vertical: false;
+                    tab-index: index;
+                    has-focus: focus-scope.has-focus && index == root.selected-tab;
                     clicked => {
                         root.selected-tab = index;
                     }
@@ -125,15 +158,47 @@ export component TabWidget inherits Rectangle {
         // Tab pane
         Rectangle {
             background: NalufxTheme.palette.secondary;
-            border-radius: root.is-vertical ? (4px) : (4px);
+            border-radius: 4px;
             clip: true;
 
             @children
         }
     }
+
+    // Keyboard navigation
+    forward-focus: focus-scope;
+
+    focus-scope := FocusScope {
+        key-pressed(event) => {
+            if (event.text == Key.Tab) {
+                if (event.modifiers.shift) {
+                    root.selected-tab = Math.max(0, root.selected-tab - 1);
+                } else {
+                    root.selected-tab = Math.min(root.tabs.length - 1, root.selected-tab + 1);
+                }
+                return accept;
+            }
+            if (event.text == Key.LeftArrow || event.text == Key.UpArrow) {
+                root.selected-tab = Math.max(0, root.selected-tab - 1);
+                return accept;
+            }
+            if (event.text == Key.RightArrow || event.text == Key.DownArrow) {
+                root.selected-tab = Math.min(root.tabs.length - 1, root.selected-tab + 1);
+                return accept;
+            }
+            return reject;
+        }
+    }
 }
 
+/**
+ * TabItem struct
+ *
+ * Represents the data structure for a single tab item.
+ */
 export struct TabItem {
+    /// The text to display on the tab
     text: string,
+    /// The icon to display on the tab (optional)
     icon: image
 }
