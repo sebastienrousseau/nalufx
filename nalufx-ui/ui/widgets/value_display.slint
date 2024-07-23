@@ -24,7 +24,7 @@ component ValueDelegate {
 
         Rectangle {
             min_width: 1px;
-            background: alternative-colors ? NalufxTheme.palette.system-purple-light : NalufxTheme.palette.system-indigo-light;
+            background: alternative-colors ? NalufxTheme.palette.system-purple : NalufxTheme.palette.system-indigo;
             horizontal-stretch: 0;
         }
 
@@ -33,7 +33,7 @@ component ValueDelegate {
             horizontal-stretch: 1;
 
             i-title := Text {
-                color: alternative-colors ? NalufxTheme.palette.system-purple-light : NalufxTheme.palette.system-indigo-light;
+                color: alternative-colors ? NalufxTheme.palette.system-purple : NalufxTheme.palette.system-indigo;
                 font-size: NalufxTheme.typography.label.size.desktop;
                 font-weight: NalufxTheme.typography.label.weight;
             }
@@ -45,9 +45,9 @@ component ValueDelegate {
                 i-unit := Text {
                     y: NalufxTheme.spaces.small;
                     vertical-alignment: center;
-                    color: alternative-colors ? NalufxTheme.palette.system-purple-light : NalufxTheme.palette.system-indigo-light;
-                    font-size: NalufxTheme.typography.label-light.size.desktop;
-                    font-weight: NalufxTheme.typography.label-light.weight;
+                    color: alternative-colors ? NalufxTheme.palette.system-purple : NalufxTheme.palette.system-indigo;
+                    font-size: NalufxTheme.typography.label.size.desktop;
+                    font-weight: NalufxTheme.typography.label.weight;
                 }
 
                 Text {

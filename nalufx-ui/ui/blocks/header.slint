@@ -1,4 +1,6 @@
 import { NalufxTheme } from "../components/themes/index.slint";
+import { ToggleButton } from "../components/button/toggle_button.slint";
+import { Theme, ThemeMode } from "../components/themes/color_scheme.slint";
 import { Images } from "../images.slint";
 
 export global HeaderAdapter {
@@ -7,6 +9,7 @@ export global HeaderAdapter {
     in-out property <string> time-suffix: "Loading suffix...";
     in property <image> logo: Images.nalufx-logo;
     in-out property <string> description: "AI Insights for Funds Management and Research";
+    in-out property <ThemeMode> current-theme: ThemeMode.Light;
 }
 
 export component Header {
@@ -15,6 +18,9 @@ export component Header {
     in property <string> time-suffix <=> HeaderAdapter.time-suffix;
     in property <image> logo <=> HeaderAdapter.logo;
     in property <string> description <=> HeaderAdapter.description;
+    in-out property <ThemeMode> current-theme <=> HeaderAdapter.current-theme;
+
+    callback theme-toggled();
 
     min-height: 50px;
     vertical-stretch: 0;
@@ -23,10 +29,10 @@ export component Header {
         padding: 20px;
         spacing: 5px;
 
+        // Date
         Rectangle {
             horizontal-stretch: 1;
             vertical-stretch: 1;
-
             Text {
                 x: 0px;
                 color: NalufxTheme.palette.white;
@@ -35,6 +41,7 @@ export component Header {
             }
         }
 
+        // Logo and Description
         Rectangle {
             horizontal-stretch: 1;
             vertical-stretch: 1;
@@ -59,6 +66,7 @@ export component Header {
             }
         }
 
+        // Time and Theme Toggle
         Rectangle {
             horizontal-stretch: 1;
             vertical-stretch: 1;
@@ -77,6 +85,32 @@ export component Header {
                 color: NalufxTheme.palette.white;
                 text: time-suffix;
                 font-weight: NalufxTheme.typography.header-item-light.weight;
+            }
+        }
+
+        Rectangle {
+            width: 40px;
+            height: 40px;
+            background: NalufxTheme.palette.transparent;
+
+            ToggleButton {
+                width: parent.width;
+                height: parent.height;
+                background: NalufxTheme.palette.transparent;
+                checked: root.current-theme == ThemeMode.Dark;
+
+                toggled => {
+                    root.current-theme = self.checked ? ThemeMode.Dark : ThemeMode.Light;
+                    root.theme-toggled();
+                }
+            }
+
+            Text {
+                text: root.current-theme == ThemeMode.Light ? "🌙" : "🔆";
+                color: root.current-theme == ThemeMode.Light ? NalufxTheme.palette.system-yellow : NalufxTheme.palette.system-blue;
+                font-size: NalufxTheme.typography.label-light.size.desktop;
+                horizontal-alignment: center;
+                vertical-alignment: center;
             }
         }
     }

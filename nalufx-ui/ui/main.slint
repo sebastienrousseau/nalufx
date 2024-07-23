@@ -2,21 +2,35 @@ import { Header, HeaderAdapter } from "blocks/blocks.slint";
 import { Footer, FooterAdapter } from "blocks/blocks.slint";
 import { Images } from "images.slint";
 import { NalufxTheme } from "components/themes/index.slint";
+import { Theme, ThemeMode } from "components/themes/color_scheme.slint";
+
 import { Menu, PageScrollView, PageContainer } from "widgets/widgets.slint";
 import { MenuPage } from "pages/pages.slint";
 import { Balance, Overview, Usage, UsageAdapter, Stocks, About } from "pages/pages.slint";
 
 /// Main component representing the entire application interface
 export component Main {
+    in-out property <ThemeMode> current-theme: ThemeMode.Light;
+
+    function toggle-theme() {
+        self.current-theme = self.current-theme == ThemeMode.Light ? ThemeMode.Dark : ThemeMode.Light;
+        Theme.mode = self.current-theme;
+        Theme.update-theme();
+    }
+
     Rectangle {
         // Set the background using a radial gradient from the theme
-        background: NalufxTheme.gradients.radial_primary;
+        background: NalufxTheme.gradients.primary-gradient;
 
         VerticalLayout {
             padding-bottom: 50px;
 
             // Header component at the top of the layout
-            Header {}
+            Header {
+                theme-toggled => {
+                    root.toggle-theme();
+                }
+            }
 
             // Scrollable view containing multiple pages
             i-page-scroll-view := PageScrollView {
@@ -110,3 +124,4 @@ export component Main {
         }
     }
 }
+

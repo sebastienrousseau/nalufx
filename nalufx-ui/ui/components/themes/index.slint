@@ -1,4 +1,4 @@
-import { Colors, DefaultColors, Gradients, DefaultGradients } from "color_scheme.slint";
+import { Colors, DefaultColors, Gradients, DefaultGradients, Theme, ThemeMode } from "color_scheme.slint";
 import { Durations, DefaultDurations } from "duration_scheme.slint";
 import { ScreenType, DefaultScreenTypes } from "screen_scheme.slint";
 import { Space, DefaultSpaces } from "space_scheme.slint";
@@ -6,8 +6,11 @@ import { Typo, DefaultFonts } from "font_scheme.slint";
 
 /// The theme of the Nalufx UI
 export global NalufxTheme {
+    /// The current theme mode
+    in-out property <ThemeMode> mode: Theme.mode;
+
     /// The color palette of the theme
-    in property <Colors> palette: DefaultColors.palette;
+    out property <Colors> palette: Theme.colors;
     /// The typography of the theme
     in property <Typo> typography: DefaultFonts.typography;
     /// The duration scheme of the theme
@@ -15,7 +18,13 @@ export global NalufxTheme {
     /// The space scheme of the theme
     in property <Space> spaces: DefaultSpaces.space;
     /// The gradient scheme of the theme
-    in property <Gradients> gradients: DefaultGradients.type;
+    out property <Gradients> gradients: Theme.gradients;
     /// The screen type of the theme
     in property <ScreenType> screen: DefaultScreenTypes.screenType;
+
+    /// Updates the theme based on the current mode
+    public function update-theme() {
+        Theme.mode = self.mode;
+        Theme.update-theme();
+    }
 }

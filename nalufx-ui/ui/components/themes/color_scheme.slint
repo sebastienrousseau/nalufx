@@ -1,13 +1,9 @@
 /// Colors: Defines the color palette for the theme.
-/// 
+///
 /// This struct provides a comprehensive set of colors used throughout the UI,
 /// including primary, secondary, and tertiary colors with their variants,
 /// system colors, and utility colors for various UI elements.
 export struct Colors {
-    // Accent colors
-    /// The accent color, used for highlighting or emphasis.
-    accent: brush,
-
     // Primary colors
     /// The main brand color, used for primary actions and key UI elements.
     primary: brush,
@@ -17,6 +13,8 @@ export struct Colors {
     primary-dark: brush,
     /// An alternative primary color for creating contrast or emphasis.
     primary-variant: brush,
+    /// A vibrant accent of the primary color for highlighting or emphasis.
+    primary-accent: brush,
 
     // Secondary colors
     /// The secondary brand color, used for less prominent elements or accents.
@@ -27,6 +25,8 @@ export struct Colors {
     secondary-dark: brush,
     /// An alternative secondary color for additional accent options.
     secondary-variant: brush,
+    /// A vibrant accent of the secondary color for highlighting or emphasis.
+    secondary-accent: brush,
 
     // Tertiary colors
     /// The tertiary color, providing an additional option for color schemes.
@@ -37,70 +37,79 @@ export struct Colors {
     tertiary-dark: brush,
     /// An alternative tertiary color for further design flexibility.
     tertiary-variant: brush,
+    /// A vibrant accent of the tertiary color for highlighting or emphasis.
+    tertiary-accent: brush,
 
-    // Basic colors
+    // Semantic colors
+    /// Color used to indicate successful actions or positive states.
+    success: brush,
+    /// A lighter shade of the success color.
+    success-light: brush,
+    /// A darker shade of the success color.
+    success-dark: brush,
+    /// A vibrant accent of the success color for highlighting.
+    success-accent: brush,
+
+    /// Color used to indicate warnings or cautionary states.
+    warning: brush,
+    /// A lighter shade of the warning color.
+    warning-light: brush,
+    /// A darker shade of the warning color.
+    warning-dark: brush,
+    /// A vibrant accent of the warning color for highlighting.
+    warning-accent: brush,
+
+    /// Color used to indicate errors or critical information.
+    error: brush,
+    /// A lighter shade of the error color.
+    error-light: brush,
+    /// A darker shade of the error color.
+    error-dark: brush,
+    /// A vibrant accent of the error color for highlighting.
+    error-accent: brush,
+
+    /// Color used for informational elements or neutral states.
+    info: brush,
+    /// A lighter shade of the info color.
+    info-light: brush,
+    /// A darker shade of the info color.
+    info-dark: brush,
+    /// A vibrant accent of the info color for highlighting.
+    info-accent: brush,
+
+    // System colors
+    /// Standard blue color for system elements.
+    system-blue: brush,
+    /// Standard green color for system elements.
+    system-green: brush,
+    /// Standard indigo color for system elements.
+    system-indigo: brush,
+    /// Standard orange color for system elements.
+    system-orange: brush,
+    /// Standard pink color for system elements.
+    system-pink: brush,
+    /// Standard purple color for system elements.
+    system-purple: brush,
+    /// Standard red color for system elements.
+    system-red: brush,
+    /// Standard teal color for system elements.
+    system-teal: brush,
+    /// Standard yellow color for system elements.
+    system-yellow: brush,
+
+    // Neutral colors
     /// Pure white, typically used for backgrounds in light themes.
     white: brush,
     /// Pure black, often used for text in light themes or backgrounds in dark themes.
     black: brush,
-    /// Fully transparent color, useful for overlays or transitions.
-    transparent: brush,
-
-    // Error colors
-    /// Color used to indicate errors or critical information.
-    error: brush,
-    /// A lighter shade of the error color, suitable for backgrounds.
-    error-light: brush,
-    /// A darker shade of the error color, suitable for text.
-    error-dark: brush,
-    /// An alternative error color for additional emphasis options.
-    error-variant: brush,
-
-    // System colors
-    system-blue: brush,
-    system-blue-light: brush,
-    system-blue-dark: brush,
-    system-blue-variant: brush,
-
-    system-green: brush,
-    system-green-light: brush,
-    system-green-dark: brush,
-    system-green-variant: brush,
-
-    system-indigo: brush,
-    system-indigo-light: brush,
-    system-indigo-dark: brush,
-    system-indigo-variant: brush,
-
-    system-orange: brush,
-    system-orange-light: brush,
-    system-orange-dark: brush,
-    system-orange-variant: brush,
-
-    system-pink: brush,
-    system-pink-light: brush,
-    system-pink-dark: brush,
-    system-pink-variant: brush,
-
-    system-purple: brush,
-    system-purple-light: brush,
-    system-purple-dark: brush,
-    system-purple-variant: brush,
-
-    system-red: brush,
-    system-red-light: brush,
-    system-red-dark: brush,
-    system-red-variant: brush,
-
-    system-teal: brush,
-    system-teal-light: brush,
-    system-teal-dark: brush,
-    system-teal-variant: brush,
-
-    system-yellow: brush,
-    system-yellow-light: brush,
-    system-yellow-dark: brush,
-    system-yellow-variant: brush,
+    /// Main background color.
+    background: brush,
+    /// Surface color for cards, sheets, and menus.
+    surface: brush,
+    /// Color for text and icons on the background color.
+    on-background: brush,
+    /// Color for text and icons on the surface color.
+    on-surface: brush,
 
     // Gray scales
     /// Darkest gray, suitable for primary text in light themes.
@@ -119,57 +128,66 @@ export struct Colors {
     // Special colors
     /// Color used for hyperlinks or interactive text.
     link: brush,
+    /// Vibrant accent color for links in hover or active states.
+    link-accent: brush,
     /// Color used for placeholder text in input fields.
     placeholder: brush,
     /// Color used for separators or dividers between UI elements.
     separator: brush,
+    /// Fully transparent color, useful for overlays or transitions.
+    transparent: brush,
 }
 
 /// Gradients: Defines a set of gradient brushes for advanced styling.
 ///
-/// This struct provides both radial and linear gradients for primary, secondary,
-/// tertiary, and error color schemes, allowing for rich visual effects in the UI.
+/// This struct provides linear gradients for primary, secondary, tertiary,
+/// semantic, and system color schemes, allowing for subtle visual effects in the UI.
 export struct Gradients {
-    // Radial gradients
-    /// Radial gradient using the primary color scheme, fading to black.
-    radial-primary: brush,
-    /// Radial gradient using the secondary color scheme, fading to black.
-    radial-secondary: brush,
-    /// Radial gradient using the tertiary color scheme, fading to black.
-    radial-tertiary: brush,
-    /// Radial gradient using the error color scheme, fading to black.
-    radial-error: brush,
+    // Primary gradients
+    /// Linear gradient using the primary color scheme.
+    primary-gradient: brush,
 
-    // Linear gradients
-    /// Linear gradient using the primary color scheme, transitioning horizontally.
-    linear-primary: brush,
-    /// Linear gradient using the secondary color scheme, transitioning horizontally.
-    linear-secondary: brush,
-    /// Linear gradient using the tertiary color scheme, transitioning horizontally.
-    linear-tertiary: brush,
-    /// Linear gradient using the error color scheme, transitioning horizontally.
-    linear-error: brush,
+    // Secondary gradients
+    /// Linear gradient using the secondary color scheme.
+    secondary-gradient: brush,
 
-    /// Bar Gradients
-    /// Bar gradient using the primary color scheme, transitioning vertically.
-    bar-primary: brush,
-    /// Bar gradient using the secondary color scheme, transitioning vertically.
-    bar-secondary: brush,
-    /// Bar gradient using the tertiary color scheme, transitioning vertically.
-    bar-tertiary: brush,
-    /// Bar gradient using the error color scheme, transitioning vertically.
-    bar-error: brush,
+    // Tertiary gradients
+    /// Linear gradient using the tertiary color scheme.
+    tertiary-gradient: brush,
 
-    /// System gradients
+    // Semantic gradients
+    /// Linear gradient for success states.
+    success-gradient: brush,
+    /// Linear gradient for warning states.
+    warning-gradient: brush,
+    /// Linear gradient for error states.
+    error-gradient: brush,
+    /// Linear gradient for informational states.
+    info-gradient: brush,
+
+    // System gradients
+    /// Linear gradient using the system blue color scheme.
     system-blue-gradient: brush,
+    /// Linear gradient using the system green color scheme.
     system-green-gradient: brush,
+    /// Linear gradient using the system indigo color scheme.
     system-indigo-gradient: brush,
+    /// Linear gradient using the system orange color scheme.
     system-orange-gradient: brush,
+    /// Linear gradient using the system pink color scheme.
     system-pink-gradient: brush,
+    /// Linear gradient using the system purple color scheme.
     system-purple-gradient: brush,
+    /// Linear gradient using the system red color scheme.
     system-red-gradient: brush,
+    /// Linear gradient using the system teal color scheme.
     system-teal-gradient: brush,
+    /// Linear gradient using the system yellow color scheme.
     system-yellow-gradient: brush,
+
+    // Background gradient
+    /// Subtle gradient for background effects.
+    background-gradient: brush,
 }
 
 /// DefaultColors: Provides a default color palette for the theme.
@@ -179,83 +197,53 @@ export struct Gradients {
 export global DefaultColors {
     /// The default color palette used throughout the theme.
     out property <Colors> palette: {
-        // Accent colors
-        accent: #C7DBFF,
-
         // Primary colors
-        primary: #6200EE,
-        primary-light: #7F39FB,
-        primary-dark: #4B00B8,
-        primary-variant: #3700B3,
+        primary: #007AFF,
+        primary-light: #5AC8FA,
+        primary-dark: #0056B3,
+        primary-variant: #5856D6,
+        primary-accent: #64D2FF,
 
         // Secondary colors
-        secondary: #03DAC6,
-        secondary-light: #66FFF8,
-        secondary-dark: #00A69C,
-        secondary-variant: #018786,
+        secondary: #34C759,
+        secondary-light: #4CD964,
+        secondary-dark: #248A3D,
+        secondary-variant: #30B050,
+        secondary-accent: #5AD8A6,
 
         // Tertiary colors
-        tertiary: #FFD600,
-        tertiary-light: #FFE666,
-        tertiary-dark: #C8A900,
-        tertiary-variant: #B29100,
+        tertiary: #FF9500,
+        tertiary-light: #FFCC00,
+        tertiary-dark: #C87100,
+        tertiary-variant: #FF3B30,
+        tertiary-accent: #FFD60A,
 
-        // Basic colors
-        white: #FFFFFF,
-        black: #000000,
-        transparent: #00000000,
+        // Semantic colors
+        success: #34C759,
+        success-light: #4CD964,
+        success-dark: #248A3D,
+        success-accent: #30D158,
 
-        // Error colors
-        error: #B00020,
-        error-light: #FF5C8D,
-        error-dark: #7C0015,
-        error-variant: #FF0055,
+        warning: #FFCC00,
+        warning-light: #FFD60A,
+        warning-dark: #C69500,
+        warning-accent: #FFD426,
 
-        // System colors
-        system-blue: #007AFF,
-        system-blue-light: #52A8FF,
-        system-blue-dark: #004999,
-        system-blue-variant: #0055CC,
+        error: #FF3B30,
+        error-light: #FF6961,
+        error-dark: #C41E3A,
+        error-accent: #FF453A,
 
-        system-green: #34C759,
-        system-green-light: #52FA7A,
-        system-green-dark: #248A3D,
-        system-green-variant: #28A745,
+        info: #5AC8FA,
+        info-light: #64D2FF,
+        info-dark: #0071A4,
+        info-accent: #64D2FF,
 
-        system-indigo: #5856D6,
-        system-indigo-light: #7E7CFF,
-        system-indigo-dark: #3B3A8F,
-        system-indigo-variant: #4744B7,
-
-        system-orange: #FF9500,
-        system-orange-light: #FFB852,
-        system-orange-dark: #CC7600,
-        system-orange-variant: #E68600,
-
-        system-pink: #FF2D55,
-        system-pink-light: #FF5277,
-        system-pink-dark: #CC2444,
-        system-pink-variant: #E6264C,
-
-        system-purple: #AF52DE,
-        system-purple-light: #CE52FA,
-        system-purple-dark: #7A39B0,
-        system-purple-variant: #9545C4,
-
-        system-red: #FF3B30,
-        system-red-light: #FF5252,
-        system-red-dark: #CC2F26,
-        system-red-variant: #E6352B,
-
-        system-teal: #5AC8FA,
-        system-teal-light: #52E5FF,
-        system-teal-dark: #3E8AAD,
-        system-teal-variant: #50B4E1,
-
-        system-yellow: #FFCC00,
-        system-yellow-light: #FFE552,
-        system-yellow-dark: #CCA300,
-        system-yellow-variant: #E6B800,
+        // Neutral colors
+        background: #FFFFFF,
+        surface: #F2F2F7,
+        on-background: #000000,
+        on-surface: #1C1C1E,
 
         // Gray scales
         gray1: #8E8E93,
@@ -267,94 +255,317 @@ export global DefaultColors {
 
         // Special colors
         link: #007AFF,
+        link-accent: #0A84FF,
         placeholder: #C7C7CC,
         separator: #C6C6C8,
+
+        // Basic colors
+        white: #FFFFFF,
+        black: #000000,
+        transparent: #00000000,
+
+        // System colors
+        system-blue: #007AFF,
+        system-green: #34C759,
+        system-indigo: #5856D6,
+        system-orange: #FF9500,
+        system-pink: #FF2D55,
+        system-purple: #AF52DE,
+        system-red: #FF3B30,
+        system-teal: #5AC8FA,
+        system-yellow: #FFCC00,
     };
 }
 
-/// DefaultGradients: Provides a default set of gradients for the theme.
+export global DarkColors {
+    /// The dark color palette used throughout the theme.
+    out property <Colors> palette: {
+        // Primary colors
+        primary: #0A84FF,
+        primary-light: #64D2FF,
+        primary-dark: #0040DD,
+        primary-variant: #5E5CE6,
+        primary-accent: #64D2FF,
+
+        // Secondary colors
+        secondary: #30D158,
+        secondary-light: #4CD964,
+        secondary-dark: #248A3D,
+        secondary-variant: #30B050,
+        secondary-accent: #5AD8A6,
+
+        // Tertiary colors
+        tertiary: #FF9F0A,
+        tertiary-light: #FFD60A,
+        tertiary-dark: #C87100,
+        tertiary-variant: #FF453A,
+        tertiary-accent: #FFD60A,
+
+        // Semantic colors
+        success: #30D158,
+        success-light: #4CD964,
+        success-dark: #248A3D,
+        success-accent: #32D74B,
+
+        warning: #FFD60A,
+        warning-light: #FFE814,
+        warning-dark: #C69500,
+        warning-accent: #FFD426,
+
+        error: #FF453A,
+        error-light: #FF6961,
+        error-dark: #C41E3A,
+        error-accent: #FF6C6C,
+
+        info: #64D2FF,
+        info-light: #70D7FF,
+        info-dark: #0071A4,
+        info-accent: #5AC8FA,
+
+        // Neutral colors
+        background: #000000,
+        surface: #1C1C1E,
+        on-background: #FFFFFF,
+        on-surface: #F2F2F7,
+
+        // Gray scales
+        gray1: #8E8E93,
+        gray2: #636366,
+        gray3: #48484A,
+        gray4: #3A3A3C,
+        gray5: #2C2C2E,
+        gray6: #1C1C1E,
+
+        // Special colors
+        link: #0A84FF,
+        link-accent: #409CFF,
+        placeholder: #48484A,
+        separator: #38383A,
+
+        // Basic colors
+        white: #FFFFFF,
+        black: #000000,
+        transparent: #00000000,
+
+        // System colors
+        system-blue: #0A84FF,
+        system-green: #30D158,
+        system-indigo: #5E5CE6,
+        system-orange: #FF9F0A,
+        system-pink: #FF375F,
+        system-purple: #BF5AF2,
+        system-red: #FF453A,
+        system-teal: #64D2FF,
+        system-yellow: #FFD60A,
+    };
+}
+
+/// DefaultGradients: Provides a default set of gradients for the light theme.
 ///
-/// This global object defines gradient values using colors from the DefaultColors palette.
-/// These gradients can be used to create depth and visual interest in UI components.
+/// This global object defines gradient values using colors from the DefaultColors palette,
+/// optimized for a light theme appearance.
 export global DefaultGradients {
     out property <Gradients> type: {
-        // Radial gradients (keeping these as is since they're different)
-        radial-primary: @radial-gradient(circle,
-            DefaultColors.palette.primary 0%,
-            DefaultColors.palette.primary-dark 25%,
-            DefaultColors.palette.black 100%
-        ),
-        radial-secondary: @radial-gradient(circle,
-            DefaultColors.palette.secondary 0%,
-            DefaultColors.palette.secondary-dark 25%,
-            DefaultColors.palette.black 100%
-        ),
-        radial-tertiary: @radial-gradient(circle,
-            DefaultColors.palette.tertiary 0%,
-            DefaultColors.palette.tertiary-dark 25%,
-            DefaultColors.palette.black 100%
-        ),
-        radial-error: @radial-gradient(circle,
-            DefaultColors.palette.error 0%,
-            DefaultColors.palette.error-dark 25%,
-            DefaultColors.palette.black 100%
+        // Primary gradients
+        primary-gradient: @linear-gradient(135deg,
+            DefaultColors.palette.primary.brighter(20%) 0%,
+            DefaultColors.palette.primary 100%
         ),
 
-        // Linear gradients
-        linear-primary: @linear-gradient(135deg,
-            #4B00B8 0%, #5700DE 25%, #6200EE 50%, #5700DE 75%, #4B00B8 100%
-        ),
-        linear-secondary: @linear-gradient(135deg,
-            #00A69C 0%, #01C0B4 25%, #03DAC6 50%, #01C0B4 75%, #00A69C 100%
-        ),
-        linear-tertiary: @linear-gradient(135deg,
-            #C8A900 0%, #E6C000 25%, #FFD600 50%, #E6C000 75%, #C8A900 100%
-        ),
-        linear-error: @linear-gradient(135deg,
-            #7C0015 0%, #94001A 25%, #B00020 50%, #94001A 75%, #7C0015 100%
+        // Secondary gradients
+        secondary-gradient: @linear-gradient(135deg,
+            DefaultColors.palette.secondary.brighter(20%) 0%,
+            DefaultColors.palette.secondary 100%
         ),
 
-        // Bar gradients
-        bar-primary: @linear-gradient(135deg,
-            #4B00B8 0%, #5700DE 25%, #6200EE 50%, #5700DE 75%, #4B00B8 100%
-        ),
-        bar-secondary: @linear-gradient(135deg,
-            #00A69C 0%, #01C0B4 25%, #03DAC6 50%, #01C0B4 75%, #00A69C 100%
-        ),
-        bar-tertiary: @linear-gradient(135deg,
-            #C8A900 0%, #E6C000 25%, #FFD600 50%, #E6C000 75%, #C8A900 100%
-        ),
-        bar-error: @linear-gradient(135deg,
-            #7C0015 0%, #94001A 25%, #B00020 50%, #94001A 75%, #7C0015 100%
+        // Tertiary gradients
+        tertiary-gradient: @linear-gradient(135deg,
+            DefaultColors.palette.tertiary.brighter(20%) 0%,
+            DefaultColors.palette.tertiary 100%
         ),
 
-        // System gradients (keeping these as they were in your last update)
+        // Semantic gradients
+        success-gradient: @linear-gradient(135deg,
+            DefaultColors.palette.success.brighter(20%) 0%,
+            DefaultColors.palette.success 100%
+        ),
+        warning-gradient: @linear-gradient(135deg,
+            DefaultColors.palette.warning.brighter(20%) 0%,
+            DefaultColors.palette.warning 100%
+        ),
+        error-gradient: @linear-gradient(135deg,
+            DefaultColors.palette.error.brighter(20%) 0%,
+            DefaultColors.palette.error 100%
+        ),
+        info-gradient: @linear-gradient(135deg,
+            DefaultColors.palette.info.brighter(20%) 0%,
+            DefaultColors.palette.info 100%
+        ),
+
+        // System gradients
         system-blue-gradient: @linear-gradient(135deg,
-            #002E5C 0%, #004C99 25%, #007AFF 50%, #004C99 75%, #002E5C 100%
+            DefaultColors.palette.system-blue.brighter(20%) 0%,
+            DefaultColors.palette.system-blue 100%
         ),
         system-green-gradient: @linear-gradient(135deg,
-            #164D23 0%, #218C3A 25%, #34C759 50%, #218C3A 75%, #164D23 100%
+            DefaultColors.palette.system-green.brighter(20%) 0%,
+            DefaultColors.palette.system-green 100%
         ),
         system-indigo-gradient: @linear-gradient(135deg,
-            #242459 0%, #3B3A8F 25%, #5856D6 50%, #3B3A8F 75%, #242459 100%
+            DefaultColors.palette.system-indigo.brighter(20%) 0%,
+            DefaultColors.palette.system-indigo 100%
         ),
         system-orange-gradient: @linear-gradient(135deg,
-            #854200 0%, #CC7600 25%, #FF9500 50%, #CC7600 75%, #854200 100%
+            DefaultColors.palette.system-orange.brighter(20%) 0%,
+            DefaultColors.palette.system-orange 100%
         ),
         system-pink-gradient: @linear-gradient(135deg,
-            #85162C 0%, #CC2444 25%, #FF2D55 50%, #CC2444 75%, #85162C 100%
+            DefaultColors.palette.system-pink.brighter(20%) 0%,
+            DefaultColors.palette.system-pink 100%
         ),
         system-purple-gradient: @linear-gradient(135deg,
-            #4E2570 0%, #7A39B0 25%, #AF52DE 50%, #7A39B0 75%, #4E2570 100%
+            DefaultColors.palette.system-purple.brighter(20%) 0%,
+            DefaultColors.palette.system-purple 100%
         ),
         system-red-gradient: @linear-gradient(135deg,
-            #851A18 0%, #CC2F26 25%, #FF3B30 50%, #CC2F26 75%, #851A18 100%
+            DefaultColors.palette.system-red.brighter(20%) 0%,
+            DefaultColors.palette.system-red 100%
         ),
         system-teal-gradient: @linear-gradient(135deg,
-            #285770 0%, #3E8AAD 25%, #5AC8FA 50%, #3E8AAD 75%, #285770 100%
+            DefaultColors.palette.system-teal.brighter(20%) 0%,
+            DefaultColors.palette.system-teal 100%
         ),
         system-yellow-gradient: @linear-gradient(135deg,
-            #856900 0%, #CCA300 25%, #FFCC00 50%, #CCA300 75%, #856900 100%
+            DefaultColors.palette.system-yellow.brighter(20%) 0%,
+            DefaultColors.palette.system-yellow 100%
+        ),
+
+        // Background gradient for subtle effects
+        background-gradient: @linear-gradient(135deg,
+            DefaultColors.palette.background 0%,
+            DefaultColors.palette.background.darker(5%) 100%
         ),
     };
+}
+
+/// DarkGradients: Provides a set of gradients for the dark theme.
+///
+/// This global object defines gradient values using colors from the DarkColors palette,
+/// optimized for a dark theme appearance.
+export global DarkGradients {
+    out property <Gradients> type: {
+        // Primary gradients
+        primary-gradient: @linear-gradient(135deg,
+            DarkColors.palette.primary.darker(20%) 0%,
+            DarkColors.palette.primary 100%
+        ),
+
+        // Secondary gradients
+        secondary-gradient: @linear-gradient(135deg,
+            DarkColors.palette.secondary.darker(20%) 0%,
+            DarkColors.palette.secondary 100%
+        ),
+
+        // Tertiary gradients
+        tertiary-gradient: @linear-gradient(135deg,
+            DarkColors.palette.tertiary.darker(20%) 0%,
+            DarkColors.palette.tertiary 100%
+        ),
+
+        // Semantic gradients
+        success-gradient: @linear-gradient(135deg,
+            DarkColors.palette.success.darker(20%) 0%,
+            DarkColors.palette.success 100%
+        ),
+        warning-gradient: @linear-gradient(135deg,
+            DarkColors.palette.warning.darker(20%) 0%,
+            DarkColors.palette.warning 100%
+        ),
+        error-gradient: @linear-gradient(135deg,
+            DarkColors.palette.error.darker(20%) 0%,
+            DarkColors.palette.error 100%
+        ),
+        info-gradient: @linear-gradient(135deg,
+            DarkColors.palette.info.darker(20%) 0%,
+            DarkColors.palette.info 100%
+        ),
+
+        // System gradients
+        system-blue-gradient: @linear-gradient(135deg,
+            DarkColors.palette.system-blue.darker(20%) 0%,
+            DarkColors.palette.system-blue 100%
+        ),
+        system-green-gradient: @linear-gradient(135deg,
+            DarkColors.palette.system-green.darker(20%) 0%,
+            DarkColors.palette.system-green 100%
+        ),
+        system-indigo-gradient: @linear-gradient(135deg,
+            DarkColors.palette.system-indigo.darker(20%) 0%,
+            DarkColors.palette.system-indigo 100%
+        ),
+        system-orange-gradient: @linear-gradient(135deg,
+            DarkColors.palette.system-orange.darker(20%) 0%,
+            DarkColors.palette.system-orange 100%
+        ),
+        system-pink-gradient: @linear-gradient(135deg,
+            DarkColors.palette.system-pink.darker(20%) 0%,
+            DarkColors.palette.system-pink 100%
+        ),
+        system-purple-gradient: @linear-gradient(135deg,
+            DarkColors.palette.system-purple.darker(20%) 0%,
+            DarkColors.palette.system-purple 100%
+        ),
+        system-red-gradient: @linear-gradient(135deg,
+            DarkColors.palette.system-red.darker(20%) 0%,
+            DarkColors.palette.system-red 100%
+        ),
+        system-teal-gradient: @linear-gradient(135deg,
+            DarkColors.palette.system-teal.darker(20%) 0%,
+            DarkColors.palette.system-teal 100%
+        ),
+        system-yellow-gradient: @linear-gradient(135deg,
+            DarkColors.palette.system-yellow.darker(20%) 0%,
+            DarkColors.palette.system-yellow 100%
+        ),
+
+        // Background gradient for subtle effects
+        background-gradient: @linear-gradient(135deg,
+            DarkColors.palette.background 0%,
+            DarkColors.palette.background.brighter(5%) 100%
+        ),
+    };
+}
+
+/// ThemeMode: Defines the available theme modes.
+///
+/// This enum allows for easy switching between light and dark themes.
+export enum ThemeMode {
+    Light,
+    Dark
+}
+
+/// Theme: Provides a complete theme configuration.
+///
+/// This global object combines colors, gradients, and theme mode to create a cohesive theme.
+/// It can be used to easily apply and switch between different theme configurations.
+export global Theme {
+    /// The current theme mode (light or dark).
+    in-out property <ThemeMode> mode: ThemeMode.Light;
+
+    /// The color palette for the current theme.
+    out property <Colors> colors: DefaultColors.palette;
+
+    /// The gradient set for the current theme.
+    out property <Gradients> gradients: DefaultGradients.type;
+
+    /// Updates the theme based on the current mode.
+    public function update-theme() {
+        if (root.mode == ThemeMode.Dark) {
+            root.colors = DarkColors.palette;
+            root.gradients = DarkGradients.type;
+        } else {
+            root.colors = DefaultColors.palette;
+            root.gradients = DefaultGradients.type;
+        }
+    }
 }
