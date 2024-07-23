@@ -1,5 +1,11 @@
+/**
+ * Nalufx UX Component Library
+ *
+ * This module exports a comprehensive set of user interface components
+ * for building Slint-based applications with the Nalufx design system.
+ */
 
-
+// Chart components
 import { BalanceChart } from "../components/charts/balance_chart.slint";
 import { BarChart } from "../components/charts/bar_chart.slint";
 import { Tile } from "../components/charts/tile.slint";
@@ -11,107 +17,114 @@ import { DropdownButton } from "../components/button/dropdown_button.slint";
 import { RadioButton } from "../components/button/radio_button.slint";
 import { ToggleButton } from "../components/button/toggle_button.slint";
 
+// Card components
+import { Card } from "../components/card/card.slint";
+import { CardCollectionCell } from "../components/card/card_collection_cell.slint";
+
+// Carousel components
+import { Carousel } from "../components/carousel/carousel.slint";
+
 // Checkbox components
 import { CheckBox } from "../components/checkbox/checkbox.slint";
 
 // Divider components
 import { Divider } from "../components/divider/divider.slint";
 
-// Carousel components
-import { Carousel } from "../components/carousel/carousel.slint";
+// Input components
+import { Slider } from "../components/slider/slider.slint";
+import { Switch } from "switch.slint";
 
-// Modal components
-import { Modal } from "../components/modal/modal.slint";
+// Layout components
+import { GroupBox } from "group_box.slint";
+import { ItemGroupBox } from "item.slint";
+import { ScrollView } from "scroll_view.slint";
+import { ListView } from "list_view.slint";
+import { PageScrollView, PageContainer } from "page_scroll_view.slint";
 
 // Menu components
 import { MenuButton } from "../components/menu/menu_button.slint";
 import { Menu, MobileMenu } from "../components/menu/menu.slint";
 
+// Modal components
+import { Modal } from "../components/modal/modal.slint";
+
+// Navigation components
+import { Navigation } from "navigation.slint";
+import { Pagination } from "pagination.slint";
+
 // Tab components
 import { Tab, TabItem, TabWidget } from "../components/tab/tab.slint";
 
-// Card components
-import { Card } from "../components/card/card.slint";
-import { CardCollectionCell } from "../components/card/card_collection_cell.slint";
-
-// Slider components
-import { Slider } from "../components/slider/slider.slint";
-
 // Theme components
 import { NalufxTheme } from "../components/themes/index.slint";
-
 // import { DefaultFonts } from "../components/themes/index.slint";
 
-import { GroupBox } from "group_box.slint";
-
-import { Navigation } from "navigation.slint";
-import { Pagination } from "pagination.slint";
+// Utility components
+import { Item } from "item.slint";
 import { ValueDisplay, Value } from "value_display.slint";
 
-// import { TabWidget, TabItem } from "tab_widget.slint";
-import { ScrollView } from "scroll_view.slint";
-import { ListView } from "list_view.slint";
-import { Item, ItemGroupBox } from "item.slint";
+// Export all components
+export {
+    // Chart components
+    BalanceChart,
+    BarChart,
+    Tile,
+    BarTiles,
+    BarTileModel,
 
-import { Switch } from "switch.slint";
-import { PageScrollView, PageContainer } from "page_scroll_view.slint";
+    // Button components
+    Button,
+    DropdownButton,
+    RadioButton,
+    ToggleButton,
 
+    // Card components
+    Card,
+    CardCollectionCell,
 
-// Theme components
-import { NalufxTheme } from "../components/themes/index.slint";
+    // Carousel components
+    Carousel,
 
-// Export all UX components
-export { BalanceChart }
-export { BarChart }
+    // Checkbox components
+    CheckBox,
 
-// Button components export
-export { Button }
-export { DropdownButton }
-export { RadioButton }
-export { ToggleButton }
+    // Divider components
+    Divider,
 
-// Card components export
-export { Card }
-export { CardCollectionCell }
+    // Input components
+    Slider,
+    Switch,
 
-// Carousel components export
-export { Carousel }
+    // Layout components
+    GroupBox,
+    ItemGroupBox,
+    ScrollView,
+    ListView,
+    PageScrollView,
+    PageContainer,
 
-// Checkbox components export
-export { CheckBox }
+    // Menu components
+    MenuButton,
+    Menu,
+    MobileMenu,
 
-// Divider components export
-export { Divider }
+    // Modal components
+    Modal,
 
-// Modal components export
-export { Modal }
+    // Navigation components
+    Navigation,
+    Pagination,
 
-// Menu components export
-export { MenuButton }
-export { Menu, MobileMenu }
+    // Tab components
+    TabWidget,
+    TabItem,
 
-// Slider components export
-export { Slider }
+    // Theme components
+    NalufxTheme,
+    // DefaultFonts,
 
-// NalufxTheme export
-export { NalufxTheme }
-
-// DefaultFonts export
-// export { DefaultFonts }
-
-export { GroupBox }
-export { Navigation }
-export { Pagination }
-
-export { ValueDisplay, Value }
-export { Tile }
-export { BarTiles, BarTileModel }
-export { TabWidget, TabItem }
-export { ScrollView }
-export { ListView }
-export { Item, ItemGroupBox }
-
-export { Switch }
-export { PageScrollView, PageContainer }
-
-
+    // Utility components
+    Item,
+    ValueDisplay,
+    Value
+}

@@ -4,6 +4,10 @@
 /// including primary, secondary, and tertiary colors with their variants,
 /// system colors, and utility colors for various UI elements.
 export struct Colors {
+    // Accent colors
+    /// The accent color, used for highlighting or emphasis.
+    accent: brush,
+
     // Primary colors
     /// The main brand color, used for primary actions and key UI elements.
     primary: brush,
@@ -175,6 +179,9 @@ export struct Gradients {
 export global DefaultColors {
     /// The default color palette used throughout the theme.
     out property <Colors> palette: {
+        // Accent colors
+        accent: #C7DBFF,
+
         // Primary colors
         primary: #6200EE,
         primary-light: #7F39FB,
