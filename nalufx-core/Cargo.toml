@@ -1,7 +1,7 @@
 [package]
 # Metadata about the package.
 name = "nalufx-core" # The name of the package.
-description = "" # A short description of the package.
+description = "A Rust library for easy multi-LLM interactions and model selection." # A short description of the package.
 include = ["src/**/*", "README.md"] # Files to include when publishing the package.
 
 # The following metadatas are inherited from the workspace.
@@ -21,7 +21,7 @@ homepage.workspace = true # The homepage URL is defined in the workspace.
 
 [dependencies]
 # Dependencies for the package.
-nalufx-llms = { path = "../nalufx-llms" }
+nalufx-llms = { path = "../nalufx-llms" , version = "0.0.1" }
 
 actix-web = "4.8.0"
 async-trait = "0.1.80"

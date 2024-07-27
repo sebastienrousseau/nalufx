@@ -3,7 +3,7 @@
 authors.workspace = true # Authors are defined in the workspace.
 build = "build.rs" # The build script is defined in the workspace.
 categories.workspace = true # Categories are defined in the workspace.
-description = "" # A short description of the package.
+description = "A Slint UI interface for NaluFX." # A short description of the package.
 edition.workspace = true # The edition is defined in the workspace.
 exclude.workspace = true # Files to exclude are defined in the workspace.
 homepage.workspace = true # The homepage URL is defined in the workspace.
@@ -27,7 +27,7 @@ name = "nalufx-ui"   # The name of the binary file.
 path = "src/main.rs" # The path to the binary file.
 
 [dependencies]
-nalufx-core = { path = "../nalufx-core" }         # The nalufx-core dependency.
+nalufx-core = { path = "../nalufx-core" , version = "0.0.1" }         # The nalufx-core dependency.
 dotenvy = "0.15.7"                                # A dotenv implementation for Rust.
 dtt = "0.0.6"                                     # The dtt dependency.
 env_logger = "0.11.5"                             # Logging for Rust.

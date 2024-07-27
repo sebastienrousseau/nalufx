@@ -1,7 +1,7 @@
 [package]
 # Metadata about the package.
 name = "nalufx-api" # The name of the package.
-description = "" # A short description of the package.
+description = "A Rust library providing easy access to NaluFX services." # A short description of the package.
 include = ["src/**/*", "README.md"] # Files to include when publishing the package.
 
 # The following metadata is inherited from the workspace.
