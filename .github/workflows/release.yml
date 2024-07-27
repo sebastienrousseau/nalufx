@@ -153,7 +153,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         with:
           tag_name: v${{ env.VERSION }}
-          release_name: Serde YML 🦀 v${{ env.VERSION }}
+          release_name: NaluFX 🦀 v${{ env.VERSION }}
           body_path: ${{ github.workspace }}/CHANGELOG.md
           draft: true
           prerelease: false
