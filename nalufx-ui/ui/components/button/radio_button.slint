@@ -1,4 +1,5 @@
 import { Theme } from "../../theme.slint";
+import { NalufxTheme } from "../../components/themes/index.slint";
 import { ButtonCore } from "./button_core.slint";
 import { StateLayer } from "../../components/state_layer.slint";
 
@@ -30,7 +31,7 @@ export component RadioButton {
     width: self.height;
 
     i-container := Rectangle {
-        border-color: Theme.palette.indigo;
+        border-color: NalufxTheme.palette.system-indigo;
         border-width: 2px;
         border-radius: self.height / 2;
 

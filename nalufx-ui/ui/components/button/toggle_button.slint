@@ -1,4 +1,5 @@
 import { Theme } from "../../theme.slint";
+import { NalufxTheme } from "../../components/themes/index.slint";
 import { ButtonCore } from "./button_core.slint";
 import { StateLayer } from "../../components/state_layer.slint";
 
@@ -36,12 +37,18 @@ export component ToggleButton inherits ButtonCore {
         spacing: 8px;
 
         indicator := Rectangle {
-            width: 44pt;
+            width: 50pt;
+            height: 30pt;
             border-width: 1px;
             border-radius: root.height / 2;
             border-color: self.background.darker(25%);
-            background: root.enabled ? (root.checked ? Theme.palette.purple : Theme.palette.nalufx-twilight-gradient) : Theme.palette.nalufx-twilight-gradient.brighter(25%);
+            background: root.enabled ? (root.checked ? NalufxTheme.palette.system-blue : NalufxTheme.palette.system-blue) : NalufxTheme.palette.system-blue;
             animate background { duration: 100ms; }
+
+            // Add TouchArea for the whole indicator to handle hover effects
+            indicator-touch := TouchArea {
+                mouse-cursor: root.enabled ? MouseCursor.pointer : MouseCursor.not-allowed;
+            }
 
             bubble := Rectangle {
                 width: root.height - 8px;
@@ -50,10 +57,21 @@ export component ToggleButton inherits ButtonCore {
                 y: 4px;
                 x: 4px + self.a * (indicator.width - bubble.width - 8px);
                 property <float> a: root.checked ? 1 : 0;
-                background: root.checked ? Theme.palette.nalufx-twilight-gradient.darker(0%) : (root.enabled ? Theme.palette.purple : Theme.palette.gray);
+                background: root.enabled ? (root.checked ? NalufxTheme.palette.white : NalufxTheme.palette.white) : NalufxTheme.palette.white;
                 animate a, background {
                     duration: 200ms;
                     easing: ease;
+                }
+            }
+
+            // TouchArea for the bubble to handle clicks
+            bubble-touch := TouchArea {
+                mouse-cursor: root.enabled ? MouseCursor.pointer : MouseCursor.not-allowed;
+                clicked => {
+                    if (root.enabled) {
+                        root.checked = !root.checked;
+                        root.toggled(root.checked);
+                    }
                 }
             }
         }
@@ -62,7 +80,7 @@ export component ToggleButton inherits ButtonCore {
             min-width: max(100px, self.preferred-width);
             text: root.text;
             vertical-alignment: center;
-            color: root.enabled ? Theme.palette.black : Theme.palette.gray;
+            color: root.enabled ? NalufxTheme.palette.textColor : NalufxTheme.palette.selectedTextColor;
         }
     }
 
@@ -86,10 +104,16 @@ export component ToggleButton inherits ButtonCore {
      */
     states [
         pressed when touch-area.pressed && root.enabled: {
-            indicator.background: Theme.palette.nalufx-twilight-gradient.darker(20%);
+            indicator.background: root.enabled ? (root.checked ? NalufxTheme.palette.white.darker(60%) : NalufxTheme.palette.system-blue.darker(60%)) : NalufxTheme.palette.system-blue.darker(60%);
         }
         hover when touch-area.has-hover && root.enabled: {
-            indicator.background: Theme.palette.nalufx-twilight-gradient;
+            indicator.background: NalufxTheme.palette.primary;
+        }
+        pressed when bubble-touch.pressed && root.enabled: {
+            indicator.background: root.enabled ? (root.checked ? NalufxTheme.palette.white.darker(60%) : NalufxTheme.palette.system-blue.darker(60%)) : NalufxTheme.palette.system-blue.darker(60%);
+        }
+        hover when indicator-touch.has-hover && root.enabled: {
+            indicator.background: NalufxTheme.palette.primary;
         }
     ]
 }

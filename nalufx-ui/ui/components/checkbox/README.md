@@ -69,7 +69,7 @@ You can customize the colors of the checkbox using the `Theme` properties.
 CheckBox {
     checked: true;
     i-container {
-        border-color: Theme.palette.indigo;
+        border-color: NalufxTheme.palette.system-indigo;
         background: Theme.palette.purple;
     }
     i-check-icon {

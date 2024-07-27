@@ -23,7 +23,7 @@ homepage.workspace = true # The homepage URL is defined in the workspace.
 # Dependencies for the package.
 nalufx-llms = { path = "../nalufx-llms" }
 
-actix-web = "4.7.0"
+actix-web = "4.8.0"
 async-trait = "0.1.80"
 augurs-ets = "0.1.2"
 chrono = "0.4.38"
@@ -40,15 +40,15 @@ ndarray = "0.15.6"
 ndarray-stats = "0.5.1"
 printpdf = "0.7.0"
 rand = "0.8.5"
-reqwest = { version = "0.12.4", features = ["json"] }
-serde = { version = "1.0.203", features = ["derive"] }
-serde_json = "1.0.117"
+reqwest = { version = "0.12.5", features = ["json"] }
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.120"
 textplots = "0.8.6"
-thiserror = "1.0.61"
+thiserror = "1.0.63"
 time = "0.3.36"
-tokio = { version = "1.38.0", features = ["full"] }
+tokio = { version = "1.39.1", features = ["full"] }
 tokio-test = "0.4.4"
-yahoo_finance_api = "2.1.0"
+yahoo_finance_api = "2.2.1"
 
 [build-dependencies]
 # Dependencies for build scripts.
@@ -151,7 +151,6 @@ macro_use_extern_crate = "deny"
 meta_variable_misuse = "deny"
 missing_fragment_specifier = "deny"
 noop_method_call = "deny"
-pointer_structural_match = "deny"
 rust_2018_idioms = { level = "deny", priority = -1 }
 rust_2021_compatibility = { level = "deny", priority = -1 }
 single_use_lifetimes = "deny"

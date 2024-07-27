@@ -18,14 +18,14 @@ component ScrollBar {
     min-height: 14px;
 
     Rectangle {
-        border-width: 1px;
-        border-radius: 10px;
-        border-color: NalufxTheme.palette.primary;
+        border-width: 2px;
+        border-radius: 8px;
+        border-color: NalufxTheme.palette.system-blue;
 
         i-indicator := Rectangle {
             x: 2px + (root.ref-width - i-indicator.width) * (-root.value / root.maximum);
             height: parent.height;
-            background: NalufxTheme.palette.primary;
+            background: NalufxTheme.palette.system-blue;
             width: max(32px, ref-width * root.page-size / (root.maximum + root.page-size));
             border-radius: parent.border-radius - 2px;
         }
@@ -84,11 +84,11 @@ export component PageContainer {
         i-touch-area := TouchArea {}
 
         Rectangle {
-            border-width: 2px;
+            border-width: 1px;
             border-radius: 10px;
-            border-color: NalufxTheme.palette.transparent;
-            background: NalufxTheme.palette.black;
-            opacity: root.transparent-background ? 0.33 : 0.66;
+            border-color: NalufxTheme.palette.highlightColor;
+            background: NalufxTheme.palette.windowBackgroundColor;
+            // opacity: root.transparent-background ? 0.33 : 0.66;
         }
 
         Rectangle {

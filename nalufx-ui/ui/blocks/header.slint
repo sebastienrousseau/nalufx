@@ -35,8 +35,9 @@ export component Header {
             vertical-stretch: 1;
             Text {
                 x: 0px;
-                color: NalufxTheme.palette.white;
+                color: NalufxTheme.palette.labelColor;
                 text: date;
+                font-size: NalufxTheme.typography.description.size.desktop;
                 font-weight: NalufxTheme.typography.header-item.weight;
             }
         }
@@ -57,9 +58,10 @@ export component Header {
                 }
 
                 Text {
-                    color: NalufxTheme.palette.white;
+                    color: NalufxTheme.palette.labelColor;
                     text: description;
                     horizontal-alignment: center;
+                    font-size: NalufxTheme.typography.description.size.desktop;
                     font-weight: NalufxTheme.typography.header.weight;
                     width: root.width / 2;
                 }
@@ -74,17 +76,19 @@ export component Header {
             Text {
                 x: i-time-suffix.x - 5px - self.width;
                 horizontal-alignment: right;
-                color: NalufxTheme.palette.white;
+                color: NalufxTheme.palette.labelColor;
                 text: time;
-                font-weight: NalufxTheme.typography.header-item-light.weight;
+                font-size: NalufxTheme.typography.description.size.desktop;
+                font-weight: NalufxTheme.typography.header-item.weight;
             }
 
             i-time-suffix := Text {
-                x: parent.width - self.width;
+                x: parent.width + self.width;
                 horizontal-stretch: 0;
-                color: NalufxTheme.palette.white;
+                color: NalufxTheme.palette.labelColor;
                 text: time-suffix;
-                font-weight: NalufxTheme.typography.header-item-light.weight;
+                font-size: NalufxTheme.typography.description.size.desktop;
+                font-weight: NalufxTheme.typography.header-item.weight;
             }
         }
 
@@ -94,24 +98,25 @@ export component Header {
             background: NalufxTheme.palette.transparent;
 
             ToggleButton {
+                x: 10px - self.width;
                 width: parent.width;
                 height: parent.height;
                 background: NalufxTheme.palette.transparent;
-                checked: root.current-theme == ThemeMode.Dark;
+                checked: root.current-theme == ThemeMode.Light;
 
                 toggled => {
-                    root.current-theme = self.checked ? ThemeMode.Dark : ThemeMode.Light;
+                    root.current-theme = self.checked ? ThemeMode.Light : ThemeMode.Dark;
                     root.theme-toggled();
                 }
             }
 
-            Text {
-                text: root.current-theme == ThemeMode.Light ? "🌙" : "🔆";
-                color: root.current-theme == ThemeMode.Light ? NalufxTheme.palette.system-yellow : NalufxTheme.palette.system-blue;
-                font-size: NalufxTheme.typography.label-light.size.desktop;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-            }
+            // Text {
+            //     text: root.current-theme == ThemeMode.Light ? "🌙" : "🔆";
+            //     color: root.current-theme == ThemeMode.Light ? NalufxTheme.palette.system-yellow : NalufxTheme.palette.system-blue;
+            //     font-size: NalufxTheme.typography.label-light.size.desktop;
+            //     horizontal-alignment: center;
+            //     vertical-alignment: center;
+            // }
         }
     }
 }

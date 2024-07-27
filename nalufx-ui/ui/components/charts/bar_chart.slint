@@ -49,7 +49,7 @@ export component BarChart {
     /// Spacing between bars
     in property <length> bar-spacing: 1px;
     /// Color of the bars
-    in property <brush> bar-color: NalufxTheme.palette.primary;
+    in property <brush> bar-color: NalufxTheme.palette.system-blue;
 
     /// Callback triggered when a bar is clicked, returns the index of the clicked bar
     callback bar-clicked(int);
@@ -68,7 +68,7 @@ export component BarChart {
 
         if model.length == 0 : Text {
             text: "No data available";
-            color: NalufxTheme.palette.white;
+            color: NalufxTheme.palette.labelColor;
         }
 
         layout := HorizontalLayout {

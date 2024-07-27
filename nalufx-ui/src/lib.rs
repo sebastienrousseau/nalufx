@@ -5,6 +5,9 @@ use wasm_bindgen::prelude::*;
 
 use crate::ui::{HeaderAdapter, MainWindow, MenuOverviewAdapter, SettingsAdapter};
 use slint::*;
+use dtt::DateTime;
+use dtt::dtt_print;
+
 
 /// This module contains the generated UI code for the application.
 pub mod ui {
@@ -33,15 +36,29 @@ pub fn main() {
     // Set up the header controller
     let _header_timer = controllers::header::setup(&window);
 
-    // Set up additional timer for specific feature combination
-    #[cfg(all(not(feature = "mcu-board-support"), feature = "chrono"))]
-    let _additional_timer = controllers::header::setup(&window);
-
     // Initialize kiosk mode timer
     let _kiosk_mode_timer = kiosk_timer(&window);
 
     // Run the main event loop
     window.run().expect("Failed to run main window");
+}
+
+/// Retrieves and prints the current date and time.
+///
+/// This function creates a new `DateTime` object using the current system time,
+/// and then prints the date and time using the `dtt_print!` macro.
+///
+/// # Parameters
+///
+/// None.
+///
+/// # Return
+///
+/// This function does not return any value. It only prints the current date and time.
+pub fn get_time() {
+    // Create a new DateTime object and print it
+    let now = DateTime::new();
+    dtt_print!(now);
 }
 
 /// Creates and starts a timer for kiosk mode functionality.

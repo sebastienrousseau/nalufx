@@ -4,11 +4,6 @@
 //! for the application, delegating to the `lib_main` function from the
 //! `nalufx_ui_lib` crate.
 
-#![cfg_attr(
-    all(feature = "mcu-board-support", not(feature = "simulator")),
-    no_main
-)]
-
 use nalufx_ui::main as lib_main;
 
 /// The entry point of the application.

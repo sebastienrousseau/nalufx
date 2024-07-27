@@ -1,5 +1,5 @@
 
-
+import { NalufxTheme } from "../components/themes/index.slint";
 import { Theme } from "../theme.slint";
 
 component Bubble inherits Rectangle {
@@ -7,14 +7,14 @@ component Bubble inherits Rectangle {
 
     states [
         selected when selected : {
-            background: Theme.palette.white;
+            background: NalufxTheme.palette.white;
         }
     ]
 
     min_width: 5px;
     min_height: 5px;
     border-radius: max(self.width, self.height) / 2;
-    background: Theme.palette.nalufx-blue;
+    background: NalufxTheme.palette.windowBackgroundColor;
 
     i-touch-area := TouchArea {}
 }

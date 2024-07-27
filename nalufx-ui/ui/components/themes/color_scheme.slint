@@ -4,6 +4,109 @@
 /// including primary, secondary, and tertiary colors with their variants,
 /// system colors, and utility colors for various UI elements.
 export struct Colors {
+
+    //-- Label colors --//
+
+        // The default color for text labels.
+        labelColor: brush,
+        // The color for text labels that contain secondary content.
+        secondaryLabelColor: brush,
+        // The color for text labels that contain tertiary content.
+        tertiaryLabelColor: brush,
+        // The color for text labels that contain quaternary content.
+        quaternaryLabelColor: brush,
+
+    //-- Fill colors --//
+
+        // An overlay fill color for thin and small shapes.
+        systemFill: brush,
+        // An overlay fill color for medium-size shapes.
+        secondarySystemFill: brush,
+        // An overlay fill color for large shapes.
+        tertiarySystemFill: brush,
+        // An overlay fill color for large areas that contain complex content.
+        quaternarySystemFill: brush,
+
+    //-- Text colors --//
+
+        // The default text color.
+        textColor: brush,
+        // The color for placeholder text in controls or text views.
+        placeholderTextColor: brush,
+        // The color for selected text.
+        selectedTextColor: brush,
+        // The color for the background area behind text.
+        textBackgroundColor: brush,
+        // The color for the background area behind selected text.
+        selectedTextBackgroundColor: brush,
+        // The color of the keyboard focus ring around controls.
+        keyboardFocusIndicatorColor: brush,
+        // The color for text in a control when the control is not active.
+        unemphasizedSelectedTextColor: brush,
+        // The color for the text background in a control when the control is not active.
+        unemphasizedSelectedTextBackgroundColor: brush,
+
+    //-- Content colors --//
+
+        // The color for links.
+        linkColor: brush,
+        // The color for separators between different sections of content.
+        separatorColor: brush,
+        // The color for the background area behind selected content.
+        selectedContentBackgroundColor: brush,
+        // The color for the background area behind selected content when the control is not active.
+        unemphasizedSelectedContentBackgroundColor: brush,
+
+    //-- Menu colors --//
+
+        // The text color for menu items.
+        menuItemTextColor: brush,
+
+    //-- Table colors --//
+
+        // The color for gridlines in table views.
+        gridColor: brush,
+        // The color for text in table view headers.
+        headerTextColor: brush,
+
+    //-- Highlight colors --//
+
+        // The accent color for controls.
+        controlAccentColor: brush,
+        // The color for the border of controls.
+        controlColor: brush,
+        // The background color of controls.
+        controlBackgroundColor: brush,
+        // The text color of controls.
+        controlTextColor: brush,
+        // The color for text on disabled controls.
+        disabledControlTextColor: brush,
+        // The color for the background of selected controls.
+        selectedControlColor: brush,
+        // The text color for selected controls.
+        selectedControlTextColor: brush,
+        // The text color for alternate selected controls.
+        alternateSelectedControlTextColor: brush,
+
+    //-- Window colors --//
+
+        // The color for the window background.
+        windowBackgroundColor: brush,
+        // The color for text in window frames.
+        windowFrameTextColor: brush,
+        // The color for the background area behind pages.
+        underPageBackgroundColor: brush,
+
+    //-- Highlights and shadows --//
+
+        // The color for find highlights.
+        findHighlightColor: brush,
+        // The color for text highlights.
+        highlightColor: brush,
+        // The color for shadows.
+        shadowColor: brush,
+
+
     // Primary colors
     /// The main brand color, used for primary actions and key UI elements.
     primary: brush,
@@ -80,6 +183,10 @@ export struct Colors {
     // System colors
     /// Standard blue color for system elements.
     system-blue: brush,
+    /// Standard brown color for system elements.
+    system-brown: brush,
+    /// Standard gray color for system elements.
+    system-gray: brush,
     /// Standard green color for system elements.
     system-green: brush,
     /// Standard indigo color for system elements.
@@ -194,57 +301,90 @@ export struct Gradients {
 ///
 /// This global object sets specific color values for all properties defined in the Colors struct.
 /// These values can be used as-is or serve as a starting point for custom themes.
-export global DefaultColors {
-    /// The default color palette used throughout the theme.
+export global DarkColors {
+    /// The dark color palette used throughout the theme.
     out property <Colors> palette: {
+        //-- Label colors --//
+        labelColor: #ffffff,
+        secondaryLabelColor: #ebebf599,
+        tertiaryLabelColor: #ebebf54c,
+        quaternaryLabelColor: #ebebf528,
+        //-- Text colors --//
+        textColor: #ffffff,
+        placeholderTextColor: #ebebf54c,
+        selectedTextColor: #ffffff,
+        textBackgroundColor: #000000,
+        selectedTextBackgroundColor: #0a84ff,
+        keyboardFocusIndicatorColor: #0a84ff,
+        unemphasizedSelectedTextColor: #ffffff,
+        unemphasizedSelectedTextBackgroundColor: #38383a,
+        //-- Content colors --//
+        linkColor: #0a84ff,
+        separatorColor: #54545899,
+        selectedContentBackgroundColor: #38383a,
+        unemphasizedSelectedContentBackgroundColor: #1c1c1e,
+        //-- Menu colors --//
+        menuItemTextColor: #ffffff,
+        //-- Table colors --//
+        gridColor: #2c2c2e,
+        headerTextColor: #8e8e93,
+        //-- Highlight colors --//
+        controlAccentColor: #0a84ff,
+        controlColor: #38383a,
+        controlBackgroundColor: #1c1c1e,
+        controlTextColor: #ffffff,
+        disabledControlTextColor: #ebebf54c,
+        selectedControlColor: #49494b,
+        selectedControlTextColor: #ffffff,
+        alternateSelectedControlTextColor: #ffffff,
+        //-- Window colors --//
+        windowBackgroundColor: #1F1F1F,
+        windowFrameTextColor: #ffffff,
+        underPageBackgroundColor: #000000,
+        //-- Highlights and shadows --//
+        findHighlightColor: #ffcc00,
+        highlightColor: #38383a,
+        shadowColor: #00000099,
         // Primary colors
         primary: #007AFF,
         primary-light: #5AC8FA,
         primary-dark: #0056B3,
         primary-variant: #5856D6,
         primary-accent: #64D2FF,
-
         // Secondary colors
         secondary: #34C759,
         secondary-light: #4CD964,
         secondary-dark: #248A3D,
         secondary-variant: #30B050,
         secondary-accent: #5AD8A6,
-
         // Tertiary colors
         tertiary: #FF9500,
         tertiary-light: #FFCC00,
         tertiary-dark: #C87100,
         tertiary-variant: #FF3B30,
         tertiary-accent: #FFD60A,
-
         // Semantic colors
         success: #34C759,
         success-light: #4CD964,
         success-dark: #248A3D,
         success-accent: #30D158,
-
         warning: #FFCC00,
         warning-light: #FFD60A,
         warning-dark: #C69500,
         warning-accent: #FFD426,
-
         error: #FF3B30,
         error-light: #FF6961,
         error-dark: #C41E3A,
         error-accent: #FF453A,
-
         info: #5AC8FA,
         info-light: #64D2FF,
         info-dark: #0071A4,
         info-accent: #64D2FF,
-
         // Neutral colors
         background: #FFFFFF,
         surface: #F2F2F7,
         on-background: #000000,
         on-surface: #1C1C1E,
-
         // Gray scales
         gray1: #8E8E93,
         gray2: #AEAEB2,
@@ -252,82 +392,114 @@ export global DefaultColors {
         gray4: #D1D1D6,
         gray5: #E5E5EA,
         gray6: #F2F2F7,
-
         // Special colors
         link: #007AFF,
         link-accent: #0A84FF,
         placeholder: #C7C7CC,
         separator: #C6C6C8,
-
         // Basic colors
         white: #FFFFFF,
         black: #000000,
         transparent: #00000000,
-
-        // System colors
-        system-blue: #007AFF,
-        system-green: #34C759,
-        system-indigo: #5856D6,
-        system-orange: #FF9500,
-        system-pink: #FF2D55,
-        system-purple: #AF52DE,
-        system-red: #FF3B30,
-        system-teal: #5AC8FA,
-        system-yellow: #FFCC00,
+        // System Light colors
+        system-blue: #0A5FFE,
+        system-brown:#90714B,
+        system-green: #28C732,
+        system-gray: #7B7B80,
+        system-indigo: #5E5CE6,
+        system-orange: #FC8108,
+        system-pink: #FB0C43,
+        system-purple: #453BCC,
+        system-red: #FB2025,
+        system-teal: #64D2FF,
+        system-yellow: #FDC209,
     };
 }
 
-export global DarkColors {
-    /// The dark color palette used throughout the theme.
+export global DefaultColors {
+    /// The default color palette used throughout the theme.
     out property <Colors> palette: {
+        //-- Label colors --//
+        labelColor: #000000,
+        secondaryLabelColor: #3c3c4399,
+        tertiaryLabelColor: #3c3c434c,
+        quaternaryLabelColor: #3c3c432d,
+        //-- Text colors --//
+        textColor: #000000,
+        placeholderTextColor: #3c3c434c,
+        selectedTextColor: #ffffff,
+        textBackgroundColor: #ffffff,
+        selectedTextBackgroundColor: #007aff,
+        keyboardFocusIndicatorColor: #007aff,
+        unemphasizedSelectedTextColor: #ffffff,
+        unemphasizedSelectedTextBackgroundColor: #d1d1d6,
+        //-- Content colors --//
+        linkColor: #007aff,
+        separatorColor: #3c3c4349,
+        selectedContentBackgroundColor: #d1d1d6,
+        unemphasizedSelectedContentBackgroundColor: #f5f5f5,
+        //-- Menu colors --//
+        menuItemTextColor: #000000,
+        //-- Table colors --//
+        gridColor: #e1e1e1,
+        headerTextColor: #6e6e73,
+        //-- Highlight colors --//
+        controlAccentColor: #007aff,
+        controlColor: #d1d1d6,
+        controlBackgroundColor: #ffffff,
+        controlTextColor: #000000,
+        disabledControlTextColor: #3c3c434c,
+        selectedControlColor: #d1d1d6,
+        selectedControlTextColor: #000000,
+        alternateSelectedControlTextColor: #ffffff,
+        //-- Window colors --//
+        windowBackgroundColor: #ECECEC,
+        windowFrameTextColor: #000000,
+        underPageBackgroundColor: #ffffff,
+        //-- Highlights and shadows --//
+        findHighlightColor: #ffcc00,
+        highlightColor: #d1d1d6,
+        shadowColor: #00000033,
         // Primary colors
         primary: #0A84FF,
         primary-light: #64D2FF,
         primary-dark: #0040DD,
         primary-variant: #5E5CE6,
         primary-accent: #64D2FF,
-
         // Secondary colors
         secondary: #30D158,
         secondary-light: #4CD964,
         secondary-dark: #248A3D,
         secondary-variant: #30B050,
         secondary-accent: #5AD8A6,
-
         // Tertiary colors
         tertiary: #FF9F0A,
         tertiary-light: #FFD60A,
         tertiary-dark: #C87100,
         tertiary-variant: #FF453A,
         tertiary-accent: #FFD60A,
-
         // Semantic colors
         success: #30D158,
         success-light: #4CD964,
         success-dark: #248A3D,
         success-accent: #32D74B,
-
         warning: #FFD60A,
         warning-light: #FFE814,
         warning-dark: #C69500,
         warning-accent: #FFD426,
-
         error: #FF453A,
         error-light: #FF6961,
         error-dark: #C41E3A,
         error-accent: #FF6C6C,
-
         info: #64D2FF,
         info-light: #70D7FF,
         info-dark: #0071A4,
         info-accent: #5AC8FA,
-
         // Neutral colors
         background: #000000,
         surface: #1C1C1E,
         on-background: #FFFFFF,
         on-surface: #F2F2F7,
-
         // Gray scales
         gray1: #8E8E93,
         gray2: #636366,
@@ -335,28 +507,27 @@ export global DarkColors {
         gray4: #3A3A3C,
         gray5: #2C2C2E,
         gray6: #1C1C1E,
-
         // Special colors
         link: #0A84FF,
         link-accent: #409CFF,
         placeholder: #48484A,
         separator: #38383A,
-
         // Basic colors
         white: #FFFFFF,
         black: #000000,
         transparent: #00000000,
-
-        // System colors
-        system-blue: #0A84FF,
-        system-green: #30D158,
+        // System Dark colors
+        system-blue: #106AFE,
+        system-brown:#9B7B55,
+        system-green: #30D33A,
+        system-gray: #85858B,
         system-indigo: #5E5CE6,
-        system-orange: #FF9F0A,
-        system-pink: #FF375F,
-        system-purple: #BF5AF2,
-        system-red: #FF453A,
+        system-orange: #FC8D0D,
+        system-pink: #FB194C,
+        system-purple: #4E45D8,
+        system-red: #FB2B2C,
         system-teal: #64D2FF,
-        system-yellow: #FFD60A,
+        system-yellow: #FECF0E,
     };
 }
 
@@ -367,84 +538,28 @@ export global DarkColors {
 export global DefaultGradients {
     out property <Gradients> type: {
         // Primary gradients
-        primary-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.primary.brighter(20%) 0%,
-            DefaultColors.palette.primary 100%
-        ),
-
+        primary-gradient: @linear-gradient(135deg, DefaultColors.palette.primary.brighter(20%) 0%, DefaultColors.palette.primary 100%),
         // Secondary gradients
-        secondary-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.secondary.brighter(20%) 0%,
-            DefaultColors.palette.secondary 100%
-        ),
-
+        secondary-gradient: @linear-gradient(135deg, DefaultColors.palette.secondary.brighter(20%) 0%, DefaultColors.palette.secondary 100%),
         // Tertiary gradients
-        tertiary-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.tertiary.brighter(20%) 0%,
-            DefaultColors.palette.tertiary 100%
-        ),
-
+        tertiary-gradient: @linear-gradient(135deg, DefaultColors.palette.tertiary.brighter(20%) 0%, DefaultColors.palette.tertiary 100%),
         // Semantic gradients
-        success-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.success.brighter(20%) 0%,
-            DefaultColors.palette.success 100%
-        ),
-        warning-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.warning.brighter(20%) 0%,
-            DefaultColors.palette.warning 100%
-        ),
-        error-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.error.brighter(20%) 0%,
-            DefaultColors.palette.error 100%
-        ),
-        info-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.info.brighter(20%) 0%,
-            DefaultColors.palette.info 100%
-        ),
-
+        success-gradient: @linear-gradient(135deg, DefaultColors.palette.success.brighter(20%) 0%, DefaultColors.palette.success 100%),
+        warning-gradient: @linear-gradient(135deg, DefaultColors.palette.warning.brighter(20%) 0%, DefaultColors.palette.warning 100%),
+        error-gradient: @linear-gradient(135deg, DefaultColors.palette.error.brighter(20%) 0%, DefaultColors.palette.error 100%),
+        info-gradient: @linear-gradient(135deg, DefaultColors.palette.info.brighter(20%) 0%, DefaultColors.palette.info 100%),
         // System gradients
-        system-blue-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.system-blue.brighter(20%) 0%,
-            DefaultColors.palette.system-blue 100%
-        ),
-        system-green-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.system-green.brighter(20%) 0%,
-            DefaultColors.palette.system-green 100%
-        ),
-        system-indigo-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.system-indigo.brighter(20%) 0%,
-            DefaultColors.palette.system-indigo 100%
-        ),
-        system-orange-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.system-orange.brighter(20%) 0%,
-            DefaultColors.palette.system-orange 100%
-        ),
-        system-pink-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.system-pink.brighter(20%) 0%,
-            DefaultColors.palette.system-pink 100%
-        ),
-        system-purple-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.system-purple.brighter(20%) 0%,
-            DefaultColors.palette.system-purple 100%
-        ),
-        system-red-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.system-red.brighter(20%) 0%,
-            DefaultColors.palette.system-red 100%
-        ),
-        system-teal-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.system-teal.brighter(20%) 0%,
-            DefaultColors.palette.system-teal 100%
-        ),
-        system-yellow-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.system-yellow.brighter(20%) 0%,
-            DefaultColors.palette.system-yellow 100%
-        ),
-
+        system-blue-gradient: @linear-gradient(135deg, DefaultColors.palette.system-blue.brighter(20%) 0%, DefaultColors.palette.system-blue 100%),
+        system-green-gradient: @linear-gradient(135deg, DefaultColors.palette.system-green.brighter(20%) 0%, DefaultColors.palette.system-green 100%),
+        system-indigo-gradient: @linear-gradient(135deg, DefaultColors.palette.system-indigo.brighter(20%) 0%, DefaultColors.palette.system-indigo 100%),
+        system-orange-gradient: @linear-gradient(135deg, DefaultColors.palette.system-orange.brighter(20%) 0%, DefaultColors.palette.system-orange 100%),
+        system-pink-gradient: @linear-gradient(135deg, DefaultColors.palette.system-pink.brighter(20%) 0%, DefaultColors.palette.system-pink 100%),
+        system-purple-gradient: @linear-gradient(135deg, DefaultColors.palette.system-purple.brighter(20%) 0%, DefaultColors.palette.system-purple 100%),
+        system-red-gradient: @linear-gradient(135deg, DefaultColors.palette.system-red.brighter(20%) 0%, DefaultColors.palette.system-red 100%),
+        system-teal-gradient: @linear-gradient(135deg, DefaultColors.palette.system-teal.brighter(20%) 0%, DefaultColors.palette.system-teal 100%),
+        system-yellow-gradient: @linear-gradient(135deg, DefaultColors.palette.system-yellow.brighter(20%) 0%, DefaultColors.palette.system-yellow 100%),
         // Background gradient for subtle effects
-        background-gradient: @linear-gradient(135deg,
-            DefaultColors.palette.background 0%,
-            DefaultColors.palette.background.darker(5%) 100%
-        ),
+        background-gradient: @linear-gradient(135deg, DefaultColors.palette.background 0%, DefaultColors.palette.background.darker(5%) 100%),
     };
 }
 
@@ -455,84 +570,28 @@ export global DefaultGradients {
 export global DarkGradients {
     out property <Gradients> type: {
         // Primary gradients
-        primary-gradient: @linear-gradient(135deg,
-            DarkColors.palette.primary.darker(20%) 0%,
-            DarkColors.palette.primary 100%
-        ),
-
+        primary-gradient: @linear-gradient(135deg, DarkColors.palette.primary.darker(20%) 0%, DarkColors.palette.primary 100%),
         // Secondary gradients
-        secondary-gradient: @linear-gradient(135deg,
-            DarkColors.palette.secondary.darker(20%) 0%,
-            DarkColors.palette.secondary 100%
-        ),
-
+        secondary-gradient: @linear-gradient(135deg, DarkColors.palette.secondary.darker(20%) 0%, DarkColors.palette.secondary 100%),
         // Tertiary gradients
-        tertiary-gradient: @linear-gradient(135deg,
-            DarkColors.palette.tertiary.darker(20%) 0%,
-            DarkColors.palette.tertiary 100%
-        ),
-
+        tertiary-gradient: @linear-gradient(135deg, DarkColors.palette.tertiary.darker(20%) 0%, DarkColors.palette.tertiary 100%),
         // Semantic gradients
-        success-gradient: @linear-gradient(135deg,
-            DarkColors.palette.success.darker(20%) 0%,
-            DarkColors.palette.success 100%
-        ),
-        warning-gradient: @linear-gradient(135deg,
-            DarkColors.palette.warning.darker(20%) 0%,
-            DarkColors.palette.warning 100%
-        ),
-        error-gradient: @linear-gradient(135deg,
-            DarkColors.palette.error.darker(20%) 0%,
-            DarkColors.palette.error 100%
-        ),
-        info-gradient: @linear-gradient(135deg,
-            DarkColors.palette.info.darker(20%) 0%,
-            DarkColors.palette.info 100%
-        ),
-
+        success-gradient: @linear-gradient(135deg, DarkColors.palette.success.darker(20%) 0%, DarkColors.palette.success 100%),
+        warning-gradient: @linear-gradient(135deg, DarkColors.palette.warning.darker(20%) 0%, DarkColors.palette.warning 100%),
+        error-gradient: @linear-gradient(135deg, DarkColors.palette.error.darker(20%) 0%, DarkColors.palette.error 100%),
+        info-gradient: @linear-gradient(135deg, DarkColors.palette.info.darker(20%) 0%, DarkColors.palette.info 100%),
         // System gradients
-        system-blue-gradient: @linear-gradient(135deg,
-            DarkColors.palette.system-blue.darker(20%) 0%,
-            DarkColors.palette.system-blue 100%
-        ),
-        system-green-gradient: @linear-gradient(135deg,
-            DarkColors.palette.system-green.darker(20%) 0%,
-            DarkColors.palette.system-green 100%
-        ),
-        system-indigo-gradient: @linear-gradient(135deg,
-            DarkColors.palette.system-indigo.darker(20%) 0%,
-            DarkColors.palette.system-indigo 100%
-        ),
-        system-orange-gradient: @linear-gradient(135deg,
-            DarkColors.palette.system-orange.darker(20%) 0%,
-            DarkColors.palette.system-orange 100%
-        ),
-        system-pink-gradient: @linear-gradient(135deg,
-            DarkColors.palette.system-pink.darker(20%) 0%,
-            DarkColors.palette.system-pink 100%
-        ),
-        system-purple-gradient: @linear-gradient(135deg,
-            DarkColors.palette.system-purple.darker(20%) 0%,
-            DarkColors.palette.system-purple 100%
-        ),
-        system-red-gradient: @linear-gradient(135deg,
-            DarkColors.palette.system-red.darker(20%) 0%,
-            DarkColors.palette.system-red 100%
-        ),
-        system-teal-gradient: @linear-gradient(135deg,
-            DarkColors.palette.system-teal.darker(20%) 0%,
-            DarkColors.palette.system-teal 100%
-        ),
-        system-yellow-gradient: @linear-gradient(135deg,
-            DarkColors.palette.system-yellow.darker(20%) 0%,
-            DarkColors.palette.system-yellow 100%
-        ),
-
+        system-blue-gradient: @linear-gradient(135deg, DarkColors.palette.system-blue.darker(20%) 0%, DarkColors.palette.system-blue 100%),
+        system-green-gradient: @linear-gradient(135deg, DarkColors.palette.system-green.darker(20%) 0%, DarkColors.palette.system-green 100%),
+        system-indigo-gradient: @linear-gradient(135deg, DarkColors.palette.system-indigo.darker(20%) 0%, DarkColors.palette.system-indigo 100%),
+        system-orange-gradient: @linear-gradient(135deg, DarkColors.palette.system-orange.darker(20%) 0%, DarkColors.palette.system-orange 100%),
+        system-pink-gradient: @linear-gradient(135deg, DarkColors.palette.system-pink.darker(20%) 0%, DarkColors.palette.system-pink 100%),
+        system-purple-gradient: @linear-gradient(135deg, DarkColors.palette.system-purple.darker(20%) 0%, DarkColors.palette.system-purple 100%),
+        system-red-gradient: @linear-gradient(135deg, DarkColors.palette.system-red.darker(20%) 0%, DarkColors.palette.system-red 100%),
+        system-teal-gradient: @linear-gradient(135deg, DarkColors.palette.system-teal.darker(20%) 0%, DarkColors.palette.system-teal 100%),
+        system-yellow-gradient: @linear-gradient(135deg, DarkColors.palette.system-yellow.darker(20%) 0%, DarkColors.palette.system-yellow 100%),
         // Background gradient for subtle effects
-        background-gradient: @linear-gradient(135deg,
-            DarkColors.palette.background 0%,
-            DarkColors.palette.background.brighter(5%) 100%
-        ),
+        background-gradient: @linear-gradient(135deg, DarkColors.palette.background 0%, DarkColors.palette.background.brighter(5%) 100%),
     };
 }
 

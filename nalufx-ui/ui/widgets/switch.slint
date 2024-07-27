@@ -1,5 +1,4 @@
-
-
+import { NalufxTheme } from "../components/themes/index.slint";
 import { Theme } from "../theme.slint";
 
 export component Switch {
@@ -26,7 +25,7 @@ export component Switch {
     ]
 
     i-container := Rectangle {
-        border-color: Theme.palette.indigo;
+        border-color: NalufxTheme.palette.system-indigo;
         border-width: 2px;
         border-radius: self.height / 2;
 
@@ -38,7 +37,7 @@ export component Switch {
             height: parent.height - 4 * parent.border-width;
             width: self.height;
             border-radius: self.height / 2;
-            background: Theme.palette.indigo;
+            background: NalufxTheme.palette.system-indigo;
 
             animate background { duration: Theme.durations.fast; }
             animate x { duration: Theme.durations.fast; }

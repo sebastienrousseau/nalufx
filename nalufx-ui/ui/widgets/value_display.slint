@@ -23,8 +23,8 @@ component ValueDelegate {
         spacing: 15px;
 
         Rectangle {
-            min_width: 1px;
-            background: alternative-colors ? NalufxTheme.palette.system-purple : NalufxTheme.palette.system-indigo;
+            min_width: 2px;
+            background: alternative-colors ? NalufxTheme.palette.primary-variant : NalufxTheme.palette.secondary-variant;
             horizontal-stretch: 0;
         }
 
@@ -33,8 +33,8 @@ component ValueDelegate {
             horizontal-stretch: 1;
 
             i-title := Text {
-                color: alternative-colors ? NalufxTheme.palette.system-purple : NalufxTheme.palette.system-indigo;
-                font-size: NalufxTheme.typography.label.size.desktop;
+                color: alternative-colors ? NalufxTheme.palette.primary-variant : NalufxTheme.palette.secondary-variant;
+                font-size: NalufxTheme.typography.header-item.size.desktop;
                 font-weight: NalufxTheme.typography.label.weight;
             }
 
@@ -45,13 +45,12 @@ component ValueDelegate {
                 i-unit := Text {
                     y: NalufxTheme.spaces.small;
                     vertical-alignment: center;
-                    color: alternative-colors ? NalufxTheme.palette.system-purple : NalufxTheme.palette.system-indigo;
-                    font-size: NalufxTheme.typography.label.size.desktop;
+                    color: alternative-colors ? NalufxTheme.palette.primary-accent : alternative-colors ? NalufxTheme.palette.primary-accent : NalufxTheme.palette.secondary-accent;
                     font-weight: NalufxTheme.typography.label.weight;
                 }
 
                 Text {
-                    color: NalufxTheme.palette.white;
+                    color: NalufxTheme.palette.labelColor;
                     text: round(display-value * 100) / 100;
                     font-size: NalufxTheme.typography.value.size.desktop;
                     font-weight: NalufxTheme.typography.value.weight;
@@ -82,15 +81,15 @@ export component ValueDisplay {
         width: 100%;
         height: 100%;
         border-radius: 4px;
-        background: alternative-colors ? NalufxTheme.gradients.system-purple-gradient : NalufxTheme.gradients.system-indigo-gradient;
+        background: NalufxTheme.palette.underPageBackgroundColor;
     }
 
     if(model.length > 0 && !vertical) : HorizontalLayout {
         x: 15px;
         width: parent.width - 30px;
         height: 100%;
-        padding-top: 12px;
-        padding-bottom: 12px;
+        padding-top: 10px;
+        padding-bottom: 10px;
 
         for value in root.model : ValueDelegate {
             width: parent.width / model.length;

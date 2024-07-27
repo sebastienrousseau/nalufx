@@ -1,8 +1,6 @@
-
-
+import { NalufxTheme } from "../components/themes/index.slint";
 import { StateLayer } from "../components/state_layer.slint";
 import { ScrollView } from "scroll_view.slint";
-import { Theme } from "../theme.slint";
 import { StateLayer } from "../components/state_layer.slint";
 
 export component Item {
@@ -14,55 +12,55 @@ export component Item {
     min-height: 40px;
 
     i-container := Rectangle {
-        background: Theme.palette.transparent;
-        border-radius: 4px;
+        background: NalufxTheme.palette.underPageBackgroundColor;
     }
 
-    i-touch-area := TouchArea {}
+    i-touch-area := TouchArea { }
 
     HorizontalLayout {
-        padding-left: Theme.spaces.medium;
-        padding-top: Theme.spaces.medium;
-        padding-bottom: Theme.spaces.medium;
-        padding-right: Theme.spaces.medium;
-        spacing: Theme.spaces.medium;
+        padding-left: NalufxTheme.spaces.medium;
+        padding-top: NalufxTheme.spaces.medium;
+        padding-bottom: NalufxTheme.spaces.medium;
+        padding-right: NalufxTheme.spaces.medium;
+        spacing: NalufxTheme.spaces.medium;
 
         i-text := Text {
             horizontal-stretch: 1;
-            color: Theme.palette.white;
-            font-size: Theme.typo.description.size;
-            font-weight: Theme.typo.description.weight;
+            color: NalufxTheme.palette.labelColor;
+            font-size: NalufxTheme.typography.header.size.desktop;
+            font-weight: NalufxTheme.typography.header.weight;
             vertical-alignment: center;
         }
 
         @children
     }
 
-    if (has-separator) : Rectangle {
-        width: parent.width - 2 * Theme.spaces.medium;
+    if (has-separator): Rectangle {
+        width: parent.width - 2 * NalufxTheme.spaces.medium;
         height: 1px;
-        x: Theme.spaces.medium;
+        x: NalufxTheme.spaces.medium;
         y: parent.height - self.height;
-        background: Theme.palette.indigo;
+        background: NalufxTheme.palette.underPageBackgroundColor;
         opacity: 0.25;
     }
 }
+
 export component ItemGroupBox {
     in property <string> title <=> i-title.text;
 
     VerticalLayout {
         HorizontalLayout {
-            padding: Theme.spaces.medium;
+            padding: NalufxTheme.spaces.medium;
 
             i-title := Text {
-                color: Theme.palette.white;
-                font-size: Theme.typo.header.size;
-                font-weight: Theme.typo.header.weight;
+                color: NalufxTheme.palette.labelColor;
+                font-size: NalufxTheme.typography.header.size.desktop;
+                font-weight: NalufxTheme.typography.header.weight;
             }
         }
 
         Rectangle {
-            background: Theme.palette.transparent;
+            background: NalufxTheme.palette.transparent;
             border-radius: 4px;
 
             VerticalLayout {

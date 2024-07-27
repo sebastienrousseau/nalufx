@@ -1,5 +1,4 @@
-import { Header, HeaderAdapter } from "blocks/blocks.slint";
-import { Footer, FooterAdapter } from "blocks/blocks.slint";
+import { Header, HeaderAdapter, Footer, FooterAdapter } from "blocks/blocks.slint";
 import { Images } from "images.slint";
 import { NalufxTheme } from "components/themes/index.slint";
 import { Theme, ThemeMode } from "components/themes/color_scheme.slint";
@@ -7,6 +6,7 @@ import { Theme, ThemeMode } from "components/themes/color_scheme.slint";
 import { Menu, PageScrollView, PageContainer } from "widgets/widgets.slint";
 import { MenuPage } from "pages/pages.slint";
 import { Balance, Overview, Usage, UsageAdapter, Stocks, About } from "pages/pages.slint";
+
 
 /// Main component representing the entire application interface
 export component Main {
@@ -20,10 +20,10 @@ export component Main {
 
     Rectangle {
         // Set the background using a radial gradient from the theme
-        background: NalufxTheme.gradients.primary-gradient;
+        background: NalufxTheme.palette.underPageBackgroundColor;
 
         VerticalLayout {
-            padding-bottom: 50px;
+            padding-bottom: 25px;
 
             // Header component at the top of the layout
             Header {
@@ -34,6 +34,7 @@ export component Main {
 
             // Scrollable view containing multiple pages
             i-page-scroll-view := PageScrollView {
+                horizontal-stretch: 1;
                 vertical-stretch: 1;
                 page-count: 6;  // Total number of pages
 

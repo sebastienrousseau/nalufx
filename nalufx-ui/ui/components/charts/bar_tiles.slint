@@ -28,7 +28,7 @@ component ValueLabel {
 
     HorizontalLayout {
         Text {
-            color: NalufxTheme.palette.white;
+            color: NalufxTheme.palette.labelColor;
             vertical-stretch: 0;
             horizontal-alignment: right;
             text: root.text;
@@ -36,7 +36,7 @@ component ValueLabel {
             font-weight: NalufxTheme.typography.description-light.weight;
         }
         Text {
-            color: NalufxTheme.palette.white;
+            color: NalufxTheme.palette.labelColor;
             vertical-stretch: 0;
             horizontal-alignment: left;
             text: root.unit;
@@ -68,7 +68,7 @@ component BarTile {
         VerticalLayout {
             spacing: 7px;
             i-title := Text {
-                color: NalufxTheme.palette.white;
+                color: NalufxTheme.palette.labelColor;
                 vertical-stretch: 0;
                 horizontal-alignment: center;
                 font-size: NalufxTheme.typography.description-light.size.desktop;

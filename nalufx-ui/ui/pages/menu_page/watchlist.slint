@@ -1,7 +1,7 @@
 import { Button, CheckBox, ScrollView, Item, ItemGroupBox, NalufxTheme } from "../../widgets/widgets.slint";
 import { Images } from "../../images.slint";
 import { Page } from "../page.slint";
-import { Theme } from "../../theme.slint";
+import { NalufxTheme } from "../../components/themes/index.slint";
 
 export global SettingsAdapter {
     // functions
@@ -20,7 +20,7 @@ export global SettingsAdapter {
     in-out property <bool> googl-checked;
     in-out property <bool> hsbc-checked;
     in-out property <bool> ma-checked;
-    in-out property <bool> mco-checked;
+    in-out property <bool> mco-checked; 
     in-out property <bool> meta-checked;
     in-out property <bool> msft-checked;
     in-out property <bool> nvda-checked;
@@ -62,50 +62,45 @@ export component Settings inherits Page {
 
     callback close();
 
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: Theme.spaces.large;
-    padding-bottom: 0;
-
     VerticalLayout {
         padding-left: 0;
         padding-right: 0;
-        padding-top: Theme.spaces.large;
-        padding-bottom: Theme.spaces.large;
-        spacing: Theme.spaces.large;
+        padding-top: NalufxTheme.spaces.large;
+        padding-bottom: NalufxTheme.spaces.large;
+        spacing: NalufxTheme.spaces.large;
 
         ScrollView {
             vertical-stretch: 1;
 
             VerticalLayout {
                 alignment: start;
-                spacing: Theme.spaces.large;
+                spacing: NalufxTheme.spaces.large;
                 ItemGroupBox {
                     title: "Watchlist";
 
                     // Apple
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-aapl.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.aapl_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "AAPL";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-aapl := CheckBox {
                                 clicked => {
@@ -120,27 +115,27 @@ export component Settings inherits Page {
 
                     // Amazon
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-amzn.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.amzn_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "AMZN";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-amzn := CheckBox {
                                 clicked => {
@@ -155,27 +150,27 @@ export component Settings inherits Page {
 
                     // Google
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-googl.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.googl_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "GOOGL";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-googl := CheckBox {
                                 clicked => {
@@ -190,27 +185,27 @@ export component Settings inherits Page {
 
                     // HSBC
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-hsbc.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.hsbc_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "HSBC";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-hsbc := CheckBox {
                                 clicked => {
@@ -225,27 +220,27 @@ export component Settings inherits Page {
 
                     // Mastercard
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-ma.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.ma_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "MA";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-ma := CheckBox {
                                 clicked => {
@@ -260,27 +255,27 @@ export component Settings inherits Page {
 
                     // Moody's
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-mco.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.mco_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "MCO";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-mco := CheckBox {
                                 clicked => {
@@ -295,27 +290,27 @@ export component Settings inherits Page {
 
                     // Meta
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-meta.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.meta_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "META";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-meta := CheckBox {
                                 clicked => {
@@ -330,27 +325,27 @@ export component Settings inherits Page {
 
                     // Microsoft
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-msft.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.msft_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "MSFT";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-msft := CheckBox {
                                 clicked => {
@@ -365,27 +360,27 @@ export component Settings inherits Page {
 
                     // Nvidia
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-nvda.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.nvda_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "NVDA";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-nvda := CheckBox {
                                 clicked => {
@@ -400,27 +395,27 @@ export component Settings inherits Page {
 
                     // Ferrari
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-race.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.race_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "RACE";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-race := CheckBox {
                                 clicked => {
@@ -435,27 +430,27 @@ export component Settings inherits Page {
 
                     // SPDR S&P 500 Trust ETF
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-spy.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
-                                source: Images.nalufx-banner;
-                                width: 60px; // 1.5 times the original width
+                                preferred-height: 60px;
+                                source: Images.spy-logo;
+                                width: 60px;
                             }
 
                             Text {
                                 text: "SPY";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-spy := CheckBox {
                                 clicked => {
@@ -470,27 +465,27 @@ export component Settings inherits Page {
 
                     // Tesla
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-tsla.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.tsla_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "TSLA";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-tsla := CheckBox {
                                 clicked => {
@@ -505,27 +500,27 @@ export component Settings inherits Page {
 
                     // Visa
                     Item {
-                        height: 60px; // 1.5 times the original height
+                        height: 60px;
                         clicked => {
                             i-checkbox-v.clicked();
                         }
 
                         HorizontalLayout {
                             Image {
-                                preferred-height: 60px; // 1.5 times the original height
+                                preferred-height: 60px;
                                 source: Images.v_logo;
-                                width: 60px; // 1.5 times the original width
+                                width: 60px;
                             }
 
                             Text {
                                 text: "V";
                                 font-size: NalufxTheme.typography.label.size.desktop;
-                                color: NalufxTheme.palette.white;
+                                color: NalufxTheme.palette.labelColor;
                                 vertical-alignment: center;
                                 horizontal-stretch: 10;
                             }
 
-                            spacing: Theme.spaces.small;
+                            spacing: NalufxTheme.spaces.small;
 
                             i-checkbox-v := CheckBox {
                                 clicked => {
