@@ -19,7 +19,7 @@ version.workspace = true # The version is defined in the workspace.
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nalufx-core = { path = "../nalufx-core" }
+nalufx-core = { path = "../nalufx-core", version = "0.0.1" }
 
 [build-dependencies]
 # Dependencies for build scripts.
