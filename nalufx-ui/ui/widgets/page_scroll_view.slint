@@ -78,12 +78,15 @@ export component PageContainer {
     cache-rendering-hint: true;
 
     i-rect := Rectangle {
+        width: parent.width;
         height: parent.height;
         animate opacity { duration: NalufxTheme.durations.medium; }
 
         i-touch-area := TouchArea {}
 
         Rectangle {
+            width: parent.width;
+            height: parent.height;
             border-width: 1px;
             border-radius: 10px;
             border-color: NalufxTheme.palette.highlightColor;
@@ -93,7 +96,7 @@ export component PageContainer {
 
         Rectangle {
             y: 10px;
-            height: i-rect.height - 20px;
+            height: i-rect.height;
 
             @children
         }
@@ -109,6 +112,7 @@ export component PageContainer {
             cache-rendering-hint: false;
         }
         shrink when selected != -1 : {
+            vertical-stretch: 0;
             horizontal-stretch: 0;
             i-rect.opacity: 0.0;
         }

@@ -5,7 +5,9 @@ export component GroupBox {
     in property <length> spacing;
 
     layout := VerticalLayout {
-        spacing: NalufxTheme.spaces.medium;
+        spacing: NalufxTheme.spaces.large;
+        max-width: root.width;
+        max-height: root.height;
 
         i-title := Text {
             horizontal-alignment: left;
