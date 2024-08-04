@@ -43,4 +43,4 @@ web-sys = { version = "0.3.69", features = ["console"] } # Web APIs for Rust.
 [build-dependencies]
 # Dependencies for build scripts.
 slint-build = "1.7.1"   # The slint build dependency.
-version_check = "0.9.4" # Check the Rust version used to compile the package.
+version_check = "0.9.5" # Check the Rust version used to compile the package.
