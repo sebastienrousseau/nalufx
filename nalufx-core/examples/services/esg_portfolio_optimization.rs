@@ -52,9 +52,7 @@ use serde_json::json;
 fn normalize_data(data: &Vec<f64>) -> Vec<f64> {
     let max_value = data.iter().cloned().fold(f64::MIN, f64::max);
     let min_value = data.iter().cloned().fold(f64::MAX, f64::min);
-    data.iter()
-        .map(|&x| (x - min_value) / (max_value - min_value))
-        .collect()
+    data.iter().map(|&x| (x - min_value) / (max_value - min_value)).collect()
 }
 
 /// Calculates the weighted score of an investment based on its ESG rating and normalized returns.
@@ -102,10 +100,10 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                 // Fetch ESG rating (dummy data for demonstration purposes)
                 let esg_rating = 4.5;
                 esg_data.push((investment, daily_returns, esg_rating));
-            }
+            },
             Err(e) => {
                 eprintln!("Error fetching data for investment {}: {}", investment, e);
-            }
+            },
         }
     }
 
@@ -116,11 +114,8 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     }
 
     // Determine the minimum length of all input slices
-    let min_length = esg_data
-        .iter()
-        .map(|(_, daily_returns, _)| daily_returns.len())
-        .min()
-        .unwrap_or(0);
+    let min_length =
+        esg_data.iter().map(|(_, daily_returns, _)| daily_returns.len()).min().unwrap_or(0);
 
     // Normalize data and calculate weighted scores
     let mut esg_scores = Vec::new();
@@ -139,11 +134,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     let mut esg_allocations = Vec::new();
     for (investment, score) in esg_scores {
         let allocation = score / total_score;
-        println!(
-            "- Investment: {}, Allocation: {:.2}%",
-            investment,
-            allocation * 100.0
-        ); // Debug statement
+        println!("- Investment: {}, Allocation: {:.2}%", investment, allocation * 100.0); // Debug statement
         esg_allocations.push((investment, allocation));
     }
 
@@ -154,7 +145,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidData);
-        }
+        },
     };
 
     let allocations_str = esg_allocations
@@ -184,17 +175,11 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidData);
-        }
+        },
     };
 
     let impact_report: OpenAIResponse = serde_json::from_str(&response).unwrap();
-    let generated_report = impact_report
-        .choices
-        .first()
-        .unwrap()
-        .message
-        .content
-        .clone();
+    let generated_report = impact_report.choices.first().unwrap().message.content.clone();
 
     // Print the impact report
     println!("\n--- ESG-Focused Portfolio Impact Report ---\n");

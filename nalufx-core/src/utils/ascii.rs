@@ -32,9 +32,7 @@ pub fn generate_ascii_art(text: &str) -> Result<String, AsciiArtError> {
     }
 
     let standard_font = load_standard_font()?;
-    let figure = standard_font
-        .convert(text)
-        .ok_or(AsciiArtError::ConversionError)?;
+    let figure = standard_font.convert(text).ok_or(AsciiArtError::ConversionError)?;
 
     Ok(figure.to_string())
 }

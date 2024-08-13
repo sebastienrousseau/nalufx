@@ -80,10 +80,7 @@ struct FactorScores {
 async fn fetch_stock_data(symbols: &[String]) -> Result<Vec<StockData>, reqwest::Error> {
     let mut headers = header::HeaderMap::new();
     let _ = headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
-    let _ = headers.insert(
-        "Accept",
-        header::HeaderValue::from_static("application/json"),
-    );
+    let _ = headers.insert("Accept", header::HeaderValue::from_static("application/json"));
     let _ = headers.insert("Cookie", header::HeaderValue::from_static("YahooFcUrl"));
 
     let client = Client::builder().default_headers(headers).build()?;
@@ -116,7 +113,7 @@ async fn fetch_stock_data(symbols: &[String]) -> Result<Vec<StockData>, reqwest:
                 ) = match calculate_momentum_12m(&result[0]) {
                     Some((momentum, start, end, date_start, date_end)) => {
                         (momentum, start, end, date_start, date_end)
-                    }
+                    },
                     None => (0.0, 0.0, 0.0, String::from("N/A"), String::from("N/A")),
                 };
 
@@ -158,10 +155,9 @@ async fn fetch_stock_data(symbols: &[String]) -> Result<Vec<StockData>, reqwest:
 /// * `Some((f64, f64, f64, String, String))` - A tuple containing the momentum, start price, end price, start date, and end date.
 /// * `None` - If the calculation fails or the required data is missing.
 fn calculate_momentum_12m(result: &Value) -> Option<(f64, f64, f64, String, String)> {
-    if let (Some(timestamps), Some(closes)) = (
-        result["timestamp"].as_array(),
-        result["indicators"]["quote"][0]["close"].as_array(),
-    ) {
+    if let (Some(timestamps), Some(closes)) =
+        (result["timestamp"].as_array(), result["indicators"]["quote"][0]["close"].as_array())
+    {
         let one_year_ago = chrono::Utc::now().timestamp() - 31536000; // Approximately 1 year in seconds
 
         let mut idx_start = 0;
@@ -218,10 +214,7 @@ fn calculate_factor_scores(stock_data: &[StockData]) -> Vec<FactorScores> {
         let quality_score =
             stock.return_on_equity.unwrap_or(0.0) - stock.debt_to_equity.unwrap_or(0.0);
         let momentum_score = stock.momentum_12m;
-        let size_score = stock
-            .market_cap
-            .map(|cap| 1.0 / (cap / 1_000_000_000.0))
-            .unwrap_or(0.0);
+        let size_score = stock.market_cap.map(|cap| 1.0 / (cap / 1_000_000_000.0)).unwrap_or(0.0);
 
         value_scores.push(value_score);
         quality_scores.push(quality_score);
@@ -246,11 +239,8 @@ fn calculate_factor_scores(stock_data: &[StockData]) -> Vec<FactorScores> {
     // Function to calculate mean and standard deviation
     fn mean_std(scores: &[f64]) -> (f64, f64) {
         let mean = scores.iter().copied().sum::<f64>() / scores.len() as f64;
-        let variance = scores
-            .iter()
-            .map(|score| (score - mean).powi(2))
-            .sum::<f64>()
-            / scores.len() as f64;
+        let variance =
+            scores.iter().map(|score| (score - mean).powi(2)).sum::<f64>() / scores.len() as f64;
         let std_dev = variance.sqrt();
         (mean, std_dev)
     }
@@ -262,11 +252,8 @@ fn calculate_factor_scores(stock_data: &[StockData]) -> Vec<FactorScores> {
     let (size_mean, size_std) = mean_std(&size_scores);
 
     for score in factor_scores.iter_mut() {
-        score.value_score = if value_std != 0.0 {
-            (score.value_score - value_mean) / value_std
-        } else {
-            0.0
-        };
+        score.value_score =
+            if value_std != 0.0 { (score.value_score - value_mean) / value_std } else { 0.0 };
         score.quality_score = if quality_std != 0.0 {
             (score.quality_score - quality_mean) / quality_std
         } else {
@@ -277,11 +264,8 @@ fn calculate_factor_scores(stock_data: &[StockData]) -> Vec<FactorScores> {
         } else {
             0.0
         };
-        score.size_score = if size_std != 0.0 {
-            (score.size_score - size_mean) / size_std
-        } else {
-            0.0
-        };
+        score.size_score =
+            if size_std != 0.0 { (score.size_score - size_mean) / size_std } else { 0.0 };
 
         // Recalculate composite score after normalization
         score.composite_score = 0.25 * score.value_score
@@ -308,10 +292,7 @@ async fn fetch_last_quarter_data(
 ) -> Result<HashMap<String, f64>, reqwest::Error> {
     let mut headers = header::HeaderMap::new();
     let _ = headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
-    let _ = headers.insert(
-        "Accept",
-        header::HeaderValue::from_static("application/json"),
-    );
+    let _ = headers.insert("Accept", header::HeaderValue::from_static("application/json"));
     let _ = headers.insert("Cookie", header::HeaderValue::from_static("YahooFcUrl"));
 
     let client = Client::builder().default_headers(headers).build()?;
@@ -340,10 +321,7 @@ async fn fetch_last_quarter_data(
                 error!("No data found for {}", symbol);
             }
         } else {
-            error!(
-                "Error fetching last quarter data for {}: {:?}",
-                symbol, data
-            );
+            error!("Error fetching last quarter data for {}: {:?}", symbol, data);
         }
     }
 
@@ -460,10 +438,7 @@ fn generate_report(factor_scores: &[FactorScores], last_quarter_data: &HashMap<S
 #[tokio::main]
 pub async fn main() -> Result<(), NaluFxError> {
     let symbols_input = get_input("Enter the stock ticker symbols (comma-separated):")?;
-    let symbols: Vec<String> = symbols_input
-        .split(',')
-        .map(|s| s.trim().to_string())
-        .collect();
+    let symbols: Vec<String> = symbols_input.split(',').map(|s| s.trim().to_string()).collect();
 
     for symbol in &symbols {
         if validate_ticker(symbol).is_err() {

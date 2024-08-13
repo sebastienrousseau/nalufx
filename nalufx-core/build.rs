@@ -47,10 +47,10 @@ fn main() {
     let min_version = "1.56";
 
     match version_check::is_min_version(min_version) {
-        Some(true) => {}
+        Some(true) => {},
         _ => {
             eprintln!("'fd' requires Rustc version >= {}", min_version);
             process::exit(1);
-        }
+        },
     }
 }

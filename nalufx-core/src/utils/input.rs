@@ -28,10 +28,7 @@ use std::io::{stdin, stdout, Write};
 /// ```
 pub fn read_user_input() -> Result<String, NaluFxError> {
     let mut input = String::new();
-    let _ = stdin()
-        .lock()
-        .read_line(&mut input)
-        .map_err(NaluFxError::InputError)?;
+    let _ = stdin().lock().read_line(&mut input).map_err(NaluFxError::InputError)?;
     Ok(input)
 }
 
@@ -54,9 +51,6 @@ pub fn get_input(prompt: &str) -> Result<String, NaluFxError> {
     stdout().flush().map_err(NaluFxError::InputError)?;
 
     let mut input = String::new();
-    let _ = stdin()
-        .lock()
-        .read_line(&mut input)
-        .map_err(NaluFxError::InputError)?;
+    let _ = stdin().lock().read_line(&mut input).map_err(NaluFxError::InputError)?;
     Ok(input.trim().to_string())
 }

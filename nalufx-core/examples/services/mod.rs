@@ -60,7 +60,7 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error reading input: {}", e);
             return Err(e);
-        }
+        },
     };
 
     // Determine which example to run based on the user's input
@@ -78,7 +78,7 @@ pub(crate) fn main() -> Result<(), NaluFxError> {
         Ok(0) => {
             println!("\nExiting NaluFX, goodbye!\n");
             return Ok(());
-        }
+        },
         _ => return Err(NaluFxError::InvalidOption),
     };
 

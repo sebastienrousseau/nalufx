@@ -157,10 +157,10 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                 }
                 min_returns_length = min_returns_length.min(daily_returns.len());
                 asset_data.push((asset, daily_returns));
-            }
+            },
             Err(e) => {
                 eprintln!("Error fetching data for asset {}: {}", asset, e);
-            }
+            },
         }
     }
 
@@ -171,10 +171,8 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     }
 
     // Truncate returns to the minimum length across all assets
-    let returns_matrix: Vec<Vec<f64>> = asset_data
-        .iter()
-        .map(|(_, returns)| returns[..min_returns_length].to_vec())
-        .collect();
+    let returns_matrix: Vec<Vec<f64>> =
+        asset_data.iter().map(|(_, returns)| returns[..min_returns_length].to_vec()).collect();
 
     // Debug: Print the shape of the returns matrix
     println!("Shape of returns_matrix: {:?}", returns_matrix.len());
@@ -197,9 +195,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Debug: Print the shape of the returns array
     println!("Shape of returns_array: {:?}", returns_array.dim());
 
-    let cov_matrix = returns_array
-        .cov(1.0)
-        .map_err(|_| NaluFxError::InvalidOption)?;
+    let cov_matrix = returns_array.cov(1.0).map_err(|_| NaluFxError::InvalidOption)?;
 
     // Optimize the portfolio for risk parity
     let optimal_weights = optimize_risk_parity(&assets, &cov_matrix);

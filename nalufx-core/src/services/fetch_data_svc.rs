@@ -65,31 +65,25 @@ pub async fn fetch_data(
                             let closes: Vec<f64> = quotes.iter().map(|quote| quote.close).collect();
                             info!("Successfully parsed closing prices: {:?}", closes);
                             Ok(closes)
-                        }
+                        },
                         Err(e) => {
                             error!("Failed to parse quotes for ticker {}: {}", ticker, e);
                             Err(Box::new(e))
-                        }
+                        },
                     },
                     Err(e) => {
                         error!("Failed to parse response JSON for ticker {}: {}", ticker, e);
                         Err(Box::new(e))
-                    }
+                    },
                 }
             } else {
-                error!(
-                    "Request failed with status: {}",
-                    response.status().to_string()
-                );
-                Err(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Request failed",
-                )))
+                error!("Request failed with status: {}", response.status().to_string());
+                Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Request failed")))
             }
-        }
+        },
         Err(e) => {
             error!("Failed to send request for ticker {}: {}", ticker, e);
             Err(Box::new(e))
-        }
+        },
     }
 }

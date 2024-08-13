@@ -45,7 +45,7 @@ pub async fn generate_analysis(
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     let end_date = match validate_date(end_date) {
@@ -53,7 +53,7 @@ pub async fn generate_analysis(
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     match fetch_data(ticker, Some(start_date), Some(end_date)).await {
@@ -107,9 +107,8 @@ pub async fn generate_analysis(
                     );
 
                     let response = llm.send_request(client, api_key, &prompt, 1500).await?;
-                    let message = response["choices"][0]["message"]["content"]
-                        .as_str()
-                        .unwrap_or("");
+                    let message =
+                        response["choices"][0]["message"]["content"].as_str().unwrap_or("");
 
                     // Extract key findings from the message
                     let key_findings = "\n--- Key findings ---\n\n";
@@ -126,7 +125,7 @@ pub async fn generate_analysis(
                         Err(e) => {
                             eprintln!("Error in sentiment analysis for ticker {}: {}", ticker, e);
                             Vec::new()
-                        }
+                        },
                     };
 
                     let optimal_actions = match train_reinforcement_learning(min_length) {
@@ -137,7 +136,7 @@ pub async fn generate_analysis(
                                 ticker, e
                             );
                             Vec::new()
-                        }
+                        },
                     };
 
                     // Generate Report
@@ -188,16 +187,13 @@ pub async fn generate_analysis(
                     println!("This report is intended for informational purposes only and should not be considered financial advice. Investing in the stock market carries risks, and past performance is not indicative of future results. Always conduct thorough research and consult with a financial professional before making any investment decisions.");
 
                     Ok(())
-                }
+                },
                 Err(e) => {
-                    eprintln!(
-                        "Error calculating optimal allocation for ticker {}: {}",
-                        ticker, e
-                    );
+                    eprintln!("Error calculating optimal allocation for ticker {}: {}", ticker, e);
                     return Err(NaluFxError::PortfolioOptimizationError(e.to_string()));
-                }
+                },
             }
-        }
+        },
         Err(e) => {
             eprintln!(
                 "Historical data not available for ticker {} in the specified date range: {}",
@@ -205,6 +201,6 @@ pub async fn generate_analysis(
             );
             println!("Please try a different date range or choose another ticker symbol.");
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     }
 }

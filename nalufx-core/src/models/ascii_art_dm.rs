@@ -16,7 +16,7 @@ impl fmt::Display for AsciiArtError {
             Self::FontLoadError => write!(f, "Failed to load FIGfont"),
             Self::ConversionError => {
                 write!(f, "Failed to convert text to ASCII art")
-            }
+            },
         }
     }
 }

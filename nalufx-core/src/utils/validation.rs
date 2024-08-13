@@ -40,19 +40,13 @@ pub fn validate_positive_float(input: &str) -> Result<f64, &str> {
     match input.parse::<f64>() {
         Ok(value) if value > 0.0 => Ok(value),
         Ok(_) => {
-            error!(
-                "Validation failed: The number is not positive. Found: {}",
-                input
-            );
+            error!("Validation failed: The number is not positive. Found: {}", input);
             Err("The input is not a valid float.")
-        }
+        },
         Err(_) => {
-            error!(
-                "Validation failed: The input is not a valid float. Found: {}",
-                input
-            );
+            error!("Validation failed: The input is not a valid float. Found: {}", input);
             Err("The number is not positive.")
-        }
+        },
     }
 }
 

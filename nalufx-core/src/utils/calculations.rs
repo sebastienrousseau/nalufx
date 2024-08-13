@@ -56,20 +56,10 @@ pub fn calculate_optimal_allocation(
     num_days: usize,
 ) -> Result<Vec<f64>, AllocationError> {
     // Check input lengths
-    check_input_lengths!(
-        daily_returns,
-        cash_flows,
-        market_indices,
-        fund_characteristics
-    )?;
+    check_input_lengths!(daily_returns, cash_flows, market_indices, fund_characteristics)?;
 
     // Check for empty inputs
-    check_empty_inputs!(
-        daily_returns,
-        cash_flows,
-        market_indices,
-        fund_characteristics
-    )?;
+    check_empty_inputs!(daily_returns, cash_flows, market_indices, fund_characteristics)?;
 
     // Check for invalid data
     check_invalid_data!(daily_returns, cash_flows)?;
@@ -79,18 +69,12 @@ pub fn calculate_optimal_allocation(
     check_outliers!(1_000_000.0, cash_flows)?;
 
     // Feature Engineering
-    let features = extract_features(
-        daily_returns,
-        cash_flows,
-        market_indices,
-        fund_characteristics,
-    )?;
+    let features =
+        extract_features(daily_returns, cash_flows, market_indices, fund_characteristics)?;
 
     // Time Series Forecasting
-    let forecasted_returns = handle_result!(
-        forecast_time_series(daily_returns, num_days),
-        ForecastingError
-    )?;
+    let forecasted_returns =
+        handle_result!(forecast_time_series(daily_returns, num_days), ForecastingError)?;
     let forecasted_cash_flows =
         handle_result!(forecast_time_series(cash_flows, num_days), ForecastingError)?;
 
@@ -98,10 +82,8 @@ pub fn calculate_optimal_allocation(
     let sentiment_scores = handle_result!(analyze_sentiment(num_days), SentimentAnalysisError)?;
 
     // Reinforcement Learning
-    let optimal_actions = handle_result!(
-        train_reinforcement_learning(num_days),
-        ReinforcementLearningError
-    )?;
+    let optimal_actions =
+        handle_result!(train_reinforcement_learning(num_days), ReinforcementLearningError)?;
 
     // Clustering
     let clusters = match perform_clustering(&features) {
@@ -109,7 +91,7 @@ pub fn calculate_optimal_allocation(
         Err(err) => {
             eprintln!("Error during clustering: {}", err);
             vec![0; num_days]
-        }
+        },
     };
 
     // Calculate averages
@@ -162,10 +144,7 @@ pub fn calculate_optimal_allocation(
     }
 
     // Normalize predictions to get the optimal allocations
-    Ok(predictions
-        .into_iter()
-        .map(|p| p / total_prediction)
-        .collect())
+    Ok(predictions.into_iter().map(|p| p / total_prediction).collect())
 }
 
 /// Extracts features from the input data for clustering.
@@ -209,20 +188,10 @@ pub fn extract_features(
     fund_characteristics: &[f64],
 ) -> Result<Array2<f64>, AllocationError> {
     // Check if input slices have the same length
-    check_input_lengths!(
-        daily_returns,
-        cash_flows,
-        market_indices,
-        fund_characteristics
-    )?;
+    check_input_lengths!(daily_returns, cash_flows, market_indices, fund_characteristics)?;
 
     // Check for empty inputs
-    check_empty_inputs!(
-        daily_returns,
-        cash_flows,
-        market_indices,
-        fund_characteristics
-    )?;
+    check_empty_inputs!(daily_returns, cash_flows, market_indices, fund_characteristics)?;
 
     // Check for invalid data
     check_invalid_data!(daily_returns, cash_flows)?;

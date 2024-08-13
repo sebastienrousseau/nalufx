@@ -54,7 +54,7 @@ async fn generate_combined_market_analysis_report(
         Err(err) => {
             eprintln!("{}", err);
             return Err("Failed to get OpenAI API key");
-        }
+        },
     };
 
     let stock_details: Vec<String> = stocks
@@ -164,7 +164,7 @@ async fn fetch_data_with_logging(
         Err(err) => {
             error!("Failed to fetch data for {}: {}", ticker, err);
             Err(format!("Failed to fetch data for {}: {}", ticker, err))
-        }
+        },
     }
 }
 
@@ -188,7 +188,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     let start_date_input = get_input("Enter the start date (YYYY-MM-DD):")?;
@@ -197,7 +197,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     let end_date_input = get_input("Enter the end date (YYYY-MM-DD):")?;
@@ -206,7 +206,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     let mut overall_initial_value = 0.0;
@@ -222,7 +222,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                 Err(e) => {
                     eprintln!("Error fetching market data for {}: {}", ticker, e);
                     return Err(NaluFxError::InvalidData);
-                }
+                },
             };
 
         // Calculate the initial market value
@@ -278,7 +278,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(err) => {
             eprintln!("Error generating combined market analysis report: {}", err);
             return Err(NaluFxError::InvalidData);
-        }
+        },
     };
 
     // Calculate the overall capital gain/loss
@@ -293,22 +293,10 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         start_date.format("%Y-%m-%d"),
         end_date.format("%Y-%m-%d")
     );
-    println!(
-        "Overall Initial Market Value: {}",
-        format_currency(overall_initial_value)
-    );
-    println!(
-        "Overall Final Market Value: {}",
-        format_currency(overall_final_value)
-    );
-    println!(
-        "Overall Capital Gain/Loss: {}",
-        format_currency(overall_capital_gain_loss)
-    );
-    println!(
-        "Overall Percentage Change: {:.2}%",
-        overall_percentage_change
-    );
+    println!("Overall Initial Market Value: {}", format_currency(overall_initial_value));
+    println!("Overall Final Market Value: {}", format_currency(overall_final_value));
+    println!("Overall Capital Gain/Loss: {}", format_currency(overall_capital_gain_loss));
+    println!("Overall Percentage Change: {:.2}%", overall_percentage_change);
 
     // Print the combined report
     println!("\n--- Combined Market Analysis Report ---\n");

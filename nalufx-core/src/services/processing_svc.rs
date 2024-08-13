@@ -49,8 +49,5 @@ pub fn calculate_daily_returns(closes: &[f64]) -> Vec<f64> {
 /// assert_eq!(cash_flows, vec![10.0, 9.900990099009901, -4.901960784313726]);
 /// ```
 pub fn calculate_cash_flows(daily_returns: &[f64], initial_investment: f64) -> Vec<f64> {
-    daily_returns
-        .iter()
-        .map(|&r| r * initial_investment)
-        .collect()
+    daily_returns.iter().map(|&r| r * initial_investment).collect()
 }

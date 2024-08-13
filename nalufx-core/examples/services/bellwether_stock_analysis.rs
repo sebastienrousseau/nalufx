@@ -28,15 +28,15 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                 Err(e) => {
                     eprintln!("Error: {}", e);
                     return Err(NaluFxError::InvalidData);
-                }
+                },
             };
             (Box::new(OpenAI), api_key)
-        }
+        },
         // Add other cases for different LLMs with their respective API key functions
         _ => {
             eprintln!("Unsupported LLM choice");
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     // Get user input for ticker, initial investment amount, start date, and end date
@@ -46,7 +46,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     // Get user input for the initial investment amount
@@ -57,7 +57,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
             Err(e) => {
                 eprintln!("Error: {}", e);
                 return Err(NaluFxError::InvalidOption);
-            }
+            },
         };
 
     let start_date_input = get_input("Enter the start date (YYYY-MM-DD):")?;

@@ -41,10 +41,7 @@ pub async fn generate_analysis(
     initial_investment: f64,
 ) -> Result<(), NaluFxError> {
     let date = Utc::now().format("%Y-%m-%d").to_string();
-    let filename = format!(
-        "./reports/{}_03_diversified_etf_portfolio_optimization.md",
-        date
-    );
+    let filename = format!("./reports/{}_03_diversified_etf_portfolio_optimization.md", date);
     let mut file = File::create(&filename)?;
 
     // Fetch historical closing prices for each ETF
@@ -59,10 +56,10 @@ pub async fn generate_analysis(
                 let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
 
                 etf_data.push((ticker.clone(), daily_returns, cash_flows));
-            }
+            },
             Err(e) => {
                 eprintln!("Error fetching data for ticker {}: {}", ticker, e);
-            }
+            },
         }
     }
 
@@ -110,10 +107,8 @@ pub async fn generate_analysis(
     // Truncate all slices to the minimum length
     let market_indices: Vec<f64> = market_indices.iter().map(|&(_, value)| value).collect();
     let market_indices = &market_indices[..min_length];
-    let fund_characteristics: Vec<f64> = fund_characteristics
-        .iter()
-        .map(|&(_, value)| value)
-        .collect();
+    let fund_characteristics: Vec<f64> =
+        fund_characteristics.iter().map(|&(_, value)| value).collect();
     let fund_characteristics = &fund_characteristics[..min_length];
 
     // Calculate the optimal allocation and other analysis results for each ETF
@@ -136,10 +131,8 @@ pub async fn generate_analysis(
                     .map(|alloc| if alloc < 0.0 { 0.0 } else { alloc })
                     .collect();
                 let total_allocation: f64 = optimal_allocation.iter().sum();
-                optimal_allocation = optimal_allocation
-                    .into_iter()
-                    .map(|alloc| alloc / total_allocation)
-                    .collect();
+                optimal_allocation =
+                    optimal_allocation.into_iter().map(|alloc| alloc / total_allocation).collect();
 
                 // Calculate sentiment analysis and reinforcement learning results
                 let sentiment_scores = analyze_sentiment(min_length).unwrap();
@@ -151,23 +144,20 @@ pub async fn generate_analysis(
                     sentiment_scores,
                     optimal_actions,
                 ));
-            }
+            },
             Err(e) => {
                 eprintln!("Error calculating optimal allocation for {}: {}", ticker, e);
-            }
+            },
         }
     }
 
     // Compare the outcomes of all ETFs and select the one with the best performance
-    if let Some((best_etf, best_allocation, best_sentiment, best_actions)) = etf_results
-        .into_iter()
-        .max_by(|(_, allocation1, _, _), (_, allocation2, _, _)| {
+    if let Some((best_etf, best_allocation, best_sentiment, best_actions)) =
+        etf_results.into_iter().max_by(|(_, allocation1, _, _), (_, allocation2, _, _)| {
             // Define a custom metric to compare ETF performance (e.g., average allocation)
             let avg_alloc1 = allocation1.iter().sum::<f64>() / allocation1.len() as f64;
             let avg_alloc2 = allocation2.iter().sum::<f64>() / allocation2.len() as f64;
-            avg_alloc1
-                .partial_cmp(&avg_alloc2)
-                .unwrap_or(std::cmp::Ordering::Equal)
+            avg_alloc1.partial_cmp(&avg_alloc2).unwrap_or(std::cmp::Ordering::Equal)
         })
     {
         let introduction = format!("# Strategic ETF Allocation and Performance Analysis Report\n\n## Introduction\nExchange-Traded Funds (ETFs) are investment funds that trade like stocks. They hold assets such as stocks, commodities, or bonds and generally operate with an arbitrage mechanism designed to keep their trading close to their net asset value, though deviations can occasionally occur.");
@@ -234,10 +224,7 @@ pub async fn generate_analysis(
         writeln!(file, "{}", sentiment_table_rows)?;
 
         // Calculate the peak and low sentiment days
-        let max_score = best_sentiment
-            .iter()
-            .cloned()
-            .fold(f64::NEG_INFINITY, f64::max);
+        let max_score = best_sentiment.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
         let min_score = best_sentiment.iter().cloned().fold(f64::INFINITY, f64::min);
         let peak_day = best_sentiment.iter().position(|&x| x == max_score).unwrap() + 1;
         let low_days: Vec<_> = best_sentiment
@@ -275,10 +262,7 @@ pub async fn generate_analysis(
         writeln!(file, "{}", action_table_rows)?;
 
         // Calculate the peak and low action days
-        let max_action = best_actions
-            .iter()
-            .cloned()
-            .fold(f64::NEG_INFINITY, f64::max);
+        let max_action = best_actions.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
         let min_action = best_actions.iter().cloned().fold(f64::INFINITY, f64::min);
         let high_action_days: Vec<_> = best_actions
             .iter()
@@ -330,9 +314,7 @@ pub async fn generate_analysis(
         // Generate and display the chart
         Chart::new_with_y_range(120, 60, 0.0, last_x_value, 0.0, 1.0)
             .lineplot(&Shape::Lines(&plot_data))
-            .x_label_format(LabelFormat::Custom(Box::new(|x| {
-                format!("Day {}", x as usize + 1)
-            })))
+            .x_label_format(LabelFormat::Custom(Box::new(|x| format!("Day {}", x as usize + 1))))
             .y_label_format(LabelFormat::Custom(Box::new(|y| format!("{:.2}", y))))
             .display();
 

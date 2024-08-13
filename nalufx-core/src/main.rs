@@ -62,8 +62,5 @@ async fn main() -> std::io::Result<()> {
 
     let config = Config::from_env().expect("Failed to load configuration");
 
-    HttpServer::new(|| App::new().service(predict_cash_flow))
-        .bind(config.server_addr)?
-        .run()
-        .await
+    HttpServer::new(|| App::new().service(predict_cash_flow)).bind(config.server_addr)?.run().await
 }

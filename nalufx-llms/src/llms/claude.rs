@@ -25,12 +25,12 @@ pub fn get_claude_api_key() -> Result<String, &'static str> {
             Err(_) => {
                 error!("CLAUDE_API_KEY not found in the .env file");
                 Err("CLAUDE_API_KEY not found in the .env file")
-            }
+            },
         },
         Err(err) => {
             error!("Failed to load .env file: {:?}", err);
             Err("Failed to load .env file")
-        }
+        },
     }
 }
 
@@ -64,10 +64,7 @@ pub async fn send_claude_request(
             "Error contacting Claude API"
         })?;
     if !response.status().is_success() {
-        error!(
-            "Claude API call failed with status: {:?}",
-            response.status()
-        );
+        error!("Claude API call failed with status: {:?}", response.status());
         return Err("Claude API call failed");
     }
     response.text().await.map_err(|err| {
@@ -103,11 +100,7 @@ pub fn parse_claude_response(body: &str) -> Result<Vec<f64>, HttpResponse> {
         .choices
         .iter()
         .flat_map(|choice| {
-            choice
-                .message
-                .content
-                .split_whitespace()
-                .map(|s| s.parse().unwrap_or_default())
+            choice.message.content.split_whitespace().map(|s| s.parse().unwrap_or_default())
         })
         .collect();
 

@@ -36,7 +36,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     let initial_investment_input = get_input("Enter the initial investment amount:")?;
@@ -45,7 +45,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     // Fetch historical closing prices for the ticker
@@ -117,10 +117,8 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
             let cash_flows = &cash_flows[..min_length];
             let market_indices: Vec<f64> = market_indices.iter().map(|&(_, value)| value).collect();
             let market_indices = &market_indices[..min_length];
-            let fund_characteristics: Vec<f64> = fund_characteristics
-                .iter()
-                .map(|&(_, value)| value)
-                .collect();
+            let fund_characteristics: Vec<f64> =
+                fund_characteristics.iter().map(|&(_, value)| value).collect();
             let fund_characteristics = &fund_characteristics[..min_length];
 
             // Calculate the optimal allocation based on truncated input slices
@@ -169,7 +167,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                         Err(e) => {
                             eprintln!("Error in sentiment analysis for ticker {}: {}", ticker, e);
                             Vec::new()
-                        }
+                        },
                     };
                     println!("\n--- Sentiment Analysis Results ---\n");
                     println!("The sentiment scores represent the market sentiment for each day in the allocation period:");
@@ -193,7 +191,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                                 ticker, e
                             );
                             Vec::new()
-                        }
+                        },
                     };
                     println!("\n--- Reinforcement Learning Results ---\n");
                     println!("The optimal actions represent the recommended actions for each day in the allocation period:");
@@ -236,18 +234,15 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                     println!("These recommendations are based on historical data and should be considered as a starting point for your investment strategy.");
                     println!("Market conditions can change rapidly, and past performance is not indicative of future results.");
                     println!("It is always advisable to conduct further research and consult with a financial advisor before making any investment decisions.\n");
-                }
+                },
                 Err(e) => {
-                    eprintln!(
-                        "Error calculating optimal allocation for ticker {}: {}",
-                        ticker, e
-                    );
-                }
+                    eprintln!("Error calculating optimal allocation for ticker {}: {}", ticker, e);
+                },
             }
-        }
+        },
         Err(e) => {
             eprintln!("Error fetching data for ticker {}: {}", ticker, e);
-        }
+        },
     }
 
     Ok(())

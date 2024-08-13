@@ -41,10 +41,7 @@ pub fn validate_ticker(input: &str) -> Result<&str, &str> {
         error!("Validation failed: The ticker symbol cannot be empty.");
         Err("The ticker symbol cannot be empty.")
     } else if !input.chars().all(|c| c.is_alphanumeric()) {
-        error!(
-            "Validation failed: The ticker symbol must be alphanumeric. Found: {}",
-            input
-        );
+        error!("Validation failed: The ticker symbol must be alphanumeric. Found: {}", input);
         Err("The ticker symbol must be alphanumeric.")
     } else {
         Ok(input)

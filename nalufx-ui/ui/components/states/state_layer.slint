@@ -1,0 +1,33 @@
+import { NalufxTheme } from "../themes/index.slint";
+
+export component StateLayer inherits TouchArea {
+    // Input properties for customization
+    in-out property <length> border-radius <=> i-container.border-radius;
+    in-out property <brush> background <=> i-container.background;
+    in property <float> pressed-opacity: 0.1618; // Golden ratio approximation for pressed state
+    in property <float> hover-opacity: 0.08; // Default hover opacity
+    in property <duration> background-transition-duration: NalufxTheme.durations.medium;
+    in property <duration> opacity-transition-duration: NalufxTheme.durations.medium;
+
+    // Internal property to track current opacity
+    private property <float> current-opacity: 0;
+
+    states [
+        pressed when root.pressed : {
+            current-opacity: pressed-opacity;
+        }
+        hover when root.has-hover : {
+            current-opacity: hover-opacity;
+        }
+    ]
+
+    i-container := Rectangle {
+        width: 100%;
+        height: 100%;
+        background: NalufxTheme.palette.black;
+        opacity: current-opacity;
+
+        animate background { duration: background-transition-duration; }
+        animate opacity { duration: opacity-transition-duration; }
+    }
+}

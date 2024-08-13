@@ -24,12 +24,12 @@ pub fn get_gemini_api_key() -> Result<String, &'static str> {
             Err(_) => {
                 error!("GEMINI_API_KEY not found in the .env file");
                 Err("GEMINI_API_KEY not found in the .env file")
-            }
+            },
         },
         Err(err) => {
             error!("Failed to load .env file: {:?}", err);
             Err("Failed to load .env file")
-        }
+        },
     }
 }
 
@@ -52,12 +52,7 @@ pub async fn send_gemini_request(
     api_key: &str,
     request_body: serde_json::Value,
 ) -> Result<serde_json::Value, reqwest::Error> {
-    let response = client
-        .post(api_url)
-        .bearer_auth(api_key)
-        .json(&request_body)
-        .send()
-        .await?;
+    let response = client.post(api_url).bearer_auth(api_key).json(&request_body).send().await?;
 
     let json_response: serde_json::Value = response.json().await?;
     Ok(json_response)
@@ -90,11 +85,7 @@ pub fn parse_gemini_response(body: &str) -> Result<Vec<f64>, HttpResponse> {
         .choices
         .iter()
         .flat_map(|choice| {
-            choice
-                .message
-                .content
-                .split_whitespace()
-                .map(|s| s.parse().unwrap_or_default())
+            choice.message.content.split_whitespace().map(|s| s.parse().unwrap_or_default())
         })
         .collect();
 

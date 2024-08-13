@@ -19,23 +19,19 @@ pub fn setup(window: &MainWindow) -> Timer {
     let update_timer = Timer::default();
 
     // Start the timer with a 300ms interval, repeating indefinitely
-    update_timer.start(
-        slint::TimerMode::Repeated,
-        std::time::Duration::from_millis(300),
-        {
-            // Capture a weak reference to the main window
-            let weak_window = window.as_weak();
+    update_timer.start(slint::TimerMode::Repeated, std::time::Duration::from_millis(300), {
+        // Capture a weak reference to the main window
+        let weak_window = window.as_weak();
 
-            // Define the closure to be executed when the timer fires
-            move || {
-                // Attempt to upgrade the weak reference to a strong reference
-                if let Some(window) = weak_window.upgrade() {
-                    // Update the date and time in the header adapter
-                    update(&window.global::<HeaderAdapter>());
-                }
+        // Define the closure to be executed when the timer fires
+        move || {
+            // Attempt to upgrade the weak reference to a strong reference
+            if let Some(window) = weak_window.upgrade() {
+                // Update the date and time in the header adapter
+                update(&window.global::<HeaderAdapter>());
             }
-        },
-    );
+        }
+    });
 
     // Return the started timer
     update_timer

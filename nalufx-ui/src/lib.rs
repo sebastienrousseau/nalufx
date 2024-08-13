@@ -4,10 +4,9 @@
 use wasm_bindgen::prelude::*;
 
 use crate::ui::{HeaderAdapter, MainWindow, MenuOverviewAdapter, SettingsAdapter};
-use slint::*;
-use dtt::DateTime;
 use dtt::dtt_print;
-
+use dtt::DateTime;
+use slint::*;
 
 /// This module contains the generated UI code for the application.
 pub mod ui {
@@ -89,11 +88,7 @@ fn kiosk_timer(window: &MainWindow) -> Timer {
             let current_page = menu_overview.get_current_page();
             let count = menu_overview.get_count();
 
-            let new_page = if current_page >= count - 1 {
-                0
-            } else {
-                current_page + 1
-            };
+            let new_page = if current_page >= count - 1 { 0 } else { current_page + 1 };
 
             menu_overview.set_current_page(new_page);
         }

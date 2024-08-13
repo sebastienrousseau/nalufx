@@ -125,11 +125,8 @@ fn calculate_macd(
     let short_ema = calculate_ema(data, short_window);
     let long_ema = calculate_ema(data, long_window);
 
-    let macd: Vec<f64> = short_ema
-        .iter()
-        .zip(long_ema.iter())
-        .map(|(short, long)| short - long)
-        .collect();
+    let macd: Vec<f64> =
+        short_ema.iter().zip(long_ema.iter()).map(|(short, long)| short - long).collect();
 
     let signal = calculate_ema(&macd, signal_window);
 
@@ -158,14 +155,8 @@ fn identify_support_resistance(data: &[f64], window: usize) -> (Vec<f64>, Vec<f6
 
     for i in window..data.len() - window {
         let slice = &data[i - window..i + window + 1];
-        let min = slice
-            .iter()
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap();
-        let max = slice
-            .iter()
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap();
+        let min = slice.iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap();
+        let max = slice.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap();
 
         if data[i] == *min {
             support.push(data[i]);
@@ -207,7 +198,7 @@ async fn generate_technical_analysis_report(
         Err(err) => {
             eprintln!("{}", err);
             return Err("Failed to get OpenAI API key");
-        }
+        },
     };
 
     let request_body = json!({
@@ -310,7 +301,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     // Fetch historical price data for the stock
@@ -320,7 +311,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     let end_date_input = get_input("Enter the end date (YYYY-MM-DD):")?;
@@ -329,7 +320,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     let closing_prices = match fetch_data(&ticker, Some(start_date), Some(end_date)).await {
@@ -340,7 +331,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                 "Failed to fetch historical data".to_string(),
             )
             .into());
-        }
+        },
     };
 
     // Calculate technical indicators
@@ -353,12 +344,8 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
 
     let ema = calculate_ema(&closing_prices, ema_window);
     let rsi = calculate_rsi(&closing_prices, rsi_window);
-    let (macd, macd_signal, macd_histogram) = calculate_macd(
-        &closing_prices,
-        macd_short_window,
-        macd_long_window,
-        macd_signal_window,
-    );
+    let (macd, macd_signal, macd_histogram) =
+        calculate_macd(&closing_prices, macd_short_window, macd_long_window, macd_signal_window);
     let (support_levels, resistance_levels) =
         identify_support_resistance(&closing_prices, support_resistance_window);
 
@@ -382,16 +369,12 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                 "Failed to generate technical analysis report".to_string(),
             )
             .into());
-        }
+        },
     };
 
     println!("\n--- Professional Technical Analysis Report ---\n");
     println!("Ticker: {}", ticker);
-    println!(
-        "Period: {} to {}",
-        start_date.format("%Y-%m-%d"),
-        end_date.format("%Y-%m-%d")
-    );
+    println!("Period: {} to {}", start_date.format("%Y-%m-%d"), end_date.format("%Y-%m-%d"));
 
     // Print the data sections
     println!("\n--- Price Analysis ---\n");

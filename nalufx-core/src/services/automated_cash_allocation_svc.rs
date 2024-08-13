@@ -39,20 +39,10 @@ pub async fn generate_analysis(
     let allocations_str = etf_allocation
         .iter()
         .map(|order| {
-            format!(
-                "{}: {} ({})",
-                order.name,
-                format_currency(order.amount),
-                order.symbol
-            )
+            format!("{}: {} ({})", order.name, format_currency(order.amount), order.symbol)
         })
         .chain(mutual_fund_allocation.iter().map(|order| {
-            format!(
-                "{}: {} ({})",
-                order.name,
-                format_currency(order.amount),
-                order.symbol
-            )
+            format!("{}: {} ({})", order.name, format_currency(order.amount), order.symbol)
         }))
         .collect::<Vec<_>>()
         .join("\n");
@@ -78,10 +68,8 @@ pub async fn generate_analysis(
 
     let response = llm.send_request(client, api_key, &prompt, 1500).await?;
 
-    let generated_report = response["choices"][0]["message"]["content"]
-        .as_str()
-        .unwrap_or("")
-        .to_string();
+    let generated_report =
+        response["choices"][0]["message"]["content"].as_str().unwrap_or("").to_string();
 
     Ok(generated_report)
 }

@@ -87,7 +87,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     let end_date_input = get_input("Enter the end date (YYYY-MM-DD):")?;
@@ -96,7 +96,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     // Fetch historical performance data for each asset
@@ -110,10 +110,10 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                     continue;
                 }
                 asset_data.push((asset, daily_returns));
-            }
+            },
             Err(e) => {
                 eprintln!("Error fetching data for asset {}: {}", asset, e);
-            }
+            },
         }
     }
 
@@ -124,18 +124,13 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     }
 
     // Calculate the returns matrix and covariance matrix
-    let returns_matrix: Vec<Vec<f64>> = asset_data
-        .iter()
-        .map(|(_, returns)| returns.clone())
-        .collect();
+    let returns_matrix: Vec<Vec<f64>> =
+        asset_data.iter().map(|(_, returns)| returns.clone()).collect();
     let num_assets = returns_matrix.len();
     let num_returns = returns_matrix[0].len();
 
     // Debug: Print the shape of the returns matrix
-    println!(
-        "Shape of returns_matrix: {:?} x {:?}",
-        num_assets, num_returns
-    );
+    println!("Shape of returns_matrix: {:?} x {:?}", num_assets, num_returns);
 
     // Ensure all assets have the same number of returns
     if returns_matrix.iter().any(|r| r.len() != num_returns) {
@@ -155,17 +150,12 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Debug: Print the shape of the returns array
     println!("Shape of returns_array: {:?}", returns_array.dim());
 
-    let cov_matrix = returns_array
-        .t()
-        .cov(1.0)
-        .map_err(|_| NaluFxError::InvalidOption)?;
+    let cov_matrix = returns_array.t().cov(1.0).map_err(|_| NaluFxError::InvalidOption)?;
 
     // Get user input for target return
     let target_return_input = get_input("Enter the target return for the portfolio:")?;
-    let target_return: f64 = target_return_input
-        .trim()
-        .parse()
-        .map_err(|_| NaluFxError::InvalidOption)?;
+    let target_return: f64 =
+        target_return_input.trim().parse().map_err(|_| NaluFxError::InvalidOption)?;
 
     // Optimize the portfolio for mean-variance
     let optimal_weights =

@@ -22,7 +22,7 @@ async fn predict_cash_flow(
         Err(err) => {
             error!("{}", err);
             return HttpResponse::InternalServerError().body("Internal Server Error");
-        }
+        },
     };
 
     if data.historical_data.is_empty() {
@@ -30,12 +30,8 @@ async fn predict_cash_flow(
         return HttpResponse::BadRequest().body("Invalid historical data");
     }
 
-    let historical_data_str = data
-        .historical_data
-        .iter()
-        .map(|d| d.to_string())
-        .collect::<Vec<_>>()
-        .join(", ");
+    let historical_data_str =
+        data.historical_data.iter().map(|d| d.to_string()).collect::<Vec<_>>().join(", ");
 
     let request_body = json!({
         "model": "gpt-3.5-turbo",
@@ -60,11 +56,7 @@ async fn predict_cash_flow(
     };
 
     // Ensure predictions have a length of 6
-    let predictions = if predictions.len() == 6 {
-        predictions
-    } else {
-        vec![0.0; 6]
-    };
+    let predictions = if predictions.len() == 6 { predictions } else { vec![0.0; 6] };
 
     // Calculate the optimal allocation based on predictions
     let optimal_allocation_result = calculate_optimal_allocation(
@@ -76,13 +68,12 @@ async fn predict_cash_flow(
     );
 
     match optimal_allocation_result {
-        Ok(optimal_allocation) => HttpResponse::Ok().json(CashFlowResponse {
-            predictions,
-            optimal_allocation,
-        }),
+        Ok(optimal_allocation) => {
+            HttpResponse::Ok().json(CashFlowResponse { predictions, optimal_allocation })
+        },
         Err(e) => {
             error!("Error calculating optimal allocation: {}", e);
             HttpResponse::InternalServerError().body("Error calculating optimal allocation")
-        }
+        },
     }
 }

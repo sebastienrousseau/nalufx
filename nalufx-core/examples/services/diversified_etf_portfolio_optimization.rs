@@ -21,10 +21,7 @@ use nalufx::{
 pub(crate) async fn main() -> Result<(), NaluFxError> {
     let tickers_input =
         get_input("Enter the ticker symbols separated by commas (e.g., SQQQ,SPY,SOXL,XLF):")?;
-    let tickers: Vec<String> = tickers_input
-        .split(',')
-        .map(|s| s.trim().to_string())
-        .collect();
+    let tickers: Vec<String> = tickers_input.split(',').map(|s| s.trim().to_string()).collect();
 
     for ticker in &tickers {
         if let Err(e) = validate_ticker(ticker) {
@@ -39,7 +36,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     generate_analysis(tickers, initial_investment).await

@@ -51,15 +51,15 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                 Err(e) => {
                     eprintln!("Error: {}", e);
                     return Err(NaluFxError::InvalidData);
-                }
+                },
             };
             (Box::new(OpenAI), api_key)
-        }
+        },
         // Add other cases for different LLMs with their respective API key functions
         _ => {
             eprintln!("Unsupported LLM choice");
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     // Get user input for portfolio name, investor's values, and financial objectives
@@ -73,7 +73,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     let end_date_input = get_input("Enter the end date (YYYY-MM-DD):")?;
@@ -82,7 +82,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Err(e) => {
             eprintln!("Error: {}", e);
             return Err(NaluFxError::InvalidOption);
-        }
+        },
     };
 
     // Step 1: Fetch latest fund data
@@ -227,11 +227,8 @@ fn generate_allocation_report(
     mutual_fund_allocation: &[AllocationOrder],
     analysis: String,
 ) -> Report {
-    let total_allocation: f64 = etf_allocation
-        .iter()
-        .chain(mutual_fund_allocation.iter())
-        .map(|order| order.amount)
-        .sum();
+    let total_allocation: f64 =
+        etf_allocation.iter().chain(mutual_fund_allocation.iter()).map(|order| order.amount).sum();
     Report {
         etf_orders: etf_allocation.to_vec(),
         mutual_fund_orders: mutual_fund_allocation.to_vec(),
@@ -243,10 +240,7 @@ fn generate_allocation_report(
 /// Prints the results of the allocation report.
 fn print_results(report: &Report) {
     println!("\n--- Allocation Report ---");
-    println!(
-        "\nTotal Allocation: {}",
-        format_currency(report.total_allocation)
-    );
+    println!("\nTotal Allocation: {}", format_currency(report.total_allocation));
     println!("\nETF Orders:\n");
     for order in &report.etf_orders {
         println!(
@@ -265,10 +259,7 @@ fn print_results(report: &Report) {
             format_currency(order.amount)
         );
     }
-    println!(
-        "\n--- Automated Cash Allocation Analysis ---\n\n{}",
-        report.analysis
-    );
+    println!("\n--- Automated Cash Allocation Analysis ---\n\n{}", report.analysis);
 }
 
 /// Saves the allocation report to a JSON file.
@@ -326,10 +317,7 @@ async fn fetch_real_time_prices(
 ) -> Result<HashMap<String, (f64, f64)>, reqwest::Error> {
     let mut headers = header::HeaderMap::new();
     let _ = headers.insert("User-Agent", header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"));
-    let _ = headers.insert(
-        "Accept",
-        header::HeaderValue::from_static("application/json"),
-    );
+    let _ = headers.insert("Accept", header::HeaderValue::from_static("application/json"));
     let _ = headers.insert("Cookie", header::HeaderValue::from_static("YahooFcUrl"));
 
     let client = Client::builder().default_headers(headers).build()?;
@@ -345,9 +333,8 @@ async fn fetch_real_time_prices(
         let data: serde_json::Value = response.json().await?;
         if let Some(result) = data["chart"]["result"].as_array() {
             if let Some(_timestamps) = result.get(0).and_then(|r| r["timestamp"].as_array()) {
-                if let Some(closes) = result
-                    .get(0)
-                    .and_then(|r| r["indicators"]["quote"][0]["close"].as_array())
+                if let Some(closes) =
+                    result.get(0).and_then(|r| r["indicators"]["quote"][0]["close"].as_array())
                 {
                     if let (Some(start_price), Some(end_price)) = (
                         closes.first().and_then(|v| v.as_f64()),

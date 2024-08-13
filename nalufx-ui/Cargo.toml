@@ -37,8 +37,8 @@ slint = "1.7.1"                                   # The slint dependency.
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"                       # Panic hook for better error messages in the browser.
-wasm-bindgen = { version = "0.2.92" }                    # Bindings between WebAssembly and JavaScript.
-web-sys = { version = "0.3.69", features = ["console"] } # Web APIs for Rust.
+wasm-bindgen = { version = "0.2.93" }                    # Bindings between WebAssembly and JavaScript.
+web-sys = { version = "0.3.70", features = ["console"] } # Web APIs for Rust.
 
 [build-dependencies]
 # Dependencies for build scripts.
