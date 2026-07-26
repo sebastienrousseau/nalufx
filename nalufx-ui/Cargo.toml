@@ -29,7 +29,7 @@ path = "src/main.rs" # The path to the binary file.
 [dependencies]
 nalufx-core = { path = "../nalufx-core" , version = "0.0.1" }         # The nalufx-core dependency.
 dotenvy = "0.15.7"                                # A dotenv implementation for Rust.
-dtt = "0.0.6"                                     # The dtt dependency.
+dtt = "0.0.9"                                     # The dtt dependency.
 env_logger = "0.11.5"                             # Logging for Rust.
 futures = { version = "0.3.30", optional = true } # Asynchronous programming in Rust.
 log = "0.4.22"                                    # Logging for Rust.
