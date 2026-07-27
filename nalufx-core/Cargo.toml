@@ -38,7 +38,7 @@ log = "0.4.21"
 nalgebra = "0.35.0"
 ndarray = "0.16.1"
 ndarray-stats = "0.7.0"
-printpdf = "0.7.0"
+printpdf = "0.12.4"
 rand = "0.8.5"
 reqwest = { version = "0.12.5", features = ["json"] }
 serde = { version = "1.0.204", features = ["derive"] }
