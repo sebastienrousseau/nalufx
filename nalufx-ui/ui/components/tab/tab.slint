@@ -118,7 +118,8 @@ export component TabWidget inherits Rectangle {
     HorizontalLayout {
         // Tab bar background pane
         Rectangle {
-            width: root.is-vertical ? root.tab-bar-width : parent.width;
+            width: root.is-vertical ? root.tab-bar-width : 0px;
+            horizontal-stretch: root.is-vertical ? 0 : 1;
             height: root.is-vertical ? root.tab-bar-height : 40px;
             background: NalufxTheme.palette.primary.darker(60%);
 

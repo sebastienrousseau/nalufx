@@ -48,11 +48,11 @@ pub fn setup(window: &MainWindow) -> Timer {
 /// This function does not return any value.
 fn update(header_adapter: &HeaderAdapter) {
     let dt = DateTime::new();
-    let year = dt.year;
-    let month = dt.month;
-    let day = dt.day;
-    let hour = dt.hour;
-    let minute = dt.minute;
+    let year = dt.year();
+    let month = dt.month();
+    let day = dt.day();
+    let hour = dt.hour();
+    let minute = dt.minute();
 
     // Convert 24-hour format to 12-hour format and determine AM/PM suffix
     let (formatted_hour, am_pm) = if hour == 0 {

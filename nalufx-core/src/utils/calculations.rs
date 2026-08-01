@@ -3,8 +3,10 @@ use crate::{
     check_empty_inputs, check_input_lengths, check_invalid_data, check_outliers,
     fill_feature_matrix, handle_result, normalize_features,
 };
+use augurs_core::{Fit as AugursFit, Predict as AugursPredict};
 use augurs_ets::AutoETS;
-use linfa::prelude::{Predict as LinfaPredict, *};
+use linfa::prelude::Dataset;
+use linfa::traits::{Fit as LinfaFit, Predict as LinfaPredict};
 use linfa_clustering::KMeans;
 use ndarray::prelude::*;
 use rand::Rng;
@@ -250,9 +252,9 @@ pub fn extract_features(
 /// }
 /// ```
 pub fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, String> {
-    let mut search = AutoETS::new(1, "ZZN").map_err(|e| e.to_string())?;
+    let search = AutoETS::new(1, "ZZN").map_err(|e| e.to_string())?;
     let model = search.fit(data).map_err(|e| e.to_string())?;
-    let forecast = model.predict(num_days, 0.95);
+    let forecast = model.predict(num_days, 0.95).map_err(|e| e.to_string())?;
     Ok(forecast.point)
 }
 
