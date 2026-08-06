@@ -62,12 +62,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      # Reads .cargo/audit.toml, which ignores the four unmaintained
-      # advisories in Slint's font stack. There are no vulnerability
-      # advisories against this tree.
-      - uses: rustsec/audit-check@v2
+      # Pinned to the v2.0.0 commit: the action publishes no floating
+      # `v2` tag, only `v2.0.0`, so `@v2` does not resolve at all.
+      #
+      # The ignore list is passed explicitly rather than left to
+      # .cargo/audit.toml, since the action shells out with its own
+      # arguments. These are the four *unmaintained* advisories in
+      # Slint's font stack — there are no vulnerability advisories
+      # against this tree. .cargo/audit.toml carries the same list, with
+      # a note on each, so local `cargo audit` runs agree with CI.
+      - uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ignore: RUSTSEC-2025-0141,RUSTSEC-2024-0436,RUSTSEC-2026-0206,RUSTSEC-2026-0192
 
   # Nightly toolchain tests (optional, continue on error)
   test-nightly:
