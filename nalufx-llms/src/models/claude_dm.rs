@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Fields
 ///
 /// * `choices` - A vector of `ClaudeChoice` structs representing the choices
-/// provided by the Claude API.
+///   provided by the Claude API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ClaudeResponse {
     /// A vector of ClaudeChoice structs
@@ -23,7 +23,7 @@ pub struct ClaudeResponse {
 /// # Fields
 ///
 /// * `message` - A `ClaudeMessage` struct representing the message content
-/// of the choice provided by the Claude API.
+///   of the choice provided by the Claude API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ClaudeChoice {
     /// A ClaudeMessage struct
@@ -38,7 +38,7 @@ pub struct ClaudeChoice {
 /// # Fields
 ///
 /// * `content` - A string representing the content of the message
-/// provided by the Claude API.
+///   provided by the Claude API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ClaudeMessage {
     /// A string representing the content of the message

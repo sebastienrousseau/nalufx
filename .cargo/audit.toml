@@ -1,0 +1,32 @@
+# cargo-audit configuration.
+#
+# The CI audit step runs with warnings denied, which makes
+# *unmaintained* advisories fail the build alongside real
+# vulnerabilities. There are currently no vulnerability advisories
+# against this tree — `cargo audit` reports zero — only the
+# unmaintained notices below, every one of them transitive and with no
+# fixed version to move to.
+#
+# Each entry states who pulls the crate in and why it cannot simply be
+# bumped. Re-check when the corresponding upstream moves; delete the
+# entry rather than letting it rot.
+
+[advisories]
+ignore = [
+    # bincode: unmaintained. Reached through the Slint renderer stack.
+    # No successor release; nothing to upgrade to.
+    "RUSTSEC-2025-0141",
+
+    # paste: no longer maintained. A proc-macro dependency of several
+    # crates in the Slint and ndarray trees. It is a compile-time-only
+    # dependency with no runtime surface.
+    "RUSTSEC-2024-0436",
+
+    # rustybuzz: unmaintained. Slint's text shaping engine — not a
+    # direct dependency and not selectable from here.
+    "RUSTSEC-2026-0206",
+
+    # ttf-parser: unmaintained. Font parsing, pulled in by the same
+    # Slint text stack as rustybuzz.
+    "RUSTSEC-2026-0192",
+]

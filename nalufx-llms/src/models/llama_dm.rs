@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Fields
 ///
 /// * `choices` - A vector of `LlamaChoice` structs representing the choices
-/// provided by the Llama API.
+///   provided by the Llama API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LlamaResponse {
     /// A vector of LlamaChoice structs
@@ -23,7 +23,7 @@ pub struct LlamaResponse {
 /// # Fields
 ///
 /// * `message` - A `LlamaMessage` struct representing the message content
-/// of the choice provided by the Llama API.
+///   of the choice provided by the Llama API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LlamaChoice {
     /// A LlamaMessage struct
@@ -38,7 +38,7 @@ pub struct LlamaChoice {
 /// # Fields
 ///
 /// * `content` - A string representing the content of the message
-/// provided by the Llama API.
+///   provided by the Llama API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LlamaMessage {
     /// A string representing the content of the message

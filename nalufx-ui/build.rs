@@ -14,5 +14,12 @@
 /// * `Result<(), Box<dyn std::error::Error>>` - If the compilation is successful, it returns `Ok(())`.
 ///   If an error occurs during the compilation, it returns `Err` containing the error details.
 fn main() {
-    slint_build::compile("ui/window.slint").unwrap();
+    // `unwrap()` here reports a Slint compile failure as a build-script
+    // panic, which buries the actual diagnostics in a single-line Debug
+    // dump of the whole error vector. Printing them and exiting keeps
+    // each `file:line: message` on its own line.
+    if let Err(error) = slint_build::compile("ui/window.slint") {
+        eprintln!("error: failed to compile ui/window.slint:\n{error}");
+        std::process::exit(1);
+    }
 }

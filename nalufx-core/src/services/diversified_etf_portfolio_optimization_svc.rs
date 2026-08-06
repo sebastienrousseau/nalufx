@@ -72,7 +72,7 @@ pub async fn generate_analysis(
     }
 
     // Generate more market indices data
-    let market_indices = vec![
+    let market_indices = [
         (Utc::now() - Duration::days(90), 1000.0),
         (Utc::now() - Duration::days(60), 1010.0),
         (Utc::now() - Duration::days(30), 1005.0),
@@ -84,7 +84,7 @@ pub async fn generate_analysis(
     ];
 
     // Generate more fund characteristics data
-    let fund_characteristics = vec![
+    let fund_characteristics = [
         (Utc::now() - Duration::days(90), 0.8),
         (Utc::now() - Duration::days(60), 0.9),
         (Utc::now() - Duration::days(30), 0.85),
@@ -160,15 +160,15 @@ pub async fn generate_analysis(
             avg_alloc1.partial_cmp(&avg_alloc2).unwrap_or(std::cmp::Ordering::Equal)
         })
     {
-        let introduction = format!("# Strategic ETF Allocation and Performance Analysis Report\n\n## Introduction\nExchange-Traded Funds (ETFs) are investment funds that trade like stocks. They hold assets such as stocks, commodities, or bonds and generally operate with an arbitrage mechanism designed to keep their trading close to their net asset value, though deviations can occasionally occur.");
+        let introduction = "# Strategic ETF Allocation and Performance Analysis Report\n\n## Introduction\nExchange-Traded Funds (ETFs) are investment funds that trade like stocks. They hold assets such as stocks, commodities, or bonds and generally operate with an arbitrage mechanism designed to keep their trading close to their net asset value, though deviations can occasionally occur.".to_string();
         println!("{}", introduction);
         writeln!(file, "{}", introduction)?;
 
-        let etf_selection_process = format!("\n## ETF Selection Process\nThe top-performing ETF was identified through a rigorous selection process considering historical performance, market capitalization, and sector analysis. This comprehensive approach ensures that the ETF chosen represents a robust investment opportunity.");
+        let etf_selection_process = "\n## ETF Selection Process\nThe top-performing ETF was identified through a rigorous selection process considering historical performance, market capitalization, and sector analysis. This comprehensive approach ensures that the ETF chosen represents a robust investment opportunity.".to_string();
         println!("{}", etf_selection_process);
         writeln!(file, "{}", etf_selection_process)?;
 
-        let benchmark_comparison = format!("\n## Benchmark Comparison\nTo provide a more comprehensive view of performance, the selected ETF is compared against relevant benchmarks, such as the S&P 500 and sector-specific indices. This comparison helps investors understand how the ETF has performed relative to the broader market.");
+        let benchmark_comparison = "\n## Benchmark Comparison\nTo provide a more comprehensive view of performance, the selected ETF is compared against relevant benchmarks, such as the S&P 500 and sector-specific indices. This comparison helps investors understand how the ETF has performed relative to the broader market.".to_string();
         println!("{}", benchmark_comparison);
         writeln!(file, "{}", benchmark_comparison)?;
 
@@ -186,11 +186,11 @@ pub async fn generate_analysis(
         writeln!(file, "{}", optimal_allocation_intro)?;
 
         // Print the sentiment analysis results
-        let sentiment_analysis_methodology = format!("\n## Sentiment Analysis Methodology\nThe sentiment analysis is based on advanced natural language processing techniques applied to financial news and social media data. These models evaluate the sentiment expressed in textual data, ranging from highly positive to highly negative, providing a quantitative measure of market sentiment.");
+        let sentiment_analysis_methodology = "\n## Sentiment Analysis Methodology\nThe sentiment analysis is based on advanced natural language processing techniques applied to financial news and social media data. These models evaluate the sentiment expressed in textual data, ranging from highly positive to highly negative, providing a quantitative measure of market sentiment.".to_string();
         println!("{}", sentiment_analysis_methodology);
         writeln!(file, "{}", sentiment_analysis_methodology)?;
 
-        let sentiment_analysis_results = format!("\n## Sentiment Analysis Results\nThe sentiment scores provide a detailed view of market sentiment for each day throughout the allocation period. Higher sentiment scores indicate a more positive market outlook, while lower scores reflect a more cautious or negative sentiment. These scores offer valuable insights into prevailing market sentiment, aiding in informed investment decisions. It is important to note that sentiment scores are subject to short-term volatility and should be considered alongside other fundamental and technical factors.\n");
+        let sentiment_analysis_results = "\n## Sentiment Analysis Results\nThe sentiment scores provide a detailed view of market sentiment for each day throughout the allocation period. Higher sentiment scores indicate a more positive market outlook, while lower scores reflect a more cautious or negative sentiment. These scores offer valuable insights into prevailing market sentiment, aiding in informed investment decisions. It is important to note that sentiment scores are subject to short-term volatility and should be considered alongside other fundamental and technical factors.\n".to_string();
         println!("{}", sentiment_analysis_results);
         writeln!(file, "{}", sentiment_analysis_results)?;
 
@@ -209,7 +209,7 @@ pub async fn generate_analysis(
             .collect();
 
         // Print table header with vertical delimiters
-        let daily_market_sentiment_analysis_header = format!("### Daily Market Sentiment Analysis\n\n| Day | Sentiment Score | Description |\n| - | - | - |");
+        let daily_market_sentiment_analysis_header = "### Daily Market Sentiment Analysis\n\n| Day | Sentiment Score | Description |\n| - | - | - |".to_string();
         println!("{}", daily_market_sentiment_analysis_header);
         writeln!(file, "{}", daily_market_sentiment_analysis_header)?;
 
@@ -243,12 +243,12 @@ pub async fn generate_analysis(
         println!("{}", sentiment_analysis_summary);
         writeln!(file, "{}", sentiment_analysis_summary)?;
 
-        let reinforcement_learning_methodology = format!("\n## Reinforcement Learning Methodology\nReinforcement learning is a cutting-edge machine learning technique that learns optimal decision-making strategies through trial and error. The reinforcement learning model used here has been trained on historical market data to determine the most effective actions to take on each day of the allocation period.");
+        let reinforcement_learning_methodology = "\n## Reinforcement Learning Methodology\nReinforcement learning is a cutting-edge machine learning technique that learns optimal decision-making strategies through trial and error. The reinforcement learning model used here has been trained on historical market data to determine the most effective actions to take on each day of the allocation period.".to_string();
         println!("{}", reinforcement_learning_methodology);
         writeln!(file, "{}", reinforcement_learning_methodology)?;
 
         // Print the reinforcement learning results
-        let reinforcement_learning_results = format!("\n## Reinforcement Learning Results\nReinforcement learning models provide guidance on the proportion of funds to allocate or withdraw on each day, considering the prevailing market conditions and the model's learned strategies. A higher action value indicates a stronger recommendation to allocate funds, while a lower value suggests a more conservative approach or potential withdrawal.\n\n| Day | Action Value |\n| - | - |");
+        let reinforcement_learning_results = "\n## Reinforcement Learning Results\nReinforcement learning models provide guidance on the proportion of funds to allocate or withdraw on each day, considering the prevailing market conditions and the model's learned strategies. A higher action value indicates a stronger recommendation to allocate funds, while a lower value suggests a more conservative approach or potential withdrawal.\n\n| Day | Action Value |\n| - | - |".to_string();
         println!("{}", reinforcement_learning_results);
         writeln!(file, "{}", reinforcement_learning_results)?;
 
@@ -292,7 +292,7 @@ pub async fn generate_analysis(
         writeln!(file, "{}", reinforcement_learning_summary)?;
 
         // Discuss potential risks and limitations
-        let risks_and_limitations = format!("\n## Risks and Limitations\nWhile the allocation strategy presented in this report is based on robust historical data and advanced machine learning techniques, it is important to consider the following risks and limitations:\n- **Market Risk**: The value of investments can fluctuate due to market conditions, and past performance is not indicative of future results.\n- **Concentration Risk**: The selected ETF may have a concentration in certain sectors or assets, which could increase its risk profile.\n- **Model Limitations**: The machine learning models used in this analysis are based on historical data and may not account for future market anomalies or unforeseen events.");
+        let risks_and_limitations = "\n## Risks and Limitations\nWhile the allocation strategy presented in this report is based on robust historical data and advanced machine learning techniques, it is important to consider the following risks and limitations:\n- **Market Risk**: The value of investments can fluctuate due to market conditions, and past performance is not indicative of future results.\n- **Concentration Risk**: The selected ETF may have a concentration in certain sectors or assets, which could increase its risk profile.\n- **Model Limitations**: The machine learning models used in this analysis are based on historical data and may not account for future market anomalies or unforeseen events.".to_string();
         println!("{}", risks_and_limitations);
         writeln!(file, "{}", risks_and_limitations)?;
 
@@ -340,17 +340,17 @@ pub async fn generate_analysis(
         }
 
         // Provide actionable insights
-        let actionable_insights = format!("\n## Actionable Insights\nBased on the analysis, we offer the following recommendations to help inform your investment decisions:\n- Consider rebalancing your portfolio periodically to maintain the optimal allocation strategy.\n- Monitor market conditions and adjust the allocation strategy as needed to account for significant changes.\n- Evaluate alternative ETFs that may offer similar or better performance based on the criteria used in this analysis.");
+        let actionable_insights = "\n## Actionable Insights\nBased on the analysis, we offer the following recommendations to help inform your investment decisions:\n- Consider rebalancing your portfolio periodically to maintain the optimal allocation strategy.\n- Monitor market conditions and adjust the allocation strategy as needed to account for significant changes.\n- Evaluate alternative ETFs that may offer similar or better performance based on the criteria used in this analysis.".to_string();
         println!("{}", actionable_insights);
         writeln!(file, "{}", actionable_insights)?;
 
         // Include a conclusion
-        let conclusion = format!("\n## Conclusion\nIn conclusion, the selected ETF has demonstrated strong historical performance and offers a compelling investment opportunity. The optimal allocation strategy, supported by sentiment analysis and reinforcement learning models, provides a robust framework for maximizing returns while managing risk. It is important to remain vigilant and consider the potential risks and limitations discussed in this report. Conduct further research and consult with a financial advisor to tailor the strategy to your individual investment goals and risk tolerance.");
+        let conclusion = "\n## Conclusion\nIn conclusion, the selected ETF has demonstrated strong historical performance and offers a compelling investment opportunity. The optimal allocation strategy, supported by sentiment analysis and reinforcement learning models, provides a robust framework for maximizing returns while managing risk. It is important to remain vigilant and consider the potential risks and limitations discussed in this report. Conduct further research and consult with a financial advisor to tailor the strategy to your individual investment goals and risk tolerance.".to_string();
         println!("{}", conclusion);
         writeln!(file, "{}", conclusion)?;
 
         // Disclaimer
-        let disclaimer = format!("\n## Disclaimer\nBefore investing in the Fund, investors should carefully consider whether this product is appropriate for you. These recommendations are based on historical data and should be considered as a starting point for your investment strategy. This notice is provided for information purposes only and is not financial product advice. Future results or distributions are not guaranteed. Market conditions can change rapidly, and past performance is not indicative of future results. It is always advisable to conduct further research and consult with a financial advisor before making any investment decisions.\n");
+        let disclaimer = "\n## Disclaimer\nBefore investing in the Fund, investors should carefully consider whether this product is appropriate for you. These recommendations are based on historical data and should be considered as a starting point for your investment strategy. This notice is provided for information purposes only and is not financial product advice. Future results or distributions are not guaranteed. Market conditions can change rapidly, and past performance is not indicative of future results. It is always advisable to conduct further research and consult with a financial advisor before making any investment decisions.\n".to_string();
         println!("{}", disclaimer);
         writeln!(file, "{}", disclaimer)?;
     } else {

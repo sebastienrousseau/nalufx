@@ -19,17 +19,62 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Run in-repo rather than via sebastienrousseau/pipelines' rust-ci.yml.
+  # That workflow installs no system packages, and nalufx-ui depends on
+  # Slint, whose i-slint-common -> fontique -> yeslogic-fontconfig-sys
+  # chain needs the fontconfig headers on Linux. Its build script panics
+  # without them, so every job there died before running a single check.
+  # The chain is not feature-gated, so it cannot be dropped from this
+  # side; a caller cannot inject a step into a reusable workflow either.
   ci:
     name: Rust CI
-    uses: sebastienrousseau/pipelines/.github/workflows/rust-ci.yml@main
-    with:
-      rust-version: 'stable'
-      run-clippy: true
-      run-fmt: true
-      run-audit: true
-      run-coverage: true
-      coverage-threshold: 80
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --no-deps --all-features -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace --all-features
+
+      - name: Docs
+        run: cargo doc --no-deps --all-features --workspace
+
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Pinned to the v2.0.0 commit: the action publishes no floating
+      # `v2` tag, only `v2.0.0`, so `@v2` does not resolve at all.
+      #
+      # The ignore list is passed explicitly rather than left to
+      # .cargo/audit.toml, since the action shells out with its own
+      # arguments. These are the four *unmaintained* advisories in
+      # Slint's font stack — there are no vulnerability advisories
+      # against this tree. .cargo/audit.toml carries the same list, with
+      # a note on each, so local `cargo audit` runs agree with CI.
+      - uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ignore: RUSTSEC-2025-0141,RUSTSEC-2024-0436,RUSTSEC-2026-0206,RUSTSEC-2026-0192
 
   # Nightly toolchain tests (optional, continue on error)
   test-nightly:
@@ -44,6 +89,17 @@ jobs:
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
+
+      # nalufx-ui pulls in Slint, whose font stack builds
+      # yeslogic-fontconfig-sys. Its build script panics outright when
+      # the system fontconfig headers are absent, which is why this job
+      # failed before it ran a single test. The reusable Check & Test
+      # workflow already provides these; this job assembles its own
+      # toolchain, so it needs them too.
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev
 
       - name: Run tests
         run: cargo test --all-features

@@ -17,36 +17,42 @@ export component Page inherits Rectangle {
     /// Indicates whether this page is currently active.
     out property <bool> active: index == current-index;
 
+    // Declared as our own properties rather than assigning the built-in
+    // `padding-*` ones: `Page` inherits Rectangle, which is not a layout
+    // element, so those are inert there and Slint warns that they "only
+    // have effect on layout elements". The inner GridLayout is what
+    // actually applies them.
     /// Left padding of the page content.
-    padding-left: 10px;
+    in property <length> content-padding-left: 10px;
 
     /// Right padding of the page content.
-    padding-right: 10px;
+    in property <length> content-padding-right: 10px;
 
     /// Top padding of the page content.
-    padding-top: 10px;
+    in property <length> content-padding-top: 10px;
 
     /// Bottom padding of the page content.
-    padding-bottom: 10px;
+    in property <length> content-padding-bottom: 10px;
 
     /// X-coordinate of the page, calculated based on its index relative to the current page.
     x: (index - current-index) * self.width;
 
-    /// Width of the page, set to full width of the parent container.
-    width: 100%;
-
-    /// Height of the page, set to full height of the parent container.
-    height: 100%;
+    // No `width: 100%` / `height: 100%` here. Every `Page` is placed
+    // inside a layout, which sizes it; binding back to the parent's size
+    // from a layout child closes the same binding loop the tab bar had.
+    // Stretching to fill is expressed as a stretch factor instead.
+    horizontal-stretch: 1;
+    vertical-stretch: 1;
 
     /// Animation for the x-coordinate transitions.
     animate x { duration: NalufxTheme.durations.fast; }
 
     /// Grid layout for the page content.
     GridLayout {
-        padding-left: root.padding-left;
-        padding-right: root.padding-right;
-        padding-top: root.padding-top;
-        padding-bottom: root.padding-bottom;
+        padding-left: root.content-padding-left;
+        padding-right: root.content-padding-right;
+        padding-top: root.content-padding-top;
+        padding-bottom: root.content-padding-bottom;
 
         /// Placeholder for child elements.
         @children

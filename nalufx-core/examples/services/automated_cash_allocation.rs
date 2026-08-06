@@ -18,7 +18,7 @@
 use csv::Reader;
 use nalufx::{
     errors::NaluFxError,
-    services::automated_cash_allocation_svc::generate_analysis,
+    services::automated_cash_allocation_svc::{generate_analysis, AnalysisRequest},
     utils::{currency::format_currency, date::validate_date, input::get_input},
 };
 use nalufx_llms::llms::{openai, openai::OpenAI, LLM};
@@ -113,14 +113,16 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         llm, // Pass the boxed trait object here
         &client,
         &api_key,
-        &portfolio_name,
-        &etf_allocation,
-        &mutual_fund_allocation,
-        &values_input,
-        &financial_objectives_input,
-        &start_date_input,
-        &end_date_input,
-        &real_time_prices,
+        AnalysisRequest {
+            portfolio_name: &portfolio_name,
+            etf_allocation: &etf_allocation,
+            mutual_fund_allocation: &mutual_fund_allocation,
+            values_input: &values_input,
+            financial_objectives_input: &financial_objectives_input,
+            start_date: &start_date_input,
+            end_date: &end_date_input,
+            real_time_prices: &real_time_prices,
+        },
     )
     .await
     .map_err(|e| {
@@ -332,9 +334,9 @@ async fn fetch_real_time_prices(
         let response = client.get(&url).send().await?;
         let data: serde_json::Value = response.json().await?;
         if let Some(result) = data["chart"]["result"].as_array() {
-            if let Some(_timestamps) = result.get(0).and_then(|r| r["timestamp"].as_array()) {
+            if let Some(_timestamps) = result.first().and_then(|r| r["timestamp"].as_array()) {
                 if let Some(closes) =
-                    result.get(0).and_then(|r| r["indicators"]["quote"][0]["close"].as_array())
+                    result.first().and_then(|r| r["indicators"]["quote"][0]["close"].as_array())
                 {
                     if let (Some(start_price), Some(end_price)) = (
                         closes.first().and_then(|v| v.as_f64()),

@@ -165,9 +165,9 @@ pub async fn generate_analysis(
                     println!("\n- **Global Events:** Geopolitical events, natural disasters, pandemics, and other global factors can also influence {}'s stock performance. Keeping an eye on such events is essential for understanding the broader market context.\n", ticker);
 
                     println!("\n--- Key Findings ---\n");
-                    println!("- **1. Optimal Allocation:** The model recommends a diversified approach, with daily allocations within a diversified portfolio containing {} ranging from {:.2}% to {:.2}% of your initial investment. This aims to mitigate risk and capture potential gains across different market conditions.\n", ticker, optimal_allocation.iter().cloned().fold(0./0., f64::min) * 100.0, optimal_allocation.iter().cloned().fold(0./0., f64::max) * 100.0);
-                    println!("- **2. Sentiment Analysis:** Market sentiment towards {} fluctuates within the specified period, ranging from very positive ({:.2} on Day {}) to somewhat negative ({:.2} on Day {}). This suggests a dynamic market environment.\n", ticker, sentiment_scores.iter().cloned().fold(0./0., f64::max), sentiment_scores.iter().position(|&s| s == sentiment_scores.iter().cloned().fold(0./0., f64::max)).unwrap() + 1, sentiment_scores.iter().cloned().fold(0./0., f64::min), sentiment_scores.iter().position(|&s| s == sentiment_scores.iter().cloned().fold(0./0., f64::min)).unwrap() + 1);
-                    println!("- **3. Reinforcement Learning:** The RL model suggests a mix of buy and hold actions, with higher buying recommendations on certain days (e.g., {:.2} on Day {}) and lower on others (e.g., {:.2} on Day {}). This highlights potential opportunities to adjust your position based on the model's predictions.\n", optimal_actions.iter().cloned().fold(0./0., f64::max), optimal_actions.iter().position(|&a| a == optimal_actions.iter().cloned().fold(0./0., f64::max)).unwrap() + 1, optimal_actions.iter().cloned().fold(0./0., f64::min), optimal_actions.iter().position(|&a| a == optimal_actions.iter().cloned().fold(0./0., f64::min)).unwrap() + 1);
+                    println!("- **1. Optimal Allocation:** The model recommends a diversified approach, with daily allocations within a diversified portfolio containing {} ranging from {:.2}% to {:.2}% of your initial investment. This aims to mitigate risk and capture potential gains across different market conditions.\n", ticker, optimal_allocation.iter().cloned().fold(f64::NAN, f64::min) * 100.0, optimal_allocation.iter().cloned().fold(f64::NAN, f64::max) * 100.0);
+                    println!("- **2. Sentiment Analysis:** Market sentiment towards {} fluctuates within the specified period, ranging from very positive ({:.2} on Day {}) to somewhat negative ({:.2} on Day {}). This suggests a dynamic market environment.\n", ticker, sentiment_scores.iter().cloned().fold(f64::NAN, f64::max), sentiment_scores.iter().position(|&s| s == sentiment_scores.iter().cloned().fold(f64::NAN, f64::max)).unwrap() + 1, sentiment_scores.iter().cloned().fold(f64::NAN, f64::min), sentiment_scores.iter().position(|&s| s == sentiment_scores.iter().cloned().fold(f64::NAN, f64::min)).unwrap() + 1);
+                    println!("- **3. Reinforcement Learning:** The RL model suggests a mix of buy and hold actions, with higher buying recommendations on certain days (e.g., {:.2} on Day {}) and lower on others (e.g., {:.2} on Day {}). This highlights potential opportunities to adjust your position based on the model's predictions.\n", optimal_actions.iter().cloned().fold(f64::NAN, f64::max), optimal_actions.iter().position(|&a| a == optimal_actions.iter().cloned().fold(f64::NAN, f64::max)).unwrap() + 1, optimal_actions.iter().cloned().fold(f64::NAN, f64::min), optimal_actions.iter().position(|&a| a == optimal_actions.iter().cloned().fold(f64::NAN, f64::min)).unwrap() + 1);
 
                     // Risk Assessment
                     println!("\n--- Risk Assessment ---\n");
@@ -190,7 +190,7 @@ pub async fn generate_analysis(
                 },
                 Err(e) => {
                     eprintln!("Error calculating optimal allocation for ticker {}: {}", ticker, e);
-                    return Err(NaluFxError::PortfolioOptimizationError(e.to_string()));
+                    Err(NaluFxError::PortfolioOptimizationError(e.to_string()))
                 },
             }
         },
@@ -200,7 +200,7 @@ pub async fn generate_analysis(
                 ticker, e
             );
             println!("Please try a different date range or choose another ticker symbol.");
-            return Err(NaluFxError::InvalidOption);
+            Err(NaluFxError::InvalidOption)
         },
     }
 }

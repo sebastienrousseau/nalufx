@@ -115,31 +115,28 @@ export component TabWidget inherits Rectangle {
 
     accessible-role: tab-list;
 
-    HorizontalLayout {
-        // Tab bar background pane
-        Rectangle {
-            width: root.is-vertical ? root.tab-bar-width : parent.width;
-            height: root.is-vertical ? root.tab-bar-height : 40px;
+    // The bar sits *beside* the pane when it is vertical and *above* it
+    // when it is horizontal, so the outer layout has to change direction
+    // with it. This was previously a single HorizontalLayout in both
+    // modes with the bar bound to `parent.width`, which was wrong twice
+    // over: a full-width bar cannot share a row with the pane, and
+    // reading the enclosing layout's width from inside that layout
+    // closed a binding loop (layoutinfo-h -> layout-cache-h -> width ->
+    // layoutinfo-h), which Slint rejects outright.
+    //
+    // `@children` may only appear once per component, so the pane stays
+    // in a single place and only the bar is duplicated across the two
+    // branches — their contents differ anyway.
+    VerticalLayout {
+        // Horizontal mode: a full-width bar above the pane. No width
+        // binding needed — a VerticalLayout already stretches its
+        // children to its own width.
+        if (!root.is-vertical): Rectangle {
+            height: root.tab-bar-height;
             background: NalufxTheme.palette.primary.darker(60%);
 
-            if (root.is-vertical): VerticalLayout {
-                for tab[index] in tabs: Tab {
-                    title: tab.text;
-                    icon: tab.icon;
-                    description: tab.description;
-                    selected: index == root.selected-tab;
-                    is-vertical: true;
-                    tab-index: index;
-                    has-focus: focus-scope.has-focus && index == root.selected-tab;
-                    clicked => {
-                        root.selected-tab = index;
-                    }
-                }
-            }
-
-            if (!root.is-vertical): HorizontalLayout {
+            HorizontalLayout {
                 alignment: root.horizontal-alignment == "left" ? start : root.horizontal-alignment == "center" ? center : end;
-                height: 40px;
 
                 for tab[index] in tabs: Tab {
                     title: tab.text;
@@ -155,13 +152,40 @@ export component TabWidget inherits Rectangle {
             }
         }
 
-        // Tab pane
-        Rectangle {
-            background: NalufxTheme.palette.secondary;
-            border-radius: 4px;
-            clip: true;
+        HorizontalLayout {
+            // Vertical mode: a fixed-width column beside the pane.
+            // `tab-bar-width` is a plain property rather than a geometry
+            // read, so this binding is acyclic.
+            if (root.is-vertical): Rectangle {
+                width: root.tab-bar-width;
+                background: NalufxTheme.palette.primary.darker(60%);
 
-            @children
+                VerticalLayout {
+                    alignment: start;
+
+                    for tab[index] in tabs: Tab {
+                        title: tab.text;
+                        icon: tab.icon;
+                        description: tab.description;
+                        selected: index == root.selected-tab;
+                        is-vertical: true;
+                        tab-index: index;
+                        has-focus: focus-scope.has-focus && index == root.selected-tab;
+                        clicked => {
+                            root.selected-tab = index;
+                        }
+                    }
+                }
+            }
+
+            // Tab pane
+            Rectangle {
+                background: NalufxTheme.palette.secondary;
+                border-radius: 4px;
+                clip: true;
+
+                @children
+            }
         }
     }
 

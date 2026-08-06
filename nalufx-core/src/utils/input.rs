@@ -23,7 +23,7 @@ use std::io::{stdin, stdout, Write};
 ///
 /// match read_user_input() {
 ///     Ok(input) => println!("User input: {}", input),
-///     Err(e) => eprintln!("Error reading input: {}", e),
+///   Err(e) => eprintln!("Error reading input: {}", e),
 /// }
 /// ```
 pub fn read_user_input() -> Result<String, NaluFxError> {

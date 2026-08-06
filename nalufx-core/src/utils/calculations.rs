@@ -3,11 +3,13 @@ use crate::{
     check_empty_inputs, check_input_lengths, check_invalid_data, check_outliers,
     fill_feature_matrix, handle_result, normalize_features,
 };
+use augurs_core::{Fit, Predict};
 use augurs_ets::AutoETS;
-use linfa::prelude::{Predict as LinfaPredict, *};
-use linfa_clustering::KMeans;
 use ndarray::prelude::*;
-use rand::Rng;
+use std::cmp::Ordering;
+// rand 0.9 renamed `thread_rng()` to `rng()` and moved `gen_range` to
+// `RngExt::random_range`.
+use rand::RngExt;
 
 /// Calculates the optimal allocation based on daily returns and cash flows.
 ///
@@ -45,7 +47,7 @@ use rand::Rng;
 /// let num_days = 3;
 /// match calculate_optimal_allocation(&daily_returns, &cash_flows, &market_indices, &fund_characteristics, num_days) {
 ///     Ok(allocations) => println!("Allocations: {:?}", allocations),
-///     Err(e) => eprintln!("Error: {}", e),
+///   Err(e) => eprintln!("Error: {}", e),
 /// }
 /// ```
 pub fn calculate_optimal_allocation(
@@ -246,13 +248,15 @@ pub fn extract_features(
 /// let num_days = 3;
 /// match forecast_time_series(&data, num_days) {
 ///     Ok(forecast) => println!("Forecast: {:?}", forecast),
-///     Err(e) => eprintln!("Error: {}", e),
+///   Err(e) => eprintln!("Error: {}", e),
 /// }
 /// ```
 pub fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, String> {
-    let mut search = AutoETS::new(1, "ZZN").map_err(|e| e.to_string())?;
+    let search = AutoETS::new(1, "ZZN").map_err(|e| e.to_string())?;
     let model = search.fit(data).map_err(|e| e.to_string())?;
-    let forecast = model.predict(num_days, 0.95);
+    // augurs 0.10 made `predict` fallible; it returned the Forecast
+    // directly in 0.9.
+    let forecast = model.predict(num_days, 0.95).map_err(|e| e.to_string())?;
     Ok(forecast.point)
 }
 
@@ -344,20 +348,130 @@ pub fn train_reinforcement_learning(num_days: usize) -> Result<Vec<f64>, String>
 /// assert_eq!(clusters.len(), 3);
 /// ```
 pub fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, AllocationError> {
-    // Convert features to a Dataset
-    let dataset = Dataset::from(features.clone());
+    /// Number of clusters. Matches the previous linfa configuration.
+    const N_CLUSTERS: usize = 2;
+    /// Upper bound on Lloyd iterations; the loop normally converges first.
+    const MAX_ITERATIONS: usize = 100;
 
-    // Create the KMeans model with 2 clusters
-    let n_clusters = 2;
-    let model = KMeans::params_with_rng(n_clusters, rand::thread_rng())
-        .fit(&dataset)
-        .map_err(|err| AllocationError::ClusteringError(err.to_string()))?;
+    let n_samples = features.nrows();
+    if n_samples == 0 {
+        return Err(AllocationError::ClusteringError(
+            "cannot cluster an empty feature matrix".to_string(),
+        ));
+    }
 
-    // Predict the clusters for each feature vector
-    let clusters = model.predict(&dataset);
+    // With no more samples than clusters, the assignment is trivial and
+    // seeding distinct centroids is impossible.
+    if n_samples <= N_CLUSTERS {
+        return Ok((0..n_samples).collect());
+    }
 
-    // Convert the clusters to a Vec<usize> and return
-    Ok(clusters.iter().map(|&c| c).collect())
+    let mut rng = rand::rng();
+
+    // k-means++ seeding: the first centroid is uniform, and each
+    // subsequent one is drawn with probability proportional to its
+    // squared distance from the nearest centroid chosen so far. This is
+    // what keeps the two centroids apart on the first iteration; picking
+    // both uniformly collapses often on clustered data.
+    let mut centroids: Vec<Array1<f64>> =
+        vec![features.row(rng.random_range(0..n_samples)).to_owned()];
+
+    while centroids.len() < N_CLUSTERS {
+        let distances: Vec<f64> = features
+            .rows()
+            .into_iter()
+            .map(|row| {
+                centroids
+                    .iter()
+                    .map(|c| squared_distance(&row.to_owned(), c))
+                    .fold(f64::INFINITY, f64::min)
+            })
+            .collect();
+
+        let total: f64 = distances.iter().sum();
+        let next = if total > 0.0 && total.is_finite() {
+            // Weighted draw over the squared distances.
+            let mut target = rng.random_range(0.0..total);
+            distances
+                .iter()
+                .position(|d| {
+                    target -= d;
+                    target <= 0.0
+                })
+                .unwrap_or(n_samples - 1)
+        } else {
+            // Every point coincides with a centroid (e.g. all-identical
+            // rows), so the weights carry no information — fall back to a
+            // uniform pick rather than dividing by zero.
+            rng.random_range(0..n_samples)
+        };
+        centroids.push(features.row(next).to_owned());
+    }
+
+    let mut assignments = vec![0usize; n_samples];
+
+    for _ in 0..MAX_ITERATIONS {
+        // Assignment step.
+        let mut changed = false;
+        for (i, row) in features.rows().into_iter().enumerate() {
+            let point = row.to_owned();
+            let nearest = centroids
+                .iter()
+                .enumerate()
+                .map(|(k, c)| (k, squared_distance(&point, c)))
+                // `partial_cmp`, not `total_cmp`: the latter needs Rust
+                // 1.62 and the workspace MSRV is 1.56. Distances here are
+                // non-negative and finite (the inputs are validated by
+                // `check_invalid_data!` upstream), so the orderings agree.
+                .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal))
+                .map_or(0, |(k, _)| k);
+            if assignments[i] != nearest {
+                assignments[i] = nearest;
+                changed = true;
+            }
+        }
+
+        // Update step: each centroid becomes the mean of its members.
+        // An empty cluster keeps its previous position rather than
+        // becoming NaN.
+        for (k, centroid) in centroids.iter_mut().enumerate() {
+            let members: Vec<_> = features
+                .rows()
+                .into_iter()
+                .zip(&assignments)
+                .filter(|(_, &a)| a == k)
+                .map(|(row, _)| row)
+                .collect();
+
+            if members.is_empty() {
+                continue;
+            }
+
+            let mut mean = Array1::<f64>::zeros(features.ncols());
+            for row in &members {
+                mean += &row.to_owned();
+            }
+            #[allow(clippy::cast_precision_loss)]
+            let count = members.len() as f64;
+            mean /= count;
+            *centroid = mean;
+        }
+
+        if !changed {
+            break;
+        }
+    }
+
+    Ok(assignments)
+}
+
+/// Squared Euclidean distance between two equal-length vectors.
+///
+/// Squared rather than actual distance: the square root is monotonic, so
+/// it does not change which centroid is nearest, and skipping it avoids
+/// a `sqrt` per comparison.
+fn squared_distance(a: &Array1<f64>, b: &Array1<f64>) -> f64 {
+    a.iter().zip(b.iter()).map(|(x, y)| (x - y).powi(2)).sum()
 }
 
 /// Helper function for sentiment analysis (placeholder).
@@ -388,8 +502,8 @@ pub fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, Allocati
 pub fn get_sentiment_scores(num_days: usize) -> Result<Vec<f64>, String> {
     // Implement the actual sentiment analysis logic here
     // For demonstration purposes, we'll return random scores
-    let mut rng = rand::thread_rng();
-    let sentiment_scores: Vec<f64> = (0..num_days).map(|_| rng.gen_range(0.0..1.0)).collect();
+    let mut rng = rand::rng();
+    let sentiment_scores: Vec<f64> = (0..num_days).map(|_| rng.random_range(0.0..1.0)).collect();
     Ok(sentiment_scores)
 }
 
@@ -421,7 +535,70 @@ pub fn get_sentiment_scores(num_days: usize) -> Result<Vec<f64>, String> {
 pub fn get_optimal_actions(num_days: usize) -> Result<Vec<f64>, String> {
     // Implement the actual reinforcement learning logic here
     // For demonstration purposes, we'll return random actions
-    let mut rng = rand::thread_rng();
-    let optimal_actions: Vec<f64> = (0..num_days).map(|_| rng.gen_range(0.0..1.0)).collect();
+    let mut rng = rand::rng();
+    let optimal_actions: Vec<f64> = (0..num_days).map(|_| rng.random_range(0.0..1.0)).collect();
     Ok(optimal_actions)
+}
+
+#[cfg(test)]
+mod clustering_tests {
+    use super::perform_clustering;
+    use ndarray::Array2;
+
+    /// Two well-separated groups must land in two different clusters,
+    /// with every member of a group agreeing.
+    #[test]
+    fn separates_two_distinct_groups() {
+        let features = Array2::from_shape_vec(
+            (6, 2),
+            vec![
+                0.0, 0.0, 0.1, 0.1, 0.2, 0.0, // tight cluster near the origin
+                50.0, 50.0, 50.1, 49.9, 49.9, 50.2, // and one far away
+            ],
+        )
+        .unwrap();
+
+        let clusters = perform_clustering(&features).unwrap();
+        assert_eq!(clusters.len(), 6);
+
+        let (low, high) = clusters.split_at(3);
+        assert!(low.iter().all(|&c| c == low[0]), "near group split: {clusters:?}");
+        assert!(high.iter().all(|&c| c == high[0]), "far group split: {clusters:?}");
+        assert_ne!(low[0], high[0], "the two groups collapsed: {clusters:?}");
+    }
+
+    /// All-identical rows have no meaningful split; the k-means++ weights
+    /// are all zero, which must not divide by zero or emit NaN labels.
+    #[test]
+    fn handles_identical_rows() {
+        let features = Array2::from_shape_vec((3, 4), vec![0.0; 12]).unwrap();
+        let clusters = perform_clustering(&features).unwrap();
+        assert_eq!(clusters.len(), 3);
+        assert!(clusters.iter().all(|&c| c < 2));
+    }
+
+    /// Fewer samples than clusters short-circuits rather than trying to
+    /// seed distinct centroids.
+    #[test]
+    fn handles_fewer_samples_than_clusters() {
+        let features = Array2::from_shape_vec((2, 2), vec![1.0, 2.0, 3.0, 4.0]).unwrap();
+        assert_eq!(perform_clustering(&features).unwrap(), vec![0, 1]);
+    }
+
+    /// An empty matrix is an error, not a panic.
+    #[test]
+    fn rejects_empty_input() {
+        let features = Array2::<f64>::zeros((0, 4));
+        assert!(perform_clustering(&features).is_err());
+    }
+
+    /// Labels are always valid cluster indices.
+    #[test]
+    fn labels_are_in_range() {
+        let features =
+            Array2::from_shape_vec((5, 2), vec![1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 9.0, 9.0, 8.0, 8.0])
+                .unwrap();
+        let clusters = perform_clustering(&features).unwrap();
+        assert!(clusters.iter().all(|&c| c < 2), "out-of-range label: {clusters:?}");
+    }
 }

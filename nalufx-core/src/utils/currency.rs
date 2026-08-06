@@ -24,14 +24,12 @@ pub fn format_currency(value: f64) -> String {
     fn format_dollars(dollars: i64) -> String {
         let dollars_abs = dollars.abs().to_string();
         let mut result = String::new();
-        let mut count = 0;
 
-        for digit in dollars_abs.chars().rev() {
+        for (count, digit) in dollars_abs.chars().rev().enumerate() {
             if count > 0 && count % 3 == 0 {
                 result.push(',');
             }
             result.push(digit);
-            count += 1;
         }
 
         result.chars().rev().collect::<String>()

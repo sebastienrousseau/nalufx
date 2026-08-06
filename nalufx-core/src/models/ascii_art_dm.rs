@@ -4,7 +4,7 @@ use std::fmt;
 /// Error type for ASCII art generation failures.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AsciiArtError {
-    /// Represents a failure to load the FIGfont.
+    /// Represents a failure to load the FIGlet.
     FontLoadError,
     /// Represents a failure to convert text to ASCII art.
     ConversionError,
@@ -13,7 +13,7 @@ pub enum AsciiArtError {
 impl fmt::Display for AsciiArtError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Self::FontLoadError => write!(f, "Failed to load FIGfont"),
+            Self::FontLoadError => write!(f, "Failed to load FIGlet"),
             Self::ConversionError => {
                 write!(f, "Failed to convert text to ASCII art")
             },

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Fields
 ///
 /// * `choices` - A vector of `GemmaChoice` structs representing the choices
-/// provided by the Gemma API.
+///   provided by the Gemma API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GemmaResponse {
     /// A vector of GemmaChoice structs
@@ -23,7 +23,7 @@ pub struct GemmaResponse {
 /// # Fields
 ///
 /// * `message` - A `GemmaMessage` struct representing the message content
-/// of the choice provided by the Gemma API.
+///   of the choice provided by the Gemma API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GemmaChoice {
     /// A GemmaMessage struct
@@ -38,7 +38,7 @@ pub struct GemmaChoice {
 /// # Fields
 ///
 /// * `content` - A string representing the content of the message
-/// provided by the Gemma API.
+///   provided by the Gemma API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GemmaMessage {
     /// A string representing the content of the message

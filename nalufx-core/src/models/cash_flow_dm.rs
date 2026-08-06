@@ -50,7 +50,7 @@ pub struct CashFlowRequest {
 ///
 /// let response = CashFlowResponse {
 ///     predictions: vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-///     optimal_allocation: vec![0.5, 0.3, 0.2],
+///   optimal_allocation: vec![0.5, 0.3, 0.2],
 /// };
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
