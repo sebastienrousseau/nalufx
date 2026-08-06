@@ -13,15 +13,16 @@ import { TabWidget } from "../../components/tab/index.slint";
  * It displays the application logo, tagline, and copyright information.
  */
 export component About inherits Page {
-    // Main content area
+    // Main content area. This sits inside `Page`'s GridLayout, so the
+    // layout sizes it — binding width/height back to that layout is the
+    // binding loop Slint rejects. Stretch factors express "fill" without
+    // reading the parent's geometry.
     Rectangle {
-        width: 100%;
-        height: 100%;
+        horizontal-stretch: 1;
+        vertical-stretch: 1;
         background: NalufxTheme.palette.transparent;
 
         VerticalLayout {
-            preferred-width: 100%;
-            preferred-height: 100%;
             alignment: center;
             spacing: 0;
 

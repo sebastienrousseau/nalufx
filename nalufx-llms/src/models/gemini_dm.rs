@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Fields
 ///
 /// * `choices` - A vector of `GeminiChoice` structs representing the choices
-/// provided by the Gemini API.
+///   provided by the Gemini API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GeminiResponse {
     /// A vector of GeminiChoice structs
@@ -23,7 +23,7 @@ pub struct GeminiResponse {
 /// # Fields
 ///
 /// * `message` - A `GeminiMessage` struct representing the message content
-/// of the choice provided by the Gemini API.
+///   of the choice provided by the Gemini API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GeminiChoice {
     /// A GeminiMessage struct
@@ -38,7 +38,7 @@ pub struct GeminiChoice {
 /// # Fields
 ///
 /// * `content` - A string representing the content of the message
-/// provided by the Gemini API.
+///   provided by the Gemini API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GeminiMessage {
     /// A string representing the content of the message

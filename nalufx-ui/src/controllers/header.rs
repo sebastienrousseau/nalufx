@@ -48,11 +48,14 @@ pub fn setup(window: &MainWindow) -> Timer {
 /// This function does not return any value.
 fn update(header_adapter: &HeaderAdapter) {
     let dt = DateTime::new();
-    let year = dt.year;
-    let month = dt.month;
-    let day = dt.day;
-    let hour = dt.hour;
-    let minute = dt.minute;
+    // dtt 0.0.11 replaced the public fields with accessors. `month()`
+    // returns a `Month`, whose Display is the full month name — which is
+    // what the "August 6, 2026" format below wants.
+    let year = dt.year();
+    let month = dt.month();
+    let day = dt.day();
+    let hour = dt.hour();
+    let minute = dt.minute();
 
     // Convert 24-hour format to 12-hour format and determine AM/PM suffix
     let (formatted_hour, am_pm) = if hour == 0 {

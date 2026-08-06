@@ -13,11 +13,11 @@ export global HeaderAdapter {
 }
 
 export component Header {
-    in property <string> date <=> HeaderAdapter.date;
-    in property <string> time <=> HeaderAdapter.time;
-    in property <string> time-suffix <=> HeaderAdapter.time-suffix;
+    in property <string> date: HeaderAdapter.date;
+    in property <string> time: HeaderAdapter.time;
+    in property <string> time-suffix: HeaderAdapter.time-suffix;
     in property <image> logo <=> HeaderAdapter.logo;
-    in property <string> description <=> HeaderAdapter.description;
+    in property <string> description: HeaderAdapter.description;
     in-out property <ThemeMode> current-theme <=> HeaderAdapter.current-theme;
 
     callback theme-toggled();
@@ -54,7 +54,6 @@ export component Header {
                 Image {
                     height: 60px;
                     source: logo;
-                    padding: 5px;
                 }
 
                 Text {

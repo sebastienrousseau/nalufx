@@ -182,16 +182,35 @@ fn identify_support_resistance(data: &[f64], window: usize) -> (Vec<f64>, Vec<f6
 /// * `resistance_levels` - The identified resistance levels.
 ///
 /// Returns the generated report as a string.
+/// The computed indicator series a report is built from.
+///
+/// Grouped rather than passed as eight positional parameters: they are
+/// all `&[f64]`, so transposing any two of them would still compile.
+struct TechnicalIndicators<'a> {
+    closing_prices: &'a [f64],
+    ema: &'a [f64],
+    rsi: &'a [f64],
+    macd: &'a [f64],
+    macd_signal: &'a [f64],
+    macd_histogram: &'a [f64],
+    support_levels: &'a [f64],
+    resistance_levels: &'a [f64],
+}
+
 async fn generate_technical_analysis_report(
-    closing_prices: &[f64],
-    ema: &[f64],
-    rsi: &[f64],
-    macd: &[f64],
-    macd_signal: &[f64],
-    macd_histogram: &[f64],
-    support_levels: &[f64],
-    resistance_levels: &[f64],
+    indicators: TechnicalIndicators<'_>,
 ) -> Result<String, &'static str> {
+    let TechnicalIndicators {
+        closing_prices,
+        ema,
+        rsi,
+        macd,
+        macd_signal,
+        macd_histogram,
+        support_levels,
+        resistance_levels,
+    } = indicators;
+
     let client = reqwest::Client::new();
     let api_key = match get_openai_api_key() {
         Ok(key) => key,
@@ -267,7 +286,7 @@ Please ensure that the report is well-structured, easy to understand, and adhere
     let generated_text = openai_response
         .choices
         .first()
-        .and_then(|choice| Some(choice.message.content.clone()))
+        .map(|choice| choice.message.content.clone())
         .ok_or("No content found in response")?;
 
     Ok(generated_text)
@@ -329,8 +348,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
             eprintln!("Error fetching historical data: {}", e);
             return Err(NaluFxError::ForecastingError(
                 "Failed to fetch historical data".to_string(),
-            )
-            .into());
+            ));
         },
     };
 
@@ -350,16 +368,16 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         identify_support_resistance(&closing_prices, support_resistance_window);
 
     // Generate the professional technical analysis report
-    let report = match generate_technical_analysis_report(
-        &closing_prices,
-        &ema,
-        &rsi,
-        &macd,
-        &macd_signal,
-        &macd_histogram,
-        &support_levels,
-        &resistance_levels,
-    )
+    let report = match generate_technical_analysis_report(TechnicalIndicators {
+        closing_prices: &closing_prices,
+        ema: &ema,
+        rsi: &rsi,
+        macd: &macd,
+        macd_signal: &macd_signal,
+        macd_histogram: &macd_histogram,
+        support_levels: &support_levels,
+        resistance_levels: &resistance_levels,
+    })
     .await
     {
         Ok(report) => report,
@@ -367,8 +385,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
             eprintln!("Error: {}", err);
             return Err(NaluFxError::ReinforcementLearningError(
                 "Failed to generate technical analysis report".to_string(),
-            )
-            .into());
+            ));
         },
     };
 

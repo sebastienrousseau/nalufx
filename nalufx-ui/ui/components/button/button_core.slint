@@ -216,12 +216,15 @@ export component ButtonCore {
         background: hasTransparentBackground ? transparent : currentBackground;
         min-height: minHeight;
         min-width: minWidth;
-        padding-left: paddingLeft;
-        padding-right: paddingRight;
-
         // Main layout container
         HorizontalLayout {
             alignment: center;
+            // These live on the layout, not on the enclosing Rectangle:
+            // padding only has an effect on layout elements, so as
+            // Rectangle properties the public `paddingLeft` /
+            // `paddingRight` knobs silently did nothing.
+            padding-left: paddingLeft;
+            padding-right: paddingRight;
 
             // Vertical layout for centering content
             VerticalLayout {

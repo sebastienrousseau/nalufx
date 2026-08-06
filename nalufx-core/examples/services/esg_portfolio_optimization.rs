@@ -49,7 +49,7 @@ use serde_json::json;
 /// # Returns
 ///
 /// A new vector containing the normalized data points.
-fn normalize_data(data: &Vec<f64>) -> Vec<f64> {
+fn normalize_data(data: &[f64]) -> Vec<f64> {
     let max_value = data.iter().cloned().fold(f64::MIN, f64::max);
     let min_value = data.iter().cloned().fold(f64::MAX, f64::min);
     data.iter().map(|&x| (x - min_value) / (max_value - min_value)).collect()
@@ -65,11 +65,11 @@ fn normalize_data(data: &Vec<f64>) -> Vec<f64> {
 /// # Returns
 ///
 /// The calculated weighted score of the investment.
-fn calculate_weighted_score(esg_rating: f64, normalized_returns: &Vec<f64>) -> f64 {
+fn calculate_weighted_score(esg_rating: f64, normalized_returns: &[f64]) -> f64 {
     let performance_score: f64 = normalized_returns.iter().sum();
     // Assuming a 50-50 weight for ESG rating and performance score
-    let score = (esg_rating * 0.5) + (performance_score * 0.5);
-    score
+
+    (esg_rating * 0.5) + (performance_score * 0.5)
 }
 
 /// The main function that orchestrates the ESG-focused portfolio optimization process.
@@ -120,7 +120,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     // Normalize data and calculate weighted scores
     let mut esg_scores = Vec::new();
     for (investment, daily_returns, esg_rating) in &esg_data {
-        let normalized_returns = normalize_data(&daily_returns[..min_length].to_vec());
+        let normalized_returns = normalize_data(&daily_returns[..min_length]);
         let score = calculate_weighted_score(*esg_rating, &normalized_returns);
         println!("- Investment: {}, Score: {:.2}", investment, score); // Debug statement
         esg_scores.push((investment, score));

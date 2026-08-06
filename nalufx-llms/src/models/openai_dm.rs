@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Fields
 ///
 /// * `choices` - A vector of `OpenAIChoice` structs representing the choices
-/// provided by the OpenAI API.
+///   provided by the OpenAI API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OpenAIResponse {
     /// A vector of OpenAIChoice structs
@@ -23,7 +23,7 @@ pub struct OpenAIResponse {
 /// # Fields
 ///
 /// * `message` - An `OpenAIMessage` struct representing the message content
-/// of the choice provided by the OpenAI API.
+///   of the choice provided by the OpenAI API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OpenAIChoice {
     /// An OpenAIMessage struct
@@ -38,7 +38,7 @@ pub struct OpenAIChoice {
 /// # Fields
 ///
 /// * `content` - A string representing the content of the message
-/// provided by the OpenAI API.
+///   provided by the OpenAI API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OpenAIMessage {
     /// A string representing the content of the message

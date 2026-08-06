@@ -30,11 +30,11 @@ use yahoo_finance_api as yahoo;
 /// #[tokio::main]
 /// async fn main() {
 ///     let start_date = Some(Utc::now() - chrono::Duration::days(30));
-///     let end_date = Some(Utc::now());
-///     match fetch_data("AAPL", start_date, end_date).await {
-///         Ok(data) => println!("Data: {:?}", data),
-///         Err(e) => eprintln!("Error: {}", e),
-///     }
+///   let end_date = Some(Utc::now());
+///   match fetch_data("AAPL", start_date, end_date).await {
+///   Ok(data) => println!("Data: {:?}", data),
+///   Err(e) => eprintln!("Error: {}", e),
+///   }
 /// }
 /// ```
 pub async fn fetch_data(
@@ -77,7 +77,7 @@ pub async fn fetch_data(
                     },
                 }
             } else {
-                error!("Request failed with status: {}", response.status().to_string());
+                error!("Request failed with status: {}", response.status());
                 Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Request failed")))
             }
         },

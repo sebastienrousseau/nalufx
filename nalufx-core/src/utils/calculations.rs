@@ -3,7 +3,11 @@ use crate::{
     check_empty_inputs, check_input_lengths, check_invalid_data, check_outliers,
     fill_feature_matrix, handle_result, normalize_features,
 };
+use augurs_core::{Fit as AugursFit, Predict as AugursPredict};
 use augurs_ets::AutoETS;
+// `linfa::prelude::*` also exports a `Fit` (and a `Predict`), so the
+// augurs traits are aliased rather than glob-imported — otherwise
+// `AutoETS::fit` resolves to linfa's trait, which it does not implement.
 use linfa::prelude::{Predict as LinfaPredict, *};
 use linfa_clustering::KMeans;
 use ndarray::prelude::*;
@@ -45,7 +49,7 @@ use rand::Rng;
 /// let num_days = 3;
 /// match calculate_optimal_allocation(&daily_returns, &cash_flows, &market_indices, &fund_characteristics, num_days) {
 ///     Ok(allocations) => println!("Allocations: {:?}", allocations),
-///     Err(e) => eprintln!("Error: {}", e),
+///   Err(e) => eprintln!("Error: {}", e),
 /// }
 /// ```
 pub fn calculate_optimal_allocation(
@@ -246,13 +250,15 @@ pub fn extract_features(
 /// let num_days = 3;
 /// match forecast_time_series(&data, num_days) {
 ///     Ok(forecast) => println!("Forecast: {:?}", forecast),
-///     Err(e) => eprintln!("Error: {}", e),
+///   Err(e) => eprintln!("Error: {}", e),
 /// }
 /// ```
 pub fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, String> {
-    let mut search = AutoETS::new(1, "ZZN").map_err(|e| e.to_string())?;
+    let search = AutoETS::new(1, "ZZN").map_err(|e| e.to_string())?;
     let model = search.fit(data).map_err(|e| e.to_string())?;
-    let forecast = model.predict(num_days, 0.95);
+    // augurs 0.10 made `predict` fallible; it returned the Forecast
+    // directly in 0.9.
+    let forecast = model.predict(num_days, 0.95).map_err(|e| e.to_string())?;
     Ok(forecast.point)
 }
 
@@ -357,7 +363,7 @@ pub fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, Allocati
     let clusters = model.predict(&dataset);
 
     // Convert the clusters to a Vec<usize> and return
-    Ok(clusters.iter().map(|&c| c).collect())
+    Ok(clusters.iter().copied().collect())
 }
 
 /// Helper function for sentiment analysis (placeholder).

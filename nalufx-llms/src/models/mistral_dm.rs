@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Fields
 ///
 /// * `choices` - A vector of `MistralChoice` structs representing the choices
-/// provided by the Mistral API.
+///   provided by the Mistral API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MistralResponse {
     /// A vector of MistralChoice structs
@@ -23,7 +23,7 @@ pub struct MistralResponse {
 /// # Fields
 ///
 /// * `message` - A `MistralMessage` struct representing the message content
-/// of the choice provided by the Mistral API.
+///   of the choice provided by the Mistral API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MistralChoice {
     /// A MistralMessage struct
@@ -38,7 +38,7 @@ pub struct MistralChoice {
 /// # Fields
 ///
 /// * `content` - A string representing the content of the message
-/// provided by the Mistral API.
+///   provided by the Mistral API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MistralMessage {
     /// A string representing the content of the message

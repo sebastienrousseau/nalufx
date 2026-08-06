@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// # Fields
 ///
 /// * `choices` - A vector of `OllamaChoice` structs representing the choices
-/// provided by the Ollama API.
+///   provided by the Ollama API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OllamaResponse {
     /// A vector of OllamaChoice structs
@@ -23,7 +23,7 @@ pub struct OllamaResponse {
 /// # Fields
 ///
 /// * `message` - A `OllamaMessage` struct representing the message content
-/// of the choice provided by the Ollama API.
+///   of the choice provided by the Ollama API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OllamaChoice {
     /// A OllamaMessage struct
@@ -38,7 +38,7 @@ pub struct OllamaChoice {
 /// # Fields
 ///
 /// * `content` - A string representing the content of the message
-/// provided by the Ollama API.
+///   provided by the Ollama API.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OllamaMessage {
     /// A string representing the content of the message

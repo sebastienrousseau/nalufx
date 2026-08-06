@@ -35,7 +35,7 @@ pub struct CashFlowRequest {
 ///
 /// let response = CashFlowResponse {
 ///     predictions: vec![1.0, 2.0, 3.0],
-///     optimal_allocation: vec![0.5, 0.3, 0.2],
+///   optimal_allocation: vec![0.5, 0.3, 0.2],
 /// };
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -81,7 +81,7 @@ pub struct ErrorResponse {
 ///
 /// let historical_data = HistoricalData {
 ///     ticker: String::from("AAPL"),
-///     data: vec![150.0, 155.0, 160.0],
+///   data: vec![150.0, 155.0, 160.0],
 /// };
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
