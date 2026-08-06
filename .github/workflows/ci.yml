@@ -44,5 +44,16 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
+      # nalufx-ui pulls in Slint, whose font stack builds
+      # yeslogic-fontconfig-sys. Its build script panics outright when
+      # the system fontconfig headers are absent, which is why this job
+      # failed before it ran a single test. The reusable Check & Test
+      # workflow already provides these; this job assembles its own
+      # toolchain, so it needs them too.
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev
+
       - name: Run tests
         run: cargo test --all-features

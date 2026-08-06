@@ -36,18 +36,12 @@ dotenvy = "0.15.7"
 env_logger = "0.11.3"
 figlet-rs = "1.0.0"
 futures = "0.3.30"
-linfa = "0.8.1"
-linfa-clustering = "0.8.1"
 log = "0.4.21"
 nalgebra = "0.35.0"
-ndarray = "0.16.1"
-# Must stay on 0.6.x: 0.7 requires ndarray ^0.17, which would put a
-# second ndarray in the graph alongside the 0.16 that linfa 0.8.1
-# pins. The crate's own arrays are ndarray 0.16, so the 0.7 traits
-# (CorrelationExt::cov and friends) simply did not apply to them.
-ndarray-stats = "0.6.0"
+ndarray = "0.17.2"
+ndarray-stats = "0.7.0"
 printpdf = "0.12.4"
-rand = "0.8.5"
+rand = "0.10.2"
 reqwest = { version = "0.12.5", features = ["json"] }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
