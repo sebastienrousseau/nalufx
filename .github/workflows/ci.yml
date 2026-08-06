@@ -19,16 +19,55 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Run in-repo rather than via sebastienrousseau/pipelines' rust-ci.yml.
+  # That workflow installs no system packages, and nalufx-ui depends on
+  # Slint, whose i-slint-common -> fontique -> yeslogic-fontconfig-sys
+  # chain needs the fontconfig headers on Linux. Its build script panics
+  # without them, so every job there died before running a single check.
+  # The chain is not feature-gated, so it cannot be dropped from this
+  # side; a caller cannot inject a step into a reusable workflow either.
   ci:
     name: Rust CI
-    uses: sebastienrousseau/pipelines/.github/workflows/rust-ci.yml@main
-    with:
-      rust-version: 'stable'
-      run-clippy: true
-      run-fmt: true
-      run-audit: true
-      run-coverage: true
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --no-deps --all-features -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace --all-features
+
+      - name: Docs
+        run: cargo doc --no-deps --all-features --workspace
+
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Reads .cargo/audit.toml, which ignores the four unmaintained
+      # advisories in Slint's font stack. There are no vulnerability
+      # advisories against this tree.
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   # Nightly toolchain tests (optional, continue on error)
   test-nightly:
