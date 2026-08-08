@@ -62,6 +62,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
+      # audit-check shells out to cargo to read the lockfile's package
+      # metadata, so without a toolchain on PATH it fails before it can
+      # emit any JSON: "I/O operation failed: entity not found", then
+      # "Unexpected end of JSON input" from the action parsing nothing.
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
       # Pinned to the v2.0.0 commit: the action publishes no floating
       # `v2` tag, only `v2.0.0`, so `@v2` does not resolve at all.
       #
