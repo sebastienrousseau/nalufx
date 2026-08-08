@@ -63,26 +63,25 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # audit-check shells out to cargo to read the lockfile's package
-      # metadata, so without a toolchain on PATH it fails before it can
-      # emit any JSON: "I/O operation failed: entity not found", then
-      # "Unexpected end of JSON input" from the action parsing nothing.
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      # Pinned to the v2.0.0 commit: the action publishes no floating
-      # `v2` tag, only `v2.0.0`, so `@v2` does not resolve at all.
+      # cargo-audit is run directly rather than through
+      # rustsec/audit-check. That action failed here with
+      # "I/O operation failed: entity not found" followed by "Unexpected
+      # end of JSON input" — it produced no output for its own parser to
+      # read, and gave nothing further to diagnose from. Installing and
+      # running the tool keeps the failure legible: cargo-audit prints
+      # the advisory it tripped on.
       #
-      # The ignore list is passed explicitly rather than left to
-      # .cargo/audit.toml, since the action shells out with its own
-      # arguments. These are the four *unmaintained* advisories in
-      # Slint's font stack — there are no vulnerability advisories
-      # against this tree. .cargo/audit.toml carries the same list, with
-      # a note on each, so local `cargo audit` runs agree with CI.
-      - uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ignore: RUSTSEC-2025-0141,RUSTSEC-2024-0436,RUSTSEC-2026-0206,RUSTSEC-2026-0192
+      # The ignore list lives in .cargo/audit.toml, which cargo-audit
+      # reads automatically, so it is stated once rather than duplicated
+      # into workflow inputs.
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: cargo audit
+        run: cargo audit --deny warnings
 
   # Nightly toolchain tests (optional, continue on error)
   test-nightly:
