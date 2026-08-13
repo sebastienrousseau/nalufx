@@ -1,11 +1,11 @@
 # cargo-audit configuration.
 #
 # The CI audit step runs with warnings denied, which makes
-# *unmaintained* advisories fail the build alongside real
-# vulnerabilities. There are currently no vulnerability advisories
-# against this tree — `cargo audit` reports zero — only the
-# unmaintained notices below, every one of them transitive and with no
-# fixed version to move to.
+# *informational* advisories — unmaintained and unsound — fail the
+# build alongside real vulnerabilities. There are currently no
+# vulnerability advisories against this tree; `cargo audit` reports
+# zero. What is listed below is informational only, every entry
+# transitive, with no fixed version reachable from here.
 #
 # Each entry states who pulls the crate in and why it cannot simply be
 # bumped. Re-check when the corresponding upstream moves; delete the
@@ -29,4 +29,26 @@ ignore = [
     # ttf-parser: unmaintained. Font parsing, pulled in by the same
     # Slint text stack as rustybuzz.
     "RUSTSEC-2026-0192",
+
+    # lru: unsound (RUSTSEC-2026-0253). `LruCache::pop()` is not
+    # panic-safe: a panicking `Drop` on a stored key skips `detach()`,
+    # leaving a dangling pointer that a later eviction can write
+    # through — use-after-free, reachable from safe Rust.
+    #
+    # Patched in >= 0.18.2, which is NOT reachable from here:
+    #
+    #     lru 0.16.4 <- azul-layout 0.0.13 <- printpdf 0.12.5 <- nalufx-core
+    #
+    # azul-layout requires ^0.16, and printpdf 0.12.5 is the newest
+    # release, so there is no version to move to. `cargo update -p lru
+    # --precise 0.18.2` fails on the azul-layout constraint.
+    #
+    # Reaching the bug needs all three: unwinding panics enabled,
+    # `catch_unwind` around a cache operation, and a key type whose
+    # `Drop` can panic. lru is used here only inside printpdf's layout
+    # engine, which this workspace does not call under `catch_unwind`.
+    #
+    # Re-check when azul-layout or printpdf releases; this entry should
+    # be deleted, not renewed by habit.
+    "RUSTSEC-2026-0253",
 ]
