@@ -24,10 +24,10 @@ jobs:
 
       - uses: actions/checkout@v7
 
-      - name: Update libssl
+      - name: Install OpenSSL development headers
         run: |
           sudo apt-get update
-          sudo apt-get install -y libssl1.1
+          sudo apt-get install -y libssl-dev pkg-config
 
       - name: Generate documentation for all features and publish it
         run: |
