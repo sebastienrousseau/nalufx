@@ -75,10 +75,10 @@ pub async fn send_ollama_request(
 ///   InternalServerError status and a message indicating the parsing error.
 /// * If any of the prediction values cannot be parsed into a `f64`, the `unwrap_or_default` method is used
 ///   to provide a default value of `0.0`.
-pub fn parse_ollama_response(body: &str) -> Result<Vec<f64>, HttpResponse> {
+pub fn parse_ollama_response(body: &str) -> Result<Vec<f64>, Box<HttpResponse>> {
     let ollama_response: OllamaResponse = serde_json::from_str(body).map_err(|err| {
         error!("Error parsing response JSON: {:?}", err);
-        HttpResponse::InternalServerError().body("Error parsing response JSON")
+        Box::new(HttpResponse::InternalServerError().body("Error parsing response JSON"))
     })?;
 
     let predictions: Vec<f64> = ollama_response
