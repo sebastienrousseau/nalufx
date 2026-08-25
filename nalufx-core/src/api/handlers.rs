@@ -52,7 +52,9 @@ async fn predict_cash_flow(
 
     let predictions = match parse_openai_response(&body) {
         Ok(predictions) => predictions,
-        Err(err) => return err,
+        // The parse helpers box their HttpResponse error so the Ok path is
+        // not penalised by a 128-byte Err variant (clippy::result_large_err).
+        Err(err) => return *err,
     };
 
     // Ensure predictions have a length of 6
