@@ -21,7 +21,6 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     env:
       BUILD_ID: ${{ github.run_id }}
-      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       OS: ${{ matrix.platform.os }}
       TARGET: ${{ matrix.platform.target }}
@@ -163,6 +162,10 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # OIDC token for crates.io trusted publishing.
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -189,9 +192,18 @@ jobs:
           echo "VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
         shell: /bin/bash -e {0}
 
-      - name: Log in to crates.io
-        id: login-crate-io
-        run: cargo login ${{ secrets.CARGO_API_TOKEN }}
+      # Trusted publishing: swaps this job's GitHub OIDC identity for a
+      # temporary crates.io token, revoked by the action's post step when
+      # the job ends. Replaces `cargo login`, which installed a stored
+      # secret; cargo reads CARGO_REGISTRY_TOKEN directly.
+      #
+      # The loop below publishes every workspace member, so each one
+      # needs its own trusted publisher on crates.io. None of the nalufx
+      # crates are published yet, so those configs can wait until the
+      # first release.
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
       
       - name: Install jq
         run: sudo apt-get install jq
@@ -206,4 +218,4 @@ jobs:
             cd - > /dev/null
           done
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
