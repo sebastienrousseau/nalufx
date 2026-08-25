@@ -166,50 +166,43 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
+      # Pull down every artifact the build matrix uploaded.
+      # merge-multiple flattens them into one directory rather than one
+      # folder per artifact.
+      #
+      # The previous implementation curl'd
+      # `actions/runs/${BUILD_ID}/artifacts/${name}` -- but neither
+      # BUILD_ID nor TARGET is set in this job, so the loop iterated over
+      # an empty list and, when it did run, wrote an unauthenticated API
+      # error body into a .tar.gz. No release ever carried real binaries.
       - name: Download artifacts
-        run: |
-          for target in ${{ env.TARGET }}; do
-            echo "Downloading $target artifact"
-            name="${target}.tar.gz"
-            echo "Artifact name: $name"
-            mkdir -p target/package
-            curl -sSL -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.v3+json" -L "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${BUILD_ID}/artifacts/${name}" -o "target/package/${name}"
-          done
-        env:
-          VERSION: ${{ env.VERSION }}
-          TARGET: ${{ env.TARGET }}
-          OS: ${{ env.OS }}
-
-      - name: Generate Changelog
-        id: generate-changelog
-        env:
-          BUILD_ID: ${{ github.run_id }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_URL: https://github.com/sebastienrousseau/nalufx/releases
-          TARGET: ${{ env.TARGET }}
-        run: |
-          if [[ ! -f CHANGELOG.md ]]; then
-            changelog_file="${{ github.workspace }}/CHANGELOG.md"
-            version=$(grep version Cargo.toml | sed -n 2p | cut -d '"' -f 2)
-            echo "## Release v${version} - $(date +'%Y-%m-%d')" >> "${changelog_file}"
-            cat TEMPLATE.md >> "${changelog_file}"
-            echo "$(git log --pretty=format:'%s' --reverse HEAD)" >> "${changelog_file}"
-            echo "" >> "${changelog_file}"
-          fi
-        shell: bash
-
-      - name: Create Release
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ env.VERSION }}
+        uses: actions/download-artifact@v7
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: NaluFX 🦀 v${{ env.VERSION }}
-          body_path: ${{ github.workspace }}/CHANGELOG.md
-          draft: true
-          prerelease: false
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum ./*.tar.gz > SHA256SUMS
+          cat SHA256SUMS
+
+      # gh is preinstalled on the runner, so this replaces the archived
+      # actions/create-release@v1 without adding a third-party dependency.
+      # The version comes from the guard job, which reads it from
+      # [workspace.package] rather than
+      # `grep version Cargo.toml | sed -n 2p` -- that picked the second
+      # line matching "version" anywhere in the manifest.
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          gh release create "v${VERSION}" \
+            --title "NaluFX 🦀 v${VERSION}" \
+            --generate-notes \
+            --draft \
+            dist/*.tar.gz dist/SHA256SUMS
 
   crate:
     name: ❯ Crate.io 🦀
