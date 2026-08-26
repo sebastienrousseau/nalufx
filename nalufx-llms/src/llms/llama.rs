@@ -1,5 +1,5 @@
 use crate::models::llama::LlamaResponse;
-use actix_web::HttpResponse;
+use crate::error::LlmError;
 use dotenvy::dotenv;
 use log::error;
 use reqwest::Client;
@@ -82,7 +82,7 @@ pub async fn send_llama_request(
 /// # Returns
 ///
 /// * `Ok(Vec<f64>)` - If the response is successfully parsed and the predictions are extracted.
-/// * `Err(actix_web::HttpResponse)` - If an error occurs during parsing or if the response is invalid.
+/// * `Err(LlmError)` - If the body is not valid JSON or does not match the expected shape.
 ///
 /// # Errors
 ///
@@ -90,10 +90,10 @@ pub async fn send_llama_request(
 ///   InternalServerError status and a message indicating the parsing error.
 /// * If any of the prediction values cannot be parsed into a `f64`, the `unwrap_or_default` method is used
 ///   to provide a default value of `0.0`.
-pub fn parse_llama_response(body: &str) -> Result<Vec<f64>, HttpResponse> {
+pub fn parse_llama_response(body: &str) -> Result<Vec<f64>, LlmError> {
     let llama_response: LlamaResponse = serde_json::from_str(body).map_err(|err| {
         error!("Error parsing response JSON: {:?}", err);
-        HttpResponse::InternalServerError().body("Error parsing response JSON")
+        LlmError::parse("llama", err)
     })?;
 
     let predictions: Vec<f64> = llama_response
