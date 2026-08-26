@@ -1,5 +1,5 @@
+use crate::error::LlmError;
 use crate::models::gemini_dm::GeminiResponse;
-use actix_web::HttpResponse;
 use dotenvy::dotenv;
 use log::error;
 use reqwest::Client;
@@ -67,7 +67,7 @@ pub async fn send_gemini_request(
 /// # Returns
 ///
 /// * `Ok(Vec<f64>)` - If the response is successfully parsed and the predictions are extracted.
-/// * `Err(actix_web::HttpResponse)` - If an error occurs during parsing or if the response is invalid.
+/// * `Err(LlmError)` - If the body is not valid JSON or does not match the expected shape.
 ///
 /// # Errors
 ///
@@ -75,10 +75,10 @@ pub async fn send_gemini_request(
 ///   InternalServerError status and a message indicating the parsing error.
 /// * If any of the prediction values cannot be parsed into a `f64`, the `unwrap_or_default` method is used
 ///   to provide a default value of `0.0`.
-pub fn parse_gemini_response(body: &str) -> Result<Vec<f64>, Box<HttpResponse>> {
+pub fn parse_gemini_response(body: &str) -> Result<Vec<f64>, LlmError> {
     let gemini_response: GeminiResponse = serde_json::from_str(body).map_err(|err| {
         error!("Error parsing response JSON: {:?}", err);
-        Box::new(HttpResponse::InternalServerError().body("Error parsing response JSON"))
+        LlmError::parse("gemini", err)
     })?;
 
     let predictions: Vec<f64> = gemini_response

@@ -27,8 +27,8 @@ path = "src/lib.rs" # The path to the library file.
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+thiserror = "2.0"
 # Dependencies for the package.
-actix-web = "4.7.0"
 async-trait = "0.1.80"
 dotenvy = "0.15.7"
 log = "0.4.21"
@@ -42,7 +42,6 @@ version_check = "0.9.4"
 
 [dev-dependencies]
 # Dependencies for development and testing.
-actix-rt = "2.10.0"
 lazy_static = "1.4.0"
 wiremock = "0.6.0"
 # Uncomment if you use Criterion for benchmarking.
