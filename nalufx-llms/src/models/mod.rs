@@ -4,8 +4,8 @@ pub mod claude_dm;
 /// Data models for the Gemini API.
 pub mod gemini_dm;
 
-/// Data models for the Gemma API.
-pub mod gemma_dm;
+/// Data models for the Agy API.
+pub mod agy_dm;
 
 /// Data models for the Llama API.
 pub mod llama_dm;

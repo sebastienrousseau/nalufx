@@ -14,7 +14,10 @@ exclude = ["/.git/*", "/.github/*", "/.gitignore", "/.vscode/*"]
 homepage = "https://nalufx.com/"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/sebastienrousseau/nalufx/"
-rust-version = "1.56.0"
+# Determined from the dependency graph, not aspiration: slint (via
+# nalufx-ui) declares rust-version 1.92, so nothing here has been
+# buildable on the 1.56.0 previously claimed.
+rust-version = "1.92"
 version = "0.0.1"
 
 [profile.dev]

@@ -31,6 +31,9 @@ pub trait LLM: Sync + Send {
     ) -> Result<Value, reqwest::Error>;
 }
 
+/// This module contains the Agy API handlers.
+pub mod agy;
+
 /// This module contains the Claude API handlers.
 pub mod claude;
 

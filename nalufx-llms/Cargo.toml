@@ -7,7 +7,7 @@ name = "nalufx-llms" # The name of the package.
 categories = ["web-programming"] # Categories for the package.
 description = "" # A short description of the package.
 edition = "2021" # The edition of the Rust language to use.
-keywords=["llms","claude","gemini","gemma","llama","mistral","ollama","openai"]
+keywords=["llms","claude","gemini","agy","llama","mistral","ollama","openai"]
 include = ["src/**/*", "README.md"] # Files to include when publishing the package.
 
 # The following metadata is inherited from the workspace.
@@ -47,8 +47,12 @@ version_check = "0.9.4"
 # Dependencies for development and testing.
 lazy_static = "1.4.0"
 wiremock = "0.6.0"
-# Uncomment if you use Criterion for benchmarking.
-# criterion = "0.5.1"
+tokio = { version = "1.44", features = ["macros", "rt-multi-thread"] }
+criterion = { version = "0.8", features = ["html_reports"] }
+
+[[bench]]
+name = "agy"
+harness = false
 
 [features]
 # Optional features for the package.
