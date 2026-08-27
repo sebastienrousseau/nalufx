@@ -23,7 +23,10 @@ homepage.workspace = true # The homepage URL is defined in the workspace.
 # Dependencies for the package.
 nalufx-llms = { path = "../nalufx-llms" , version = "0.0.1" }
 
-actix-web = "4.8.0"
+bytes = "1.12"
+http-body-util = "0.1"
+hyper = { version = "1.11", features = ["http1", "server"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
 async-trait = "0.1.80"
 # Provides the `Fit` trait that `AutoETS::fit` comes from. augurs-ets
 # does not re-export it, and it has to be nameable here because
@@ -59,7 +62,6 @@ version_check = "0.9.4"
 
 [dev-dependencies]
 # Dependencies for development and testing.
-actix-rt = "2.10.0"
 lazy_static = "1.4.0"
 wiremock = "0.6.0"
 # Uncomment if you use Criterion for benchmarking.
