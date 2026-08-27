@@ -20,10 +20,7 @@ mod tests {
         let text = "";
         let result = generate_ascii_art(text);
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            AsciiArtError::ConversionError
-        ));
+        assert!(matches!(result.unwrap_err(), AsciiArtError::ConversionError));
     }
 
     #[test]
@@ -37,10 +34,7 @@ mod tests {
         let text = "\u{1F600}"; // Emoji character
         let result = generate_ascii_art(text);
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            AsciiArtError::ConversionError
-        ));
+        assert!(matches!(result.unwrap_err(), AsciiArtError::ConversionError));
     }
 
     #[test]

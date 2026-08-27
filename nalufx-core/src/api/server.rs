@@ -72,7 +72,8 @@ pub async fn serve_on(listener: TcpListener) -> std::io::Result<()> {
         // accept loop must not wait on it.
         drop(tokio::spawn(async move {
             let service = service_fn(move |req| route(client.clone(), req));
-            if let Err(err) = http1::Builder::new().serve_connection(TokioIo::new(stream), service).await
+            if let Err(err) =
+                http1::Builder::new().serve_connection(TokioIo::new(stream), service).await
             {
                 error!("Error serving {peer}: {err}");
             }
