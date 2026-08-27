@@ -1,4 +1,7 @@
 [package]
+# Not published to crates.io: nalufx is an application, not a
+# library. See issue #40.
+publish = false
 # Metadata about the package.
 name = "nalufx-llms" # The name of the package.
 categories = ["web-programming"] # Categories for the package.
