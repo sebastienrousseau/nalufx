@@ -78,7 +78,7 @@ pub async fn fetch_data(
                 }
             } else {
                 error!("Request failed with status: {}", response.status());
-                Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Request failed")))
+                Err(Box::new(std::io::Error::other("Request failed")))
             }
         },
         Err(e) => {
