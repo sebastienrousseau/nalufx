@@ -101,6 +101,25 @@ jobs:
         id: install-target
         run: rustup target add ${{ env.TARGET }}
 
+      # nalufx-ui pulls slint, whose yeslogic-fontconfig-sys build script
+      # shells out to pkg-config and panics if fontconfig is absent:
+      #
+      #   pkg-config exited with status code 1
+      #   The system library `fontconfig` required by crate
+      #   `yeslogic-fontconfig-sys` was not found.
+      #
+      # ubuntu-latest does not ship the -dev packages, so the Linux leg of
+      # this matrix has never built. The others are unaffected.
+      - name: Install Linux system dependencies
+        id: install-linux-deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            libfontconfig1-dev \
+            libxkbcommon-dev \
+            libxcb1-dev
+
       - name: Build targets
         id: build-targets
         run: cargo build --verbose --workspace --release --target "$TARGET"
