@@ -67,10 +67,11 @@ pub async fn route(client: Client, req: Request<Incoming>) -> Result<JsonRespons
 async fn read_json<T: serde::de::DeserializeOwned>(
     req: Request<Incoming>,
 ) -> Result<T, Box<JsonResponse>> {
-    let collected = Limited::new(req.into_body(), MAX_BODY_BYTES).collect().await.map_err(|err| {
-        error!("Error reading request body: {err}");
-        Box::new(response::error(StatusCode::PAYLOAD_TOO_LARGE, "Request body too large"))
-    })?;
+    let collected =
+        Limited::new(req.into_body(), MAX_BODY_BYTES).collect().await.map_err(|err| {
+            error!("Error reading request body: {err}");
+            Box::new(response::error(StatusCode::PAYLOAD_TOO_LARGE, "Request body too large"))
+        })?;
 
     serde_json::from_slice(&collected.to_bytes()).map_err(|err| {
         error!("Error deserialising request body: {err}");
@@ -81,8 +82,8 @@ async fn read_json<T: serde::de::DeserializeOwned>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use http_body_util::Full;
     use bytes::Bytes;
+    use http_body_util::Full;
 
     /// Builds a request whose body type matches hyper's `Incoming` after a
     /// round trip through the router's own reader.
@@ -125,9 +126,10 @@ mod tests {
 
     #[tokio::test]
     async fn a_body_missing_a_field_is_a_bad_request() {
-        let status = read::<PredictCashFlowRequest>(post("/predict", r#"{"historical_data":[1.0]}"#))
-            .await
-            .expect_err("should reject");
+        let status =
+            read::<PredictCashFlowRequest>(post("/predict", r#"{"historical_data":[1.0]}"#))
+                .await
+                .expect_err("should reject");
         assert_eq!(status, StatusCode::BAD_REQUEST);
     }
 

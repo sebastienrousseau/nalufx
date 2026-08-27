@@ -8,9 +8,7 @@ mod tests {
     /// Tests serialization and deserialization of `CashFlowRequest`.
     #[test]
     fn test_cash_flow_request_serialization() {
-        let request = CashFlowRequest {
-            historical_data: vec![1.0, 2.0, 3.0],
-        };
+        let request = CashFlowRequest { historical_data: vec![1.0, 2.0, 3.0] };
         let serialized = serde_json::to_string(&request).unwrap();
         let deserialized: CashFlowRequest = serde_json::from_str(&serialized).unwrap();
         assert_eq!(request, deserialized);
@@ -31,9 +29,7 @@ mod tests {
     /// Tests serialization and deserialization of `ErrorResponse`.
     #[test]
     fn test_error_response_serialization() {
-        let error_response = ErrorResponse {
-            error: String::from("An error occurred"),
-        };
+        let error_response = ErrorResponse { error: String::from("An error occurred") };
         let serialized = serde_json::to_string(&error_response).unwrap();
         let deserialized: ErrorResponse = serde_json::from_str(&serialized).unwrap();
         assert_eq!(error_response, deserialized);
@@ -42,10 +38,8 @@ mod tests {
     /// Tests serialization and deserialization of `HistoricalData`.
     #[test]
     fn test_historical_data_serialization() {
-        let historical_data = HistoricalData {
-            ticker: String::from("AAPL"),
-            data: vec![150.0, 155.0, 160.0],
-        };
+        let historical_data =
+            HistoricalData { ticker: String::from("AAPL"), data: vec![150.0, 155.0, 160.0] };
         let serialized = serde_json::to_string(&historical_data).unwrap();
         let deserialized: HistoricalData = serde_json::from_str(&serialized).unwrap();
         assert_eq!(historical_data, deserialized);
@@ -54,9 +48,7 @@ mod tests {
     /// Tests default values of `CashFlowRequest`.
     #[test]
     fn test_cash_flow_request_default() {
-        let request = CashFlowRequest {
-            historical_data: Vec::<f64>::new(),
-        };
+        let request = CashFlowRequest { historical_data: Vec::<f64>::new() };
         assert_eq!(request.historical_data, Vec::<f64>::new());
     }
 
@@ -74,19 +66,14 @@ mod tests {
     /// Tests default values of `ErrorResponse`.
     #[test]
     fn test_error_response_default() {
-        let error_response = ErrorResponse {
-            error: String::new(),
-        };
+        let error_response = ErrorResponse { error: String::new() };
         assert_eq!(error_response.error, "");
     }
 
     /// Tests default values of `HistoricalData`.
     #[test]
     fn test_historical_data_default() {
-        let historical_data = HistoricalData {
-            ticker: String::new(),
-            data: Vec::<f64>::new(),
-        };
+        let historical_data = HistoricalData { ticker: String::new(), data: Vec::<f64>::new() };
         assert_eq!(historical_data.ticker, "");
         assert_eq!(historical_data.data, Vec::<f64>::new());
     }
@@ -95,9 +82,7 @@ mod tests {
     #[test]
     fn test_large_cash_flow_request_serialization() {
         let large_data = vec![1.0; 10000]; // Vector with 10,000 elements
-        let request = CashFlowRequest {
-            historical_data: large_data.clone(),
-        };
+        let request = CashFlowRequest { historical_data: large_data.clone() };
         let serialized = serde_json::to_string(&request).unwrap();
         let deserialized: CashFlowRequest = serde_json::from_str(&serialized).unwrap();
         assert_eq!(request.historical_data, deserialized.historical_data);
@@ -107,9 +92,7 @@ mod tests {
     /// Tests serialization and deserialization of `CashFlowRequest` with boundary float values.
     #[test]
     fn test_boundary_values() {
-        let request = CashFlowRequest {
-            historical_data: vec![f64::MIN, f64::MAX],
-        };
+        let request = CashFlowRequest { historical_data: vec![f64::MIN, f64::MAX] };
         let serialized = serde_json::to_string(&request).unwrap();
         let deserialized: CashFlowRequest = serde_json::from_str(&serialized).unwrap();
         assert_eq!(request, deserialized);
@@ -126,13 +109,8 @@ mod tests {
     /// Tests serialization and deserialization of `CashFlowRequest` and `CashFlowResponse` with empty vectors.
     #[test]
     fn test_empty_vectors() {
-        let request = CashFlowRequest {
-            historical_data: vec![],
-        };
-        let response = CashFlowResponse {
-            predictions: vec![],
-            optimal_allocation: vec![],
-        };
+        let request = CashFlowRequest { historical_data: vec![] };
+        let response = CashFlowResponse { predictions: vec![], optimal_allocation: vec![] };
         let serialized_request = serde_json::to_string(&request).unwrap();
         let deserialized_request: CashFlowRequest =
             serde_json::from_str(&serialized_request).unwrap();
@@ -147,9 +125,7 @@ mod tests {
     /// Tests edge case of `ErrorResponse` with an empty error message.
     #[test]
     fn test_error_response_edge_case() {
-        let error_response = ErrorResponse {
-            error: String::new(),
-        };
+        let error_response = ErrorResponse { error: String::new() };
         let serialized = serde_json::to_string(&error_response).unwrap();
         let deserialized: ErrorResponse = serde_json::from_str(&serialized).unwrap();
         assert_eq!(error_response, deserialized);
@@ -159,10 +135,7 @@ mod tests {
     /// Tests edge case of `HistoricalData` with an empty ticker and data.
     #[test]
     fn test_historical_data_edge_case() {
-        let historical_data = HistoricalData {
-            ticker: String::new(),
-            data: Vec::<f64>::new(),
-        };
+        let historical_data = HistoricalData { ticker: String::new(), data: Vec::<f64>::new() };
         let serialized = serde_json::to_string(&historical_data).unwrap();
         let deserialized: HistoricalData = serde_json::from_str(&serialized).unwrap();
         assert_eq!(historical_data, deserialized);

@@ -109,7 +109,10 @@ pub async fn predict_cash_flow(client: &Client, request: PredictCashFlowRequest)
         },
         Err(e) => {
             error!("Error calculating optimal allocation: {e}");
-            response::error(StatusCode::INTERNAL_SERVER_ERROR, "Error calculating optimal allocation")
+            response::error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Error calculating optimal allocation",
+            )
         },
     }
 }

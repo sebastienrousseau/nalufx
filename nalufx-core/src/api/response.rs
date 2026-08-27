@@ -62,9 +62,8 @@ fn fallback() -> JsonResponse {
         Response::new(Full::new(Bytes::from_static(br#"{"error":"Internal Server Error"}"#)));
     *response.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
     // Replacing an absent header; there is no prior value to inspect.
-    let _ = response
-        .headers_mut()
-        .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    let _ =
+        response.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     response
 }
 
