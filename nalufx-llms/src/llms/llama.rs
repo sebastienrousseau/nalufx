@@ -1,5 +1,5 @@
-use crate::models::llama_dm::LlamaResponse;
 use crate::error::LlmError;
+use crate::models::llama_dm::LlamaResponse;
 use dotenvy::dotenv;
 use log::error;
 use reqwest::Client;
@@ -26,12 +26,12 @@ pub fn get_llama_api_key() -> Result<String, LlmError> {
             Err(_) => {
                 error!("LLAMA_API_KEY not found in the .env file");
                 Err(LlmError::MissingApiKey { provider: "llama" })
-            }
+            },
         },
         Err(err) => {
             error!("Failed to load .env file: {:?}", err);
             Err(LlmError::MissingApiKey { provider: "llama" })
-        }
+        },
     }
 }
 
@@ -70,9 +70,9 @@ pub async fn send_llama_request(
         return Err(LlmError::request("llama", format!("API returned {}", response.status())));
     }
     response.text().await.map_err(|err| {
-            error!("Error reading response body: {:?}", err);
-            LlmError::request("llama", err.to_string())
-        })
+        error!("Error reading response body: {:?}", err);
+        LlmError::request("llama", err.to_string())
+    })
 }
 
 /// Parses the Llama API response and extracts the predictions.
@@ -102,11 +102,7 @@ pub fn parse_llama_response(body: &str) -> Result<Vec<f64>, LlmError> {
         .choices
         .iter()
         .flat_map(|choice| {
-            choice
-                .message
-                .content
-                .split_whitespace()
-                .map(|s| s.parse().unwrap_or_default())
+            choice.message.content.split_whitespace().map(|s| s.parse().unwrap_or_default())
         })
         .collect();
 

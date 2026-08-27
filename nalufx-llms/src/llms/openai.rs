@@ -111,9 +111,9 @@ pub async fn send_openai_request(
         return Err(LlmError::request("openai", format!("API returned {}", response.status())));
     }
     response.text().await.map_err(|err| {
-            error!("Error reading response body: {:?}", err);
-            LlmError::request("openai", err.to_string())
-        })
+        error!("Error reading response body: {:?}", err);
+        LlmError::request("openai", err.to_string())
+    })
 }
 
 /// Parses the OpenAI API response and extracts the predictions.

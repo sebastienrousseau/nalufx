@@ -70,9 +70,9 @@ pub async fn send_claude_request(
         return Err(LlmError::request("claude", format!("API returned {}", response.status())));
     }
     response.text().await.map_err(|err| {
-            error!("Error reading response body: {:?}", err);
-            LlmError::request("claude", err.to_string())
-        })
+        error!("Error reading response body: {:?}", err);
+        LlmError::request("claude", err.to_string())
+    })
 }
 
 /// Parses the Claude API response and extracts the predictions.
