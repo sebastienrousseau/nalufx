@@ -94,3 +94,31 @@ pub struct ErrorResponse {
     /// This provides a human-readable explanation of what went wrong during the processing of the request.
     pub error: String,
 }
+
+/// The body of a `POST /predict` request.
+///
+/// The four series are supplied alongside the historical data in a single
+/// JSON object. They were previously five separate body extractors, which
+/// cannot work: an HTTP request has one body, so only the first could ever
+/// have been read.
+///
+/// # Fields
+///
+/// * `historical_data` - The cash flow history used to build the prompt.
+/// * `daily_returns` - Daily returns for each fund under consideration.
+/// * `cash_flows` - Observed cash flows for each fund.
+/// * `market_indices` - Market index values aligned with the other series.
+/// * `fund_characteristics` - Per-fund characteristic scores.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct PredictCashFlowRequest {
+    /// The cash flow history used to build the prompt.
+    pub historical_data: Vec<f64>,
+    /// Daily returns for each fund under consideration.
+    pub daily_returns: Vec<f64>,
+    /// Observed cash flows for each fund.
+    pub cash_flows: Vec<f64>,
+    /// Market index values aligned with the other series.
+    pub market_indices: Vec<f64>,
+    /// Per-fund characteristic scores.
+    pub fund_characteristics: Vec<f64>,
+}

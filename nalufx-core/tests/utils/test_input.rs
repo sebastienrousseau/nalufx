@@ -7,9 +7,7 @@ mod tests {
     #[allow(dead_code)]
     pub(crate) fn read_input_for_test<R: BufRead>(mut reader: R) -> Result<String, NaluFxError> {
         let mut input = String::new();
-        let _ = reader
-            .read_line(&mut input)
-            .map_err(NaluFxError::InputError)?;
+        let _ = reader.read_line(&mut input).map_err(NaluFxError::InputError)?;
         Ok(input.trim().to_string())
     }
 
@@ -17,9 +15,7 @@ mod tests {
     #[allow(dead_code)]
     pub(crate) fn get_input_for_test_err<R: BufRead>(mut reader: R) -> Result<String, NaluFxError> {
         let mut input = String::new();
-        let _ = reader
-            .read_line(&mut input)
-            .map_err(NaluFxError::InputError)?;
+        let _ = reader.read_line(&mut input).map_err(NaluFxError::InputError)?;
         Ok(input.trim().to_string())
     }
 

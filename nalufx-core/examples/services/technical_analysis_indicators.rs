@@ -22,6 +22,7 @@ use nalufx::{
     services::fetch_data_svc::fetch_data,
     utils::{date::validate_date, input::get_input, ticker::validate_ticker},
 };
+use nalufx_llms::error::LlmError;
 use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
 use nalufx_llms::models::openai_dm::OpenAIResponse;
 use serde_json::json;
@@ -199,7 +200,7 @@ struct TechnicalIndicators<'a> {
 
 async fn generate_technical_analysis_report(
     indicators: TechnicalIndicators<'_>,
-) -> Result<String, &'static str> {
+) -> Result<String, LlmError> {
     let TechnicalIndicators {
         closing_prices,
         ema,
@@ -216,7 +217,7 @@ async fn generate_technical_analysis_report(
         Ok(key) => key,
         Err(err) => {
             eprintln!("{}", err);
-            return Err("Failed to get OpenAI API key");
+            return Err(err);
         },
     };
 
@@ -280,14 +281,16 @@ Please ensure that the report is well-structured, easy to understand, and adhere
 
     let openai_response: OpenAIResponse = serde_json::from_str(&response).map_err(|err| {
         eprintln!("Error parsing response JSON: {:?}", err);
-        "Error parsing response JSON"
+        LlmError::parse("openai", err)
     })?;
 
     let generated_text = openai_response
         .choices
         .first()
         .map(|choice| choice.message.content.clone())
-        .ok_or("No content found in response")?;
+        // A 200 with no choices is transient rather than malformed, so it
+        // maps to a retryable request error rather than a parse error.
+        .ok_or_else(|| LlmError::request("openai", "response contained no choices"))?;
 
     Ok(generated_text)
 }
