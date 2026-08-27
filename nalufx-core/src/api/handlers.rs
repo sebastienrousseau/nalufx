@@ -47,7 +47,17 @@ async fn predict_cash_flow(
     let openai_url = "https://api.openai.com/v1/chat/completions";
     let body = match send_openai_request(&client, openai_url, &api_key, request_body).await {
         Ok(body) => body,
-        Err(err) => return HttpResponse::InternalServerError().body(err),
+        Err(err) => {
+            error!("{err}");
+            // A transport failure may succeed on retry; a malformed request
+            // will not. Signalling the two apart lets callers back off.
+            return if err.is_retryable() {
+                HttpResponse::ServiceUnavailable()
+                    .body(format!("Upstream {} is unavailable", err.provider()))
+            } else {
+                HttpResponse::InternalServerError().body("Internal Server Error")
+            };
+        },
     };
 
     let predictions = match parse_openai_response(&body) {

@@ -1,5 +1,5 @@
-use crate::models::llama::LlamaResponse;
 use crate::error::LlmError;
+use crate::models::llama_dm::LlamaResponse;
 use dotenvy::dotenv;
 use log::error;
 use reqwest::Client;
@@ -11,8 +11,9 @@ use std::env;
 /// # Returns
 ///
 /// * `Ok(String)` - If the API key is successfully retrieved.
-/// * `Err(&'static str)` - If the API key is not found in the environment variables or .env file.
-pub fn get_llama_api_key() -> Result<String, &'static str> {
+/// * `Err(LlmError::MissingApiKey)` - If the API key is not present in the
+///   environment or the `.env` file cannot be loaded.
+pub fn get_llama_api_key() -> Result<String, LlmError> {
     // First, try to read the API key from the environment variables
     if let Ok(key) = env::var("LLAMA_API_KEY") {
         return Ok(key);
@@ -24,13 +25,13 @@ pub fn get_llama_api_key() -> Result<String, &'static str> {
             Ok(key) => Ok(key),
             Err(_) => {
                 error!("LLAMA_API_KEY not found in the .env file");
-                Err("LLAMA_API_KEY not found in the .env file")
-            }
+                Err(LlmError::MissingApiKey { provider: "llama" })
+            },
         },
         Err(err) => {
             error!("Failed to load .env file: {:?}", err);
-            Err("Failed to load .env file")
-        }
+            Err(LlmError::MissingApiKey { provider: "llama" })
+        },
     }
 }
 
@@ -46,13 +47,14 @@ pub fn get_llama_api_key() -> Result<String, &'static str> {
 /// # Returns
 ///
 /// * `Ok(String)` - If the request is successfully sent and the response body is returned as a string.
-/// * `Err(&'static str)` - If an error occurs during the request or response handling.
+/// * `Err(LlmError::Request)` - If the transport fails or the provider
+///   returns a non-success status.
 pub async fn send_llama_request(
     client: &Client,
     api_url: &str,
     api_key: &str,
     request_body: Value,
-) -> Result<String, &'static str> {
+) -> Result<String, LlmError> {
     let response = client
         .post(api_url)
         .header("Authorization", format!("Bearer {}", api_key))
@@ -61,15 +63,15 @@ pub async fn send_llama_request(
         .await
         .map_err(|err| {
             error!("Error sending request to Llama API: {:?}", err);
-            "Error contacting Llama API"
+            LlmError::request("llama", err.to_string())
         })?;
     if !response.status().is_success() {
         error!("Llama API call failed with status: {:?}", response.status());
-        return Err("Llama API call failed");
+        return Err(LlmError::request("llama", format!("API returned {}", response.status())));
     }
     response.text().await.map_err(|err| {
         error!("Error reading response body: {:?}", err);
-        "Error reading response body"
+        LlmError::request("llama", err.to_string())
     })
 }
 
@@ -100,13 +102,63 @@ pub fn parse_llama_response(body: &str) -> Result<Vec<f64>, LlmError> {
         .choices
         .iter()
         .flat_map(|choice| {
-            choice
-                .message
-                .content
-                .split_whitespace()
-                .map(|s| s.parse().unwrap_or_default())
+            choice.message.content.split_whitespace().map(|s| s.parse().unwrap_or_default())
         })
         .collect();
 
     Ok(predictions)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A well-formed response body carrying `content` tokens.
+    fn body(contents: &[&str]) -> String {
+        let choices: Vec<String> = contents
+            .iter()
+            .map(|c| format!(r#"{{"message":{{"content":"{c}"}}}}"#, c = c))
+            .collect();
+        format!(r#"{{"choices":[{}]}}"#, choices.join(","))
+    }
+
+    #[test]
+    fn parses_whitespace_separated_predictions() {
+        let got = parse_llama_response(&body(&["1.5 2.5 3.0"])).unwrap();
+        assert_eq!(got, vec![1.5, 2.5, 3.0]);
+    }
+
+    #[test]
+    fn flattens_predictions_across_choices() {
+        let got = parse_llama_response(&body(&["1.0 2.0", "3.0"])).unwrap();
+        assert_eq!(got, vec![1.0, 2.0, 3.0]);
+    }
+
+    #[test]
+    fn empty_choices_yield_no_predictions() {
+        let got = parse_llama_response(r#"{"choices":[]}"#).unwrap();
+        assert!(got.is_empty());
+    }
+
+    #[test]
+    fn non_numeric_tokens_default_to_zero() {
+        // Documented behaviour: `unwrap_or_default` substitutes 0.0 rather
+        // than failing the whole batch on one unparseable token.
+        let got = parse_llama_response(&body(&["1.0 not_a_number 3.0"])).unwrap();
+        assert_eq!(got, vec![1.0, 0.0, 3.0]);
+    }
+
+    #[test]
+    fn malformed_json_is_a_parse_error_tagged_with_the_provider() {
+        let err = parse_llama_response("this is not json").unwrap_err();
+        assert!(matches!(err, LlmError::ParseResponse { .. }));
+        assert_eq!(err.provider(), "llama");
+        assert!(!err.is_retryable(), "a bad body will not parse on retry");
+    }
+
+    #[test]
+    fn a_missing_choices_field_is_a_parse_error() {
+        let err = parse_llama_response(r#"{"unexpected":true}"#).unwrap_err();
+        assert!(matches!(err, LlmError::ParseResponse { .. }));
+    }
 }
