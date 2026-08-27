@@ -5,9 +5,12 @@ mod tests {
     #[test]
     fn test_macro_ascii_success() {
         let art = macro_ascii!("Hi");
+        // The standard font applies its default smushing, so adjacent
+        // glyphs share a column. The previous expectation encoded the
+        // unsmushed layout and never ran, so it was never corrected.
         assert_eq!(
             art,
-            "  _   _   _ \n | | | | (_)\n | |_| | | |\n |  _  | | |\n |_| |_| |_|\n            \n"
+            " _   _ _ \n| | | (_)\n| |_| | |\n|  _  | |\n|_| |_|_|\n         \n"
         );
     }
 

@@ -21,15 +21,14 @@
 //!
 //! The server will start and bind to the address specified in the `SERVER_ADDR` environment variable.
 
-use actix_web::{App, HttpServer};
 use dotenvy::dotenv;
-use nalufx::api::handlers::predict_cash_flow;
+use nalufx::api::server::serve;
 use nalufx::config::Config;
 
 /// The main entry point of the application.
 ///
 /// This function initializes the environment, loads the configuration,
-/// and starts the Actix web server. It sets up the necessary routes
+/// and starts the HTTP server. It sets up the necessary routes
 /// and binds the server to the address specified in the configuration.
 ///
 /// # Returns
@@ -52,7 +51,7 @@ use nalufx::config::Config;
 /// ```env
 /// SERVER_ADDR=127.0.0.1:8080
 /// ```
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> std::io::Result<()> {
     // Load environment variables from .env file, ignoring any error
     if dotenv().is_err() {
@@ -62,5 +61,12 @@ async fn main() -> std::io::Result<()> {
 
     let config = Config::from_env().expect("Failed to load configuration");
 
-    HttpServer::new(|| App::new().service(predict_cash_flow)).bind(config.server_addr)?.run().await
+    let addr = config.server_addr.parse().map_err(|err| {
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            format!("Invalid SERVER_ADDR `{}`: {err}", config.server_addr),
+        )
+    })?;
+
+    serve(addr).await
 }
