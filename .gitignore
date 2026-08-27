@@ -9,6 +9,9 @@ build
 Icon?
 src/.DS_Store
 tarpaulin-report.html
-Cargo.lock
+# Cargo.lock is tracked: this workspace ships binaries (nalufx-core,
+# nalufx-ui), and for those the lockfile is what makes a build
+# reproducible and a `cargo audit` result mean anything. Ignoring it
+# let CI re-resolve on every run.
 .env
 nalufx.csv
