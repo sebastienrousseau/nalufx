@@ -37,6 +37,9 @@ pub mod claude;
 /// This module contains the Gemini API handlers.
 pub mod gemini;
 
+/// This module contains the Llama API handlers.
+pub mod llama;
+
 /// This module contains the Mistral API handlers.
 pub mod mistral;
 
