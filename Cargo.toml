@@ -18,7 +18,7 @@ repository = "https://github.com/sebastienrousseau/nalufx/"
 # nalufx-ui) declares rust-version 1.92, so nothing here has been
 # buildable on the 1.56.0 previously claimed.
 rust-version = "1.92"
-version = "0.0.1"
+version = "0.0.2"
 
 [profile.dev]
 # Development profile.
