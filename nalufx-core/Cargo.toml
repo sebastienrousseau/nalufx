@@ -24,7 +24,7 @@ homepage.workspace = true # The homepage URL is defined in the workspace.
 
 [dependencies]
 # Dependencies for the package.
-nalufx-llms = { path = "../nalufx-llms" , version = "0.0.1" }
+nalufx-llms = { path = "../nalufx-llms" , version = "0.0.2" }
 
 bytes = "1.12"
 http-body-util = "0.1"
@@ -56,7 +56,7 @@ thiserror = "2.0.11"
 time = "0.3.36"
 tokio = { version = "1.44", features = ["full"] }
 tokio-test = "0.4.4"
-yahoo_finance_api = "4.1.1"
+yahoo_finance_api = "5.0.0"
 commons = { package = "euxis-commons", git = "https://github.com/sebastienrousseau/commons", tag = "v0.0.3", default-features = false, features = ["error", "config", "logging", "time"] }
 
 [build-dependencies]
