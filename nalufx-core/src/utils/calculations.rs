@@ -419,9 +419,10 @@ pub fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, Allocati
                 .iter()
                 .enumerate()
                 .map(|(k, c)| (k, squared_distance(&point, c)))
-                // `partial_cmp`, not `total_cmp`: the latter needs Rust
-                // 1.62 and the workspace MSRV is 1.56. Distances here are
-                // non-negative and finite (the inputs are validated by
+                // `partial_cmp` dates from a declared 1.56 MSRV, when
+                // `total_cmp` (1.62) was out of reach; the workspace now
+                // declares 1.92. Distances here are non-negative and
+                // finite (the inputs are validated by
                 // `check_invalid_data!` upstream), so the orderings agree.
                 .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal))
                 .map_or(0, |(k, _)| k);
