@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI runs the shared pipelines security workflow (cargo audit, cargo
   deny, CodeQL and dependency review), as the other crates in the
   family do. cargo deny ran nowhere in CI before.
+- The release workflow quotes `$GITHUB_ENV` (shellcheck SC2086).
 
 ## [0.0.2] - 2026-10-11
 
