@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The MSRV stays at Rust 1.92: slint 1.17 needs it. Two code comments
   that still cited a 1.56 floor now say where their choices came from.
+- `deny.toml` uses the current cargo-deny schema. cargo-deny 0.20
+  refused the file (`unlicensed`, `copyleft`, `allow-osi-fsf-free` and
+  the licence `deny` list are gone), so `cargo deny check` could not
+  run. The allow list now names the licences the old rules accepted in
+  the dependency graph; the policy is unchanged.
 
 ## [0.0.2] - 2026-10-11
 
