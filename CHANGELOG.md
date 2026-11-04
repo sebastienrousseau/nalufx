@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (remote-triggerable panics). It sits in `Cargo.lock` through
   reqwest's optional HTTP/3 stack and no nalufx feature builds it, but
   `cargo audit` failed on the lockfile.
+- **figlet-rs 0.2.0** in place of 1.0.0, which depends on zip 0.6.6
+  (advised; zip 0.6 has no fixed release). 0.2.0 has no dependencies.
+- pulldown-cmark 0.13.6 (RUSTSEC-2026-0414, -0433), rustls-webpki
+  0.103.16 (RUSTSEC-2026-0382) and webpki-root-certs 1.0.10
+  (RUSTSEC-2026-0383).
 
 ### Dependencies
 
@@ -21,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** `utils::ascii::load_standard_font` now returns
+  `figlet_rs::FIGfont` rather than `figlet_rs::FIGlet`, and ASCII art is
+  rendered at full glyph width: figlet-rs 0.2 does not smush adjacent
+  glyphs.
 - The MSRV stays at Rust 1.92: slint 1.17 needs it. Two code comments
   that still cited a 1.56 floor now say where their choices came from.
 - `deny.toml` uses the current cargo-deny schema. cargo-deny 0.20
