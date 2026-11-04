@@ -83,6 +83,19 @@ jobs:
       - name: cargo audit
         run: cargo audit --deny warnings
 
+  # The shared security workflow, as the other crates in the family
+  # call it: cargo audit --deny warnings (it reads .cargo/audit.toml),
+  # cargo deny check against deny.toml, CodeQL and, on pull requests,
+  # dependency review. That workflow reports cargo deny without failing
+  # on it (continue-on-error).
+  security:
+    permissions:
+      contents: read
+      security-events: write
+    uses: sebastienrousseau/pipelines/.github/workflows/security.yml@980375f1d96368885ff65cc4c7f1ff355a5a4095 # main 2026-10-13
+    with:
+      language: rust
+
   # Nightly toolchain tests (optional, continue on error)
   test-nightly:
     name: Test (nightly)

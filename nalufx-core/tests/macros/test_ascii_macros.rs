@@ -5,10 +5,12 @@ mod tests {
     #[test]
     fn test_macro_ascii_success() {
         let art = macro_ascii!("Hi");
-        // The standard font applies its default smushing, so adjacent
-        // glyphs share a column. The previous expectation encoded the
-        // unsmushed layout and never ran, so it was never corrected.
-        assert_eq!(art, " _   _ _ \n| | | (_)\n| |_| | |\n|  _  | |\n|_| |_|_|\n         \n");
+        // figlet-rs 0.2 renders every glyph at full width, without the
+        // smushing 1.0 applied; 1.0 is avoided because it pulls in zip 0.6.
+        assert_eq!(
+            art,
+            "  _   _   _ \n | | | | (_)\n | |_| | | |\n |  _  | | |\n |_| |_| |_|\n            \n"
+        );
     }
 
     #[test]

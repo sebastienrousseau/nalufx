@@ -130,7 +130,7 @@ jobs:
         run: |
           mkdir -p target/package
           tar czf target/package/${{ env.TARGET }}.tar.gz -C target/${{ env.TARGET }}/release .
-          echo "${{ env.TARGET }}.tar.gz=target/package/${{ env.TARGET }}.tar.gz" >> $GITHUB_ENV
+          echo "${{ env.TARGET }}.tar.gz=target/package/${{ env.TARGET }}.tar.gz" >> "$GITHUB_ENV"
 
       - name: Upload the binary
         id: upload-binary

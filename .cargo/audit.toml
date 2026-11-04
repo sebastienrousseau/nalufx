@@ -51,4 +51,17 @@ ignore = [
     # Re-check when azul-layout or printpdf releases; this entry should
     # be deleted, not renewed by habit.
     "RUSTSEC-2026-0253",
+
+    # zvariant, zbus_names and zvariant_derive: unmaintained as standalone
+    # crates since their merge into zbus 6. Reached only through Slint's
+    # accessibility stack:
+    #
+    #     zbus 5 <- accesskit_unix <- accesskit_winit <- i-slint-backend-winit
+    #
+    # Every current accesskit_unix release still requires zbus 5, so there
+    # is no version to move to. Informational, no vulnerability. Approved
+    # by the maintainer on 2026-11-04; delete when accesskit moves to zbus 6.
+    "RUSTSEC-2026-0370",
+    "RUSTSEC-2026-0371",
+    "RUSTSEC-2026-0372",
 ]

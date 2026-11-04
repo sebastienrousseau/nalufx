@@ -20,9 +20,9 @@ use wiremock::{Mock, MockServer, ResponseTemplate};
 
 lazy_static! {
     /// Serialises the tests that mutate process-wide environment
-    /// variables. `lazy_static` rather than a `const` `Mutex::new`,
-    /// which is only stable since 1.63 and this workspace declares an
-    /// MSRV of 1.56.
+    /// variables. `lazy_static` dates from a declared 1.56 MSRV, when a
+    /// `const` `Mutex::new` (stable since 1.63) was out of reach; the
+    /// workspace now declares 1.92.
     static ref ENV_LOCK: Mutex<()> = Mutex::new(());
 }
 
