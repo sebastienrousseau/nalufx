@@ -92,7 +92,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: sebastienrousseau/pipelines/.github/workflows/security.yml@980375f1d96368885ff65cc4c7f1ff355a5a4095 # main 2026-10-13
+    uses: sebastienrousseau/pipelines/.github/workflows/security.yml@3f9978aba68e59da1bd5a58d12fbaf142679fe5f # main 2026-10-13
     with:
       language: rust
 
