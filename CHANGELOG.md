@@ -28,6 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The shared pipelines `security.yml` workflow pin moves to
   `3f9978a` (#67).
 - Workspace crates bumped to version 0.0.3.
+- quinn-proto 0.11.19 (RUSTSEC-2026-0523, -0524), quinn-udp 0.5.16
+  (RUSTSEC-2026-0538), url 2.5.9 (RUSTSEC-2026-0592) and rustix 1.1.6
+  (RUSTSEC-2026-0486) in `Cargo.lock`.
+- Removed dependencies that no code used, flagged by Cargo's
+  `unused_dependencies` lint: printpdf and tokio-test from nalufx-core
+  (ndarray-stats moves to its dev-dependencies, as only examples use
+  it), nalufx-core from nalufx-api, nalufx-cli and nalufx-ui, and
+  dotenvy, env_logger and futures from nalufx-ui. Dropping printpdf
+  takes its azul-layout tree out of `Cargo.lock`.
 
 ### Changed
 
