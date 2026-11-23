@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#69), from Dependabot.
 - The shared pipelines `security.yml` workflow pin moves to
   `3f9978a` (#67).
+- bytes 1.12.2 in `Cargo.lock` (#71, from Dependabot).
 - Workspace crates bumped to version 0.0.3.
 - quinn-proto 0.11.19 (RUSTSEC-2026-0523, -0524), quinn-udp 0.5.16
   (RUSTSEC-2026-0538), url 2.5.9 (RUSTSEC-2026-0592) and rustix 1.1.6
