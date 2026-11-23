@@ -131,7 +131,7 @@ mod characterisation {
 
     /// The single line that names the date library's accessor.
     fn unix(input: &str) -> Option<i64> {
-        validate_date(input).ok().map(|d| d.timestamp())
+        validate_date(input).ok().map(|d| d.unix_timestamp())
     }
 
     const CASES: &[(&str, Option<i64>)] = &[

@@ -11,10 +11,9 @@ use crate::{
         date::validate_date,
     },
 };
-use chrono::Datelike;
-use chrono::Utc;
 use nalufx_llms::llms::LLM;
 use reqwest::Client;
+use time::OffsetDateTime;
 
 /// Generates an analysis report based on historical stock data, optimal allocation, and LLM analysis.
 ///
@@ -96,7 +95,7 @@ pub async fn generate_analysis(
                         .into_iter()
                         .map(|alloc| alloc / total_allocation)
                         .collect();
-                    let current_year = Utc::now().year();
+                    let current_year = OffsetDateTime::now_utc().year();
                     let prompt = format!(
                         "Analyze the following stock data for {}:\n\n\
                         - Optimal Allocation: {:?}\n\n\
@@ -155,7 +154,7 @@ pub async fn generate_analysis(
                     println!("{}", summary);
 
                     // Current Market Context
-                    let current_year = Utc::now().year();
+                    let current_year = OffsetDateTime::now_utc().year();
                     println!("\n--- Current Market Context ---\n");
                     println!("As of the analysis period {}, {} has been experiencing the following market conditions:", current_year, ticker);
                     println!("\n- **Technological Innovations:** {} is known for its continuous focus on technological innovations. The market is closely watching for any new product launches or updates that could impact {}'s stock performance.", ticker, ticker);

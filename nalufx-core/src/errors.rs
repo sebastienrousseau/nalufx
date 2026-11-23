@@ -97,7 +97,7 @@ pub enum NaluFxError {
 
     /// An error occurred while parsing a date.
     #[error("Failed to parse date")]
-    DateParseError(#[from] chrono::ParseError),
+    DateParseError(#[from] time::error::Parse),
 
     /// An error occurred with CSV parsing.
     #[error("CSV parsing error: {0}")]

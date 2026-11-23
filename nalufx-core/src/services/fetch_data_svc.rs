@@ -1,7 +1,7 @@
-use chrono::{DateTime, Utc};
 use log::{error, info};
 use reqwest::Client;
 use std::error::Error;
+use time::OffsetDateTime;
 use yahoo_finance_api as yahoo;
 
 /// Fetches historical data for a given ticker symbol from Yahoo Finance.
@@ -13,8 +13,8 @@ use yahoo_finance_api as yahoo;
 /// # Arguments
 ///
 /// * `ticker` - A string slice that holds the ticker symbol of the stock (e.g., "AAPL").
-/// * `start_date` - An optional `DateTime<Utc>` representing the start date for the data retrieval.
-/// * `end_date` - An optional `DateTime<Utc>` representing the end date for the data retrieval.
+/// * `start_date` - An optional `OffsetDateTime` representing the start date for the data retrieval.
+/// * `end_date` - An optional `OffsetDateTime` representing the end date for the data retrieval.
 ///
 /// # Returns
 ///
@@ -24,13 +24,13 @@ use yahoo_finance_api as yahoo;
 /// # Examples
 ///
 /// ```
-/// use chrono::Utc;
+/// use time::{Duration, OffsetDateTime};
 /// use nalufx::services::fetch_data_svc::fetch_data;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let start_date = Some(Utc::now() - chrono::Duration::days(30));
-///   let end_date = Some(Utc::now());
+///     let start_date = Some(OffsetDateTime::now_utc() - Duration::days(30));
+///   let end_date = Some(OffsetDateTime::now_utc());
 ///   match fetch_data("AAPL", start_date, end_date).await {
 ///   Ok(data) => println!("Data: {:?}", data),
 ///   Err(e) => eprintln!("Error: {}", e),
@@ -39,8 +39,8 @@ use yahoo_finance_api as yahoo;
 /// ```
 pub async fn fetch_data(
     ticker: &str,
-    start_date: Option<DateTime<Utc>>,
-    end_date: Option<DateTime<Utc>>,
+    start_date: Option<OffsetDateTime>,
+    end_date: Option<OffsetDateTime>,
 ) -> Result<Vec<f64>, Box<dyn Error>> {
     info!("Attempting to fetch data for ticker: {}", ticker);
 
@@ -48,8 +48,8 @@ pub async fn fetch_data(
         .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
         .build()?;
 
-    let start_date = start_date.map_or(0, |date| date.timestamp());
-    let end_date = end_date.map_or(Utc::now().timestamp(), |date| date.timestamp());
+    let start_date = start_date.map_or(0, OffsetDateTime::unix_timestamp);
+    let end_date = end_date.unwrap_or_else(OffsetDateTime::now_utc).unix_timestamp();
 
     let url = format!(
         "https://query1.finance.yahoo.com/v8/finance/chart/{}?period1={}&period2={}&interval=1d",

@@ -3683,7 +3683,6 @@ dependencies = [
  "augurs-core",
  "augurs-ets",
  "bytes",
- "chrono",
  "csv",
  "dotenvy",
  "env_logger",

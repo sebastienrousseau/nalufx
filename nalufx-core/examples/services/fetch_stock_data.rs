@@ -9,7 +9,6 @@
 //! 2. Enter the ticker symbol for a stock when prompted.
 //! 3. Enter the initial investment amount when prompted.
 //! 4. The code will fetch historical data, perform analysis, and generate a report with investment recommendations.
-use chrono::Utc;
 use nalufx::{
     errors::NaluFxError,
     services::{
@@ -21,11 +20,13 @@ use nalufx::{
             analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
         },
         currency::format_currency,
+        date::format_date,
         input::get_input,
         ticker::validate_ticker,
         validation::validate_positive_float,
     },
 };
+use time::{Duration, OffsetDateTime};
 
 #[tokio::main]
 pub(crate) async fn main() -> Result<(), NaluFxError> {
@@ -64,21 +65,21 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
 
             // Generate more market indices data
             let market_indices = vec![
-                (Utc::now() - chrono::Duration::days(90), 1000.0),
-                (Utc::now() - chrono::Duration::days(60), 1010.0),
-                (Utc::now() - chrono::Duration::days(30), 1005.0),
-                (Utc::now(), 1015.0),
-                (Utc::now() + chrono::Duration::days(30), 1020.0),
-                (Utc::now() + chrono::Duration::days(60), 1030.0),
-                (Utc::now() + chrono::Duration::days(90), 1025.0),
-                (Utc::now() + chrono::Duration::days(120), 1040.0),
+                (OffsetDateTime::now_utc() - Duration::days(90), 1000.0),
+                (OffsetDateTime::now_utc() - Duration::days(60), 1010.0),
+                (OffsetDateTime::now_utc() - Duration::days(30), 1005.0),
+                (OffsetDateTime::now_utc(), 1015.0),
+                (OffsetDateTime::now_utc() + Duration::days(30), 1020.0),
+                (OffsetDateTime::now_utc() + Duration::days(60), 1030.0),
+                (OffsetDateTime::now_utc() + Duration::days(90), 1025.0),
+                (OffsetDateTime::now_utc() + Duration::days(120), 1040.0),
             ];
             println!("\n--- Market Overview ---\n");
             println!(
                 "The Market Indices represent key points of market performance during the period:\n"
             );
             for (date, value) in &market_indices {
-                println!("- {}: {}", date.format("%Y-%m-%d"), format_currency(*value));
+                println!("- {}: {}", format_date(*date), format_currency(*value));
             }
             println!(
                 "\n*Analysis*: The market index showed a gradual increase from $1,000.00 to $1,040.00, with minor fluctuations indicating overall positive market performance during the period.\n"
@@ -86,20 +87,20 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
 
             // Generate more fund characteristics data
             let fund_characteristics = vec![
-                (Utc::now() - chrono::Duration::days(90), 0.8),
-                (Utc::now() - chrono::Duration::days(60), 0.9),
-                (Utc::now() - chrono::Duration::days(30), 0.85),
-                (Utc::now(), 0.95),
-                (Utc::now() + chrono::Duration::days(30), 0.88),
-                (Utc::now() + chrono::Duration::days(60), 0.92),
-                (Utc::now() + chrono::Duration::days(90), 0.87),
-                (Utc::now() + chrono::Duration::days(120), 0.93),
+                (OffsetDateTime::now_utc() - Duration::days(90), 0.8),
+                (OffsetDateTime::now_utc() - Duration::days(60), 0.9),
+                (OffsetDateTime::now_utc() - Duration::days(30), 0.85),
+                (OffsetDateTime::now_utc(), 0.95),
+                (OffsetDateTime::now_utc() + Duration::days(30), 0.88),
+                (OffsetDateTime::now_utc() + Duration::days(60), 0.92),
+                (OffsetDateTime::now_utc() + Duration::days(90), 0.87),
+                (OffsetDateTime::now_utc() + Duration::days(120), 0.93),
             ];
             println!(
                 "\nThe Fund Characteristics represent key attributes of the fund during the period:\n"
             );
             for (date, value) in &fund_characteristics {
-                println!("- {}: {:.2}", date.format("%Y-%m-%d"), value);
+                println!("- {}: {:.2}", format_date(*date), value);
             }
             println!(
                 "\n*Analysis*: Fund characteristics fluctuated, with a peak of 0.95 on 2024-06-02 and a low of 0.80 on 2024-03-04, suggesting variations in performance or strategy.\n"
@@ -215,15 +216,15 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
                         format_currency(initial_investment)
                     );
 
-                    let today = Utc::now();
+                    let today = OffsetDateTime::now_utc();
                     for (i, &allocation) in optimal_allocation.iter().enumerate() {
                         let allocation_amount = allocation * initial_investment;
-                        let allocation_date = today + chrono::Duration::days(i as i64);
+                        let allocation_date = today + Duration::days(i as i64);
                         let allocation_percentage = allocation * 100.0;
                         println!(
                             "- Day {}: {} - Allocate {} ({:.2}%) to {}",
                             i + 1,
-                            allocation_date.format("%Y-%m-%d"),
+                            format_date(allocation_date),
                             format_currency(allocation_amount),
                             allocation_percentage,
                             ticker

@@ -20,16 +20,16 @@
 //!
 
 // Imports and module declarations...
-use chrono::DateTime;
 use log::{error, info};
 use nalufx::{
     errors::NaluFxError,
-    utils::{input::get_input, ticker::validate_ticker},
+    utils::{date::format_date, input::get_input, ticker::validate_ticker},
 };
 use reqwest::{header, Client};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::HashMap, f64};
+use time::OffsetDateTime;
 
 /// Represents the financial data of a stock.
 #[derive(Debug, Serialize, Deserialize)]
@@ -158,7 +158,7 @@ fn calculate_momentum_12m(result: &Value) -> Option<(f64, f64, f64, String, Stri
     if let (Some(timestamps), Some(closes)) =
         (result["timestamp"].as_array(), result["indicators"]["quote"][0]["close"].as_array())
     {
-        let one_year_ago = chrono::Utc::now().timestamp() - 31536000; // Approximately 1 year in seconds
+        let one_year_ago = OffsetDateTime::now_utc().unix_timestamp() - 31536000; // Approximately 1 year in seconds
 
         let mut idx_start = 0;
         while idx_start < timestamps.len()
@@ -172,16 +172,15 @@ fn calculate_momentum_12m(result: &Value) -> Option<(f64, f64, f64, String, Stri
             let start_price = closes[idx_start].as_f64().unwrap_or(0.0);
             let end_price = closes[idx_end].as_f64().unwrap_or(0.0);
 
-            // Calculate date_start using DateTime::from_timestamp
-            let date_start =
-                DateTime::from_timestamp(timestamps[idx_start].as_i64().unwrap_or(0), 0)
-                    .unwrap()
-                    .format("%Y-%m-%d")
-                    .to_string();
-            let date_end = DateTime::from_timestamp(timestamps[idx_end].as_i64().unwrap_or(0), 0)
-                .unwrap()
-                .format("%Y-%m-%d")
-                .to_string();
+            // Calculate date_start using OffsetDateTime::from_unix_timestamp
+            let date_start = format_date(
+                OffsetDateTime::from_unix_timestamp(timestamps[idx_start].as_i64().unwrap_or(0))
+                    .unwrap(),
+            );
+            let date_end = format_date(
+                OffsetDateTime::from_unix_timestamp(timestamps[idx_end].as_i64().unwrap_or(0))
+                    .unwrap(),
+            );
 
             if start_price != 0.0 {
                 let momentum = (end_price - start_price) / start_price;

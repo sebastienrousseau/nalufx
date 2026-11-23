@@ -36,7 +36,6 @@ async-trait = "0.1.80"
 # `linfa::prelude::*` brings a different `Fit` into the same module.
 augurs-core = "0.10.2"
 augurs-ets = "0.10.2"
-chrono = "0.4.38"
 csv = "1.3.0"
 dotenvy = "0.15.7"
 env_logger = "0.11.3"
@@ -51,7 +50,9 @@ serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 textplots = "0.8.6"
 thiserror = "2.0.11"
-time = "0.3.36"
+# `large-dates` lets dates go past year 9999, so `utils::date` keeps
+# accepting the full -262143 to 262142 year range it always has.
+time = { version = "0.3.36", features = ["large-dates"] }
 tokio = { version = "1.44", features = ["full"] }
 yahoo_finance_api = "5.0.0"
 
