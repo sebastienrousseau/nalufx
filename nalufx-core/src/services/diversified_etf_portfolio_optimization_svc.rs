@@ -9,12 +9,13 @@ use crate::{
             analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
         },
         currency::format_currency,
+        date::format_date,
     },
 };
-use chrono::{Duration, Utc};
 use std::fs::File;
 use std::io::Write;
 use textplots::{Chart, LabelBuilder, LabelFormat, Plot, Shape};
+use time::{Duration, OffsetDateTime};
 
 /// Generates an analysis report for a given set of ETFs based on historical data and machine learning models.
 ///
@@ -40,7 +41,7 @@ pub async fn generate_analysis(
     tickers: Vec<String>,
     initial_investment: f64,
 ) -> Result<(), NaluFxError> {
-    let date = Utc::now().format("%Y-%m-%d").to_string();
+    let date = format_date(OffsetDateTime::now_utc());
     let filename = format!("./reports/{}_03_diversified_etf_portfolio_optimization.md", date);
     let mut file = File::create(&filename)?;
 
@@ -73,26 +74,26 @@ pub async fn generate_analysis(
 
     // Generate more market indices data
     let market_indices = [
-        (Utc::now() - Duration::days(90), 1000.0),
-        (Utc::now() - Duration::days(60), 1010.0),
-        (Utc::now() - Duration::days(30), 1005.0),
-        (Utc::now(), 1015.0),
-        (Utc::now() + Duration::days(30), 1020.0),
-        (Utc::now() + Duration::days(60), 1030.0),
-        (Utc::now() + Duration::days(90), 1025.0),
-        (Utc::now() + Duration::days(120), 1040.0),
+        (OffsetDateTime::now_utc() - Duration::days(90), 1000.0),
+        (OffsetDateTime::now_utc() - Duration::days(60), 1010.0),
+        (OffsetDateTime::now_utc() - Duration::days(30), 1005.0),
+        (OffsetDateTime::now_utc(), 1015.0),
+        (OffsetDateTime::now_utc() + Duration::days(30), 1020.0),
+        (OffsetDateTime::now_utc() + Duration::days(60), 1030.0),
+        (OffsetDateTime::now_utc() + Duration::days(90), 1025.0),
+        (OffsetDateTime::now_utc() + Duration::days(120), 1040.0),
     ];
 
     // Generate more fund characteristics data
     let fund_characteristics = [
-        (Utc::now() - Duration::days(90), 0.8),
-        (Utc::now() - Duration::days(60), 0.9),
-        (Utc::now() - Duration::days(30), 0.85),
-        (Utc::now(), 0.95),
-        (Utc::now() + Duration::days(30), 0.88),
-        (Utc::now() + Duration::days(60), 0.92),
-        (Utc::now() + Duration::days(90), 0.87),
-        (Utc::now() + Duration::days(120), 0.93),
+        (OffsetDateTime::now_utc() - Duration::days(90), 0.8),
+        (OffsetDateTime::now_utc() - Duration::days(60), 0.9),
+        (OffsetDateTime::now_utc() - Duration::days(30), 0.85),
+        (OffsetDateTime::now_utc(), 0.95),
+        (OffsetDateTime::now_utc() + Duration::days(30), 0.88),
+        (OffsetDateTime::now_utc() + Duration::days(60), 0.92),
+        (OffsetDateTime::now_utc() + Duration::days(90), 0.87),
+        (OffsetDateTime::now_utc() + Duration::days(120), 0.93),
     ];
 
     // Determine the minimum length of all input slices
@@ -322,7 +323,7 @@ pub async fn generate_analysis(
         println!("{}", allocation_recommendation);
         writeln!(file, "{}", allocation_recommendation)?;
 
-        let today = Utc::now();
+        let today = OffsetDateTime::now_utc();
         for (i, &allocation) in best_allocation.iter().enumerate() {
             let allocation_amount = allocation * initial_investment;
             let allocation_date = today + Duration::days(i as i64);
@@ -330,7 +331,7 @@ pub async fn generate_analysis(
             let allocation_detail = format!(
                 "- Day {}: {} - Allocate {} ({:.2}%) to {}\n",
                 i + 1,
-                allocation_date.format("%Y-%m-%d"),
+                format_date(allocation_date),
                 format_currency(allocation_amount),
                 allocation_percentage,
                 best_etf

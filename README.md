@@ -42,12 +42,12 @@ To use `nalufx` in your Rust project, add the following to your `Cargo.toml` fil
 
 ```toml
 [dependencies]
-nalufx = "0.0.2"
+nalufx = "0.0.3"
 ```
 
 ### Requirements
 
-`nalufx` requires Rust **1.56** or later.
+`nalufx` requires Rust **1.92** or later.
 
 ### Documentation
 

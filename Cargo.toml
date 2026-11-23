@@ -1,7 +1,7 @@
 [workspace]
 # Workspace configuration.
 resolver = "2"
-members = ["nalufx-api", "nalufx-cli", "nalufx-core", "nalufx-llms", "nalufx-ui"]
+members = ["nalufx-api", "nalufx-cli", "nalufx-core", "nalufx-llms"]
 
 # default-members = ["nalufx-core", "nalufx-llms"]
 
@@ -14,11 +14,11 @@ exclude = ["/.git/*", "/.github/*", "/.gitignore", "/.vscode/*"]
 homepage = "https://nalufx.com/"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/sebastienrousseau/nalufx/"
-# Determined from the dependency graph, not aspiration: slint (via
-# nalufx-ui) declares rust-version 1.92, so nothing here has been
-# buildable on the 1.56.0 previously claimed.
+# Set when slint (in the since-removed nalufx-ui) needed 1.92. The
+# highest floor a dependency now declares is nalgebra's 1.89; the
+# workspace keeps 1.92 because no older toolchain is tested in CI.
 rust-version = "1.92"
-version = "0.0.2"
+version = "0.0.3"
 
 [profile.dev]
 # Development profile.

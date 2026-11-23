@@ -13,13 +13,15 @@
 //! 6. The code will fetch historical data, perform analysis, and generate a Gain/Loss Analysis report.
 //!
 
-use chrono::{DateTime, Utc};
 use log::error;
 use nalufx::{
     errors::NaluFxError,
     services::fetch_data_svc::fetch_data,
     utils::{
-        currency::format_currency, date::validate_date, input::get_input, ticker::validate_ticker,
+        currency::format_currency,
+        date::{format_date, validate_date},
+        input::get_input,
+        ticker::validate_ticker,
         validation::validate_positive_float,
     },
 };
@@ -27,6 +29,7 @@ use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
 use nalufx_llms::models::openai_dm::OpenAIResponse;
 use reqwest::Client;
 use serde_json::json;
+use time::OffsetDateTime;
 
 #[derive(Debug)]
 struct StockAnalysis {
@@ -45,8 +48,8 @@ struct StockAnalysis {
 
 async fn generate_combined_market_analysis_report(
     stocks: Vec<StockAnalysis>,
-    start_date: DateTime<Utc>,
-    end_date: DateTime<Utc>,
+    start_date: OffsetDateTime,
+    end_date: OffsetDateTime,
 ) -> Result<String, &'static str> {
     let client = Client::new();
     let api_key = match get_openai_api_key() {
@@ -126,8 +129,8 @@ Please ensure that the report is well-structured, easy to understand, and adhere
 Portfolio Details:
 {combined_stock_details}
                 ",
-                    start_date = start_date.format("%Y-%m-%d"),
-                    end_date = end_date.format("%Y-%m-%d"),
+                    start_date = format_date(start_date),
+                    end_date = format_date(end_date),
                     combined_stock_details = combined_stock_details
                 )
             }
@@ -156,8 +159,8 @@ Portfolio Details:
 
 async fn fetch_data_with_logging(
     ticker: &str,
-    start_date: Option<DateTime<Utc>>,
-    end_date: Option<DateTime<Utc>>,
+    start_date: Option<OffsetDateTime>,
+    end_date: Option<OffsetDateTime>,
 ) -> Result<Vec<f64>, String> {
     match fetch_data(ticker, start_date, end_date).await {
         Ok(data) => Ok(data),
@@ -288,11 +291,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
 
     // Print the overall portfolio summary
     println!("\n--- Overall Portfolio Summary ---\n");
-    println!(
-        "Analysis Period: {} to {}",
-        start_date.format("%Y-%m-%d"),
-        end_date.format("%Y-%m-%d")
-    );
+    println!("Analysis Period: {} to {}", format_date(start_date), format_date(end_date));
     println!("Overall Initial Market Value: {}", format_currency(overall_initial_value));
     println!("Overall Final Market Value: {}", format_currency(overall_final_value));
     println!("Overall Capital Gain/Loss: {}", format_currency(overall_capital_gain_loss));

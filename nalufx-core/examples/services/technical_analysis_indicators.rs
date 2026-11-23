@@ -20,7 +20,11 @@
 use nalufx::{
     errors::NaluFxError,
     services::fetch_data_svc::fetch_data,
-    utils::{date::validate_date, input::get_input, ticker::validate_ticker},
+    utils::{
+        date::{format_date, validate_date},
+        input::get_input,
+        ticker::validate_ticker,
+    },
 };
 use nalufx_llms::error::LlmError;
 use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
@@ -394,7 +398,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
 
     println!("\n--- Professional Technical Analysis Report ---\n");
     println!("Ticker: {}", ticker);
-    println!("Period: {} to {}", start_date.format("%Y-%m-%d"), end_date.format("%Y-%m-%d"));
+    println!("Period: {} to {}", format_date(start_date), format_date(end_date));
 
     // Print the data sections
     println!("\n--- Price Analysis ---\n");
