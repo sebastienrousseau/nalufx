@@ -58,6 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it), nalufx-core from nalufx-api, nalufx-cli and nalufx-ui, and
   dotenvy, env_logger and futures from nalufx-ui. Dropping printpdf
   takes its azul-layout tree out of `Cargo.lock`.
+- futures removed from nalufx-core: no code uses it, and cargo 1.100
+  reports it as an unused dependency.
 
 ### Changed
 

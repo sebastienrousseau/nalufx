@@ -1414,7 +1414,6 @@ dependencies = [
  "dotenvy",
  "env_logger",
  "figlet-rs",
- "futures",
  "http-body-util",
  "hyper",
  "hyper-util",
