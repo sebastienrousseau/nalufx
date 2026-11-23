@@ -18,6 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pulldown-cmark 0.13.6 (RUSTSEC-2026-0414, -0433), rustls-webpki
   0.103.16 (RUSTSEC-2026-0382) and webpki-root-certs 1.0.10
   (RUSTSEC-2026-0383).
+- **chrono removed** (RUSTSEC-2026-0543, unmaintained, no fixed
+  release). nalufx-core now uses the `time` crate, already in the
+  dependency graph through reqwest and yahoo_finance_api.
+- **Slint GUI removed**, and with it pin-utils (RUSTSEC-2026-0441,
+  unmaintained, reached through Slint's spin_on) and the rest of the
+  Slint tree.
+- `.cargo/audit.toml` is gone. Every advisory it ignored (bincode,
+  paste, rustybuzz, ttf-parser, lru and the three zbus-family crates)
+  came in through Slint or printpdf, and `cargo audit --deny warnings`
+  passes with no ignore list.
+
+### Removed
+
+- **Breaking:** the `nalufx-ui` crate and its `nalufx-ui` binary, the
+  Slint desktop and WebAssembly front end. It had no features of its
+  own beyond the Slint shell, and Slint carried the two unmaintained
+  crates above. The CI and release workflows no longer install the
+  fontconfig and xkbcommon packages it needed on Linux.
 
 ### Dependencies
 
@@ -40,12 +58,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** date values in the nalufx-core API are
+  `time::OffsetDateTime` rather than `chrono::DateTime<Utc>`:
+  `utils::date::validate_date` returns one, `fetch_data_svc::fetch_data`
+  takes them, and `NaluFxError::DateParseError` wraps
+  `time::error::Parse`. Accepted inputs and the dates they produce are
+  unchanged: a characterisation test fixes the parsing rules, and a
+  differential run of two million inputs and one million timestamps
+  against chrono found no difference. The new
+  `utils::date::format_date` renders `YYYY-MM-DD` as chrono's
+  `%Y-%m-%d` did.
 - **Breaking:** `utils::ascii::load_standard_font` now returns
   `figlet_rs::FIGfont` rather than `figlet_rs::FIGlet`, and ASCII art is
   rendered at full glyph width: figlet-rs 0.2 does not smush adjacent
   glyphs.
-- The MSRV stays at Rust 1.92: slint 1.17 needs it. Two code comments
-  that still cited a 1.56 floor now say where their choices came from.
+- The MSRV stays at Rust 1.92, which slint 1.17 needed. With Slint
+  gone the highest floor a dependency declares is nalgebra's 1.89; the
+  MSRV is not lowered because no older toolchain is tested. Two code
+  comments that still cited a 1.56 floor now say where their choices
+  came from, and the README, which still said 1.56, now says 1.92.
 - `deny.toml` uses the current cargo-deny schema. cargo-deny 0.20
   refused the file (`unlicensed`, `copyleft`, `allow-osi-fsf-free` and
   the licence `deny` list are gone), so `cargo deny check` could not
