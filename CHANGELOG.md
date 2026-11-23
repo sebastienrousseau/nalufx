@@ -45,6 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#69), from Dependabot.
 - The shared pipelines `security.yml` workflow pin moves to
   `3f9978a` (#67).
+- bytes 1.12.2 in `Cargo.lock` (#71, from Dependabot).
+- cookie 0.18.3 in `Cargo.lock` (RUSTSEC-2026-0594), reached through
+  reqwest's cookie store.
 - Workspace crates bumped to version 0.0.3.
 - quinn-proto 0.11.19 (RUSTSEC-2026-0523, -0524), quinn-udp 0.5.16
   (RUSTSEC-2026-0538), url 2.5.9 (RUSTSEC-2026-0592) and rustix 1.1.6
@@ -55,6 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it), nalufx-core from nalufx-api, nalufx-cli and nalufx-ui, and
   dotenvy, env_logger and futures from nalufx-ui. Dropping printpdf
   takes its azul-layout tree out of `Cargo.lock`.
+- futures removed from nalufx-core: no code uses it, and cargo 1.100
+  reports it as an unused dependency.
 
 ### Changed
 
