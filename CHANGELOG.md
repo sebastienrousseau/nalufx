@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.4] - 2026-11-26
+
+### Fixed
+
+- `cargo deny check` passes again: `deny.toml` allows
+  CDLA-Permissive-2.0, the licence of `webpki-root-certs` (Mozilla's
+  root CA data), which reqwest's rustls platform verifier brings in.
+- CI runs `cargo deny check` as a blocking job. The shared security
+  workflow ran it with continue-on-error, so the rejected licence above
+  never failed a build.
+
+### Dependencies
+
+- env_logger 0.11.12, from Dependabot (#73).
+
 ## [0.0.3] - 2026-11-22
 
 ### Security
