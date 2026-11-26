@@ -1352,21 +1352,21 @@ dependencies = [
 
 [[package]]
 name = "nalufx-api"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "version_check",
 ]
 
 [[package]]
 name = "nalufx-cli"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "version_check",
 ]
 
 [[package]]
 name = "nalufx-core"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "async-trait",
  "augurs-core",
@@ -1400,7 +1400,7 @@ dependencies = [
 
 [[package]]
 name = "nalufx-llms"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "async-trait",
  "criterion",

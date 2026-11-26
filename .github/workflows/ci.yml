@@ -76,6 +76,24 @@ jobs:
       - name: cargo audit
         run: cargo audit --deny warnings
 
+  # Blocking, unlike the shared security workflow below, which runs
+  # cargo deny with continue-on-error: a licence or source that
+  # deny.toml does not allow fails the build here.
+  deny:
+    name: Deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+
+      - name: cargo deny
+        run: cargo deny check
+
   # The shared security workflow, as the other crates in the family
   # call it: cargo audit --deny warnings (it reads .cargo/audit.toml),
   # cargo deny check against deny.toml, CodeQL and, on pull requests,
