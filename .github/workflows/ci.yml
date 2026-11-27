@@ -218,6 +218,46 @@ jobs:
       - name: cargo deny
         run: cargo deny check
 
+  # Every crate in the tree must be audited, by us or by a trusted
+  # organisation whose audits are imported in supply-chain/config.toml,
+  # or be in its exemptions. A new dependency fails here until someone
+  # reviews it. --locked uses supply-chain/imports.lock, with no fetch.
+  vet:
+    name: Vet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+
+      - name: Install cargo-vet
+        run: cargo install cargo-vet --version 0.10.3 --locked
+
+      - name: cargo vet
+        run: cargo vet --locked
+
+  # Secrets in any commit of the history (on push) or of the pull
+  # request. GitHub secret scanning with push protection is also on;
+  # this catches what its provider patterns do not.
+  secrets:
+    name: Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: false
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+
   # The shared security workflow, as the other crates in the family
   # call it: cargo audit --deny warnings (it reads .cargo/audit.toml),
   # cargo deny check against deny.toml, CodeQL and, on pull requests,
