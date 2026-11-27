@@ -1,7 +1,7 @@
-use log::{error, info};
 use reqwest::Client;
 use std::error::Error;
 use time::OffsetDateTime;
+use tracing::{error, info};
 use yahoo_finance_api as yahoo;
 
 /// Fetches historical data for a given ticker symbol from Yahoo Finance.

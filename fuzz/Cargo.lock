@@ -1627,7 +1627,6 @@ dependencies = [
  "csv",
  "dotenvy",
  "figlet-rs",
- "log",
  "nalgebra",
  "nalufx-engine",
  "nalufx-llms",
@@ -1639,6 +1638,7 @@ dependencies = [
  "thiserror 2.0.21",
  "time",
  "tokio",
+ "tracing",
  "version_check",
  "yahoo_finance_api",
 ]
@@ -1680,7 +1680,6 @@ version = "0.0.11"
 dependencies = [
  "async-trait",
  "dotenvy",
- "log",
  "reqwest",
  "schemars",
  "secrecy",
@@ -1688,6 +1687,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.21",
  "tokio",
+ "tracing",
  "utoipa",
  "version_check",
 ]

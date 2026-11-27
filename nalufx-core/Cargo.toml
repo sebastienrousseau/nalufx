@@ -31,7 +31,7 @@ async-trait = "0.1.80"
 csv = "1.3.0"
 dotenvy = "0.15.7"
 figlet-rs = "0.2.0"
-log = "0.4.21"
+tracing = "0.1"
 nalgebra = "0.35.0"
 ndarray = "0.17.2"
 reqwest = { version = "0.13.4", features = ["json"] }
@@ -51,8 +51,6 @@ version_check = "0.9.4"
 
 [dev-dependencies]
 # Dependencies for development and testing.
-# The examples log through it.
-env_logger = "0.11.3"
 # Property tests for the allocation invariants (determinism, long-only,
 # weights summing to 1).
 proptest = { version = "1", default-features = false, features = ["std"] }

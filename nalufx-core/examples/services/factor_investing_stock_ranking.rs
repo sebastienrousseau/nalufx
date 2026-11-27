@@ -20,7 +20,6 @@
 //!
 
 // Imports and module declarations...
-use log::{error, info};
 use nalufx::{
     errors::NaluFxError,
     utils::{date::format_date, input::get_input, ticker::validate_ticker},
@@ -30,6 +29,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::HashMap, f64};
 use time::OffsetDateTime;
+use tracing::{error, info};
 
 /// Represents the financial data of a stock.
 #[derive(Debug, Serialize, Deserialize)]

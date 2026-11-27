@@ -1,4 +1,4 @@
-use log::error;
+use tracing::error;
 
 /// Validates if the input string is a non-empty alphanumeric ticker symbol.
 ///

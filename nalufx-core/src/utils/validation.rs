@@ -1,4 +1,4 @@
-use log::error;
+use tracing::error;
 
 /// Validates if the input string can be parsed into a positive float.
 ///

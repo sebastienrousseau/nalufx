@@ -7,6 +7,7 @@ use serde::de::DeserializeOwned;
 use std::collections::hash_map::RandomState;
 use std::hash::{BuildHasher, Hasher};
 use std::time::Duration;
+use tracing::Instrument;
 
 /// How much of an error body an [`LlmError::Status`] keeps.
 const BODY_EXCERPT: usize = 500;
@@ -61,10 +62,23 @@ impl Http {
     ) -> Result<T, LlmError> {
         let mut attempt = 1;
         loop {
-            match self.send(provider, url, headers, body).await {
+            let span = tracing::info_span!(
+                "llm.attempt",
+                provider,
+                attempt,
+                status = tracing::field::Empty,
+                latency_ms = tracing::field::Empty,
+            );
+            let started = std::time::Instant::now();
+            let result = self.send(provider, url, headers, body).instrument(span.clone()).await;
+            span.record("latency_ms", elapsed_ms(started));
+            span.record("status", outcome(&result));
+            match result {
                 Ok(text) => return parse(provider, &text),
                 Err(e) if e.is_retryable() && attempt < self.config.max_attempts => {
-                    log::warn!("{provider}: attempt {attempt} failed, retrying: {e}");
+                    // The status is on the span. Not the error itself: a
+                    // provider's error body can echo the prompt.
+                    tracing::warn!(parent: &span, provider, attempt, "retrying");
                     tokio::time::sleep(self.delay(attempt, &e)).await;
                     attempt += 1;
                 },
@@ -109,6 +123,22 @@ impl Http {
             backoff.mul_f64(jitter())
         });
         wait.min(self.config.max_delay)
+    }
+}
+
+/// Milliseconds since `started`, for a span field.
+fn elapsed_ms(started: std::time::Instant) -> u64 {
+    u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX)
+}
+
+/// An attempt's outcome for its span: the HTTP status, `timeout` or
+/// `transport`. Never a body.
+fn outcome(result: &Result<String, LlmError>) -> String {
+    match result {
+        Ok(_) => "200".to_string(),
+        Err(LlmError::Status { status, .. }) => status.to_string(),
+        Err(LlmError::Transport { timeout: true, .. }) => "timeout".to_string(),
+        Err(_) => "transport".to_string(),
     }
 }
 
