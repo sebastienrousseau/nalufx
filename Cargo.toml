@@ -18,7 +18,7 @@ repository = "https://github.com/sebastienrousseau/nalufx/"
 # highest floor a dependency now declares is nalgebra's 1.89; the
 # workspace keeps 1.92 because no older toolchain is tested in CI.
 rust-version = "1.92"
-version = "0.0.10"
+version = "0.0.11"
 
 [profile.dev]
 # Development profile.

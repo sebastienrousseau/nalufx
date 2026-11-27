@@ -24,8 +24,8 @@ name = "nalufx-api"
 path = "src/main.rs"
 
 [dependencies]
-nalufx-engine = { path = "../nalufx-engine", version = "0.0.10", features = ["openapi"] }
-nalufx-llms = { path = "../nalufx-llms", version = "0.0.10", features = ["openapi"] }
+nalufx-engine = { path = "../nalufx-engine", version = "0.0.11", features = ["openapi"] }
+nalufx-llms = { path = "../nalufx-llms", version = "0.0.11", features = ["openapi"] }
 axum = "0.8"
 # Per-key token buckets.
 governor = "0.10"

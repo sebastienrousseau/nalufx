@@ -5,10 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.11] - 2026-11-27
+
+The release that ships 0.0.10's code. The code is the same as 0.0.10;
+only the release workflow changed.
+
+### Fixed
+
+- The Windows release builds failed, so 0.0.10 was tagged but never
+  released. A 0.0.10 change made the build steps read `"$TARGET"`,
+  which PowerShell, the default shell on Windows runners, sees as an
+  empty variable. The build job now runs every step in bash.
+- The release workflow now builds every target on any pull request that
+  changes it, so a broken release cannot wait until a tag to show up.
+
 ## [0.0.10] - 2026-11-27
 
 Security and supply chain (M5): every control comes with a test or a CI
-job, so it cannot quietly regress.
+job, so it cannot quietly regress. Tagged but not released: the
+Windows builds failed (fixed in 0.0.11, which ships this code).
 
 ### Security
 
