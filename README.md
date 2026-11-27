@@ -136,6 +136,8 @@ println!("{} (prompt {} v{}, {})", report.report.summary, report.prompt.name, re
 
 ### The HTTP API
 
+Running it in production (configuration, key rotation, logs, metrics, alerts and the audit log) is in [docs/runbook.md](docs/runbook.md).
+
 Start the server with at least one API key, stored as its SHA-256 hash:
 
 ```shell

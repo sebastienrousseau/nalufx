@@ -256,6 +256,9 @@ jobs:
           test -s "$RUNNER_TEMP/metrics.txt"
           "$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check metrics < "$RUNNER_TEMP/metrics.txt"
 
+      - name: promtool check rules
+        run: '"$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check rules docs/alerts.yml'
+
   # Every crate in the tree must be audited, by us or by a trusted
   # organisation whose audits are imported in supply-chain/config.toml,
   # or be in its exemptions. A new dependency fails here until someone
