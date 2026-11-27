@@ -1,10 +1,12 @@
 //! The routes, their request bodies and their errors.
 
 use crate::app::AppState;
+use crate::audit::{audit_allocation, audit_report, Caller};
+use crate::auth::KeyId;
 use crate::metrics::LlmCall;
 use crate::problem::Problem;
-use axum::extract::State;
-use axum::http::{header, StatusCode};
+use axum::extract::{Extension, State};
+use axum::http::{header, HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use nalufx_engine::allocate::{by_name, Allocation, AllocationInput, Constraints};
@@ -173,6 +175,8 @@ pub async fn forecast(
     ))]
 pub async fn allocate(
     State(state): State<Arc<AppState>>,
+    Extension(key): Extension<KeyId>,
+    headers: HeaderMap,
     Json(request): Json<AllocateRequest>,
 ) -> Result<Json<Allocation>, Problem> {
     within("assets", request.assets.len(), MAX_ASSETS)?;
@@ -199,6 +203,7 @@ pub async fn allocate(
     state.metrics.allocation(method.name(), started.elapsed(), solver_failed);
     let allocation = result.map_err(allocation_problem)?;
     let _ = span.record("iterations", allocation.diagnostics.iterations);
+    audit_allocation(&state, &Caller::new(&key, &headers), &request, &allocation)?;
     Ok(Json(allocation))
 }
 
@@ -216,6 +221,8 @@ pub async fn allocate(
     ))]
 pub async fn report(
     State(state): State<Arc<AppState>>,
+    Extension(key): Extension<KeyId>,
+    headers: HeaderMap,
     Json(input): Json<ReportInput>,
 ) -> Result<Json<Report>, Problem> {
     let provider = state.provider.as_ref().ok_or_else(|| {
@@ -244,6 +251,7 @@ pub async fn report(
     let _ = span.record("prompt_version", report.prompt.version);
     let _ = span.record("prompt_tokens", usage.input_tokens);
     let _ = span.record("completion_tokens", usage.output_tokens);
+    audit_report(&state, &Caller::new(&key, &headers), &input, &report)?;
     Ok(Json(report))
 }
 

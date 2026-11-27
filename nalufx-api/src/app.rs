@@ -1,5 +1,6 @@
 //! The router and its middleware.
 
+use crate::audit::AuditSink;
 use crate::auth::{authenticate, Limits};
 use crate::config::{ApiConfig, MAX_BODY_BYTES};
 use crate::metrics::{self, Metrics};
@@ -33,6 +34,8 @@ pub struct AppState {
     pub probe: reqwest::Client,
     /// The Prometheus metrics.
     pub metrics: Metrics,
+    /// Where audit lines go, if anywhere.
+    pub audit: Option<Arc<dyn AuditSink>>,
 }
 
 impl std::fmt::Debug for AppState {
@@ -49,7 +52,21 @@ impl AppState {
     #[must_use]
     pub fn new(config: ApiConfig, provider: Option<Arc<dyn LlmProvider>>) -> Self {
         let limits = Limits::per_minute(config.rate_per_minute, config.report_rate_per_minute);
-        Self { config, limits, provider, probe: reqwest::Client::new(), metrics: Metrics::new() }
+        Self {
+            config,
+            limits,
+            provider,
+            probe: reqwest::Client::new(),
+            metrics: Metrics::new(),
+            audit: None,
+        }
+    }
+
+    /// The same state, writing audit lines to `sink`.
+    #[must_use]
+    pub fn with_audit(mut self, sink: Arc<dyn AuditSink>) -> Self {
+        self.audit = Some(sink);
+        self
     }
 }
 

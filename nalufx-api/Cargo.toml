@@ -50,6 +50,7 @@ async-trait = "0.1.80"
 # Decompresses gzip responses in the tests.
 flate2 = "1"
 http-body-util = "0.1"
+tempfile = "3"
 tower = { version = "0.5", features = ["util"] }
 
 [lints.rust]

@@ -2,10 +2,12 @@
 //! the real handlers: a problem or a valid answer, never a panic.
 #![no_main]
 
-use axum::extract::State;
+use axum::extract::{Extension, State};
+use axum::http::HeaderMap;
 use axum::Json;
 use libfuzzer_sys::fuzz_target;
 use nalufx_api::app::AppState;
+use nalufx_api::auth::KeyId;
 use nalufx_api::config::ApiConfig;
 use nalufx_api::routes::{allocate, forecast, AllocateRequest, ForecastRequest};
 use std::sync::Arc;
@@ -27,7 +29,12 @@ fn state() -> Arc<AppState> {
 fuzz_target!(|data: &[u8]| {
     if let Ok(request) = serde_json::from_slice::<AllocateRequest>(data) {
         let bounds = request.constraints;
-        if let Ok(Json(answer)) = runtime().block_on(allocate(State(state()), Json(request))) {
+        if let Ok(Json(answer)) = runtime().block_on(allocate(
+            State(state()),
+            Extension(KeyId("fuzz".into())),
+            HeaderMap::new(),
+            Json(request),
+        )) {
             let total: f64 = answer.weights.iter().sum();
             assert!((total - 1.0).abs() < 1e-6, "weights sum to {total}");
             let (lo, hi) = (bounds.min_weight - 1e-6, bounds.max_weight + 1e-6);

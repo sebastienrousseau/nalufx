@@ -10,6 +10,7 @@
 //! to an append-only audit log.
 
 pub mod app;
+pub mod audit;
 pub mod auth;
 pub mod config;
 pub mod metrics;
