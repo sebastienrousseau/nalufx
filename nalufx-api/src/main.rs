@@ -20,17 +20,22 @@ async fn main() -> ExitCode {
             return ExitCode::FAILURE;
         },
     };
-    if let Err(e) = nalufx_api::telemetry::init(config.log_format) {
-        eprintln!("nalufx-api: {e}");
-        return ExitCode::FAILURE;
-    }
-    match run(config).await {
+    let telemetry = match nalufx_api::telemetry::init(config.log_format) {
+        Ok(telemetry) => telemetry,
+        Err(e) => {
+            eprintln!("nalufx-api: {e}");
+            return ExitCode::FAILURE;
+        },
+    };
+    let code = match run(config).await {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             tracing::error!("{e}");
             ExitCode::FAILURE
         },
-    }
+    };
+    telemetry.shutdown();
+    code
 }
 
 /// Loads the configuration, builds the provider if one is set, and serves

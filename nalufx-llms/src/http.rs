@@ -68,6 +68,7 @@ impl Http {
                 attempt,
                 status = tracing::field::Empty,
                 latency_ms = tracing::field::Empty,
+                otel.kind = "client",
             );
             let started = std::time::Instant::now();
             let result = self.send(provider, url, headers, body).instrument(span.clone()).await;

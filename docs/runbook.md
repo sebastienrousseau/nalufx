@@ -64,15 +64,48 @@ allowance.
 
 ## Read the logs
 
-One JSON line per event on standard output, each with the fields of the
-request it belongs to: `request_id` (the `x-request-id` the client sent,
-or one the server made), `key_id`, `method`, `route`, `status` and
-`latency_ms`. Every request ends with an `answered` line. A client
-quoting the `x-request-id` header of a response, or the `request_id` of
-a problem, leads straight to its lines.
+Logs are written by RustLogs (`rlg`): one JSON object per event
+(`NALUFX_LOG_FORMAT=text` gives logfmt). On Linux they go to journald
+when the host has it (`journalctl`), and to standard output otherwise,
+as in most containers; set `RLG_FALLBACK_STDOUT=1` to force standard
+output.
+
+Each line has `Level`, `Timestamp`, `Component` and `Description` (the
+message), and under `Attributes` the fields of the request it belongs
+to: `request_id` (the `x-request-id` the client sent, or one the server
+made), `key_id`, `method`, `route`, `status`, `latency_ms`, plus
+`span_path` (such as `request/allocate`), `trace_id` and `span_id`.
+Every request ends with an `answered` line. A client quoting the
+`x-request-id` header of a response, or the `request_id` of a problem,
+leads straight to its lines.
 
 The logs never hold an API key, a prompt, the investor's words or a
-model's reply; tests check it.
+model's reply; tests check it. As a second line of defence, every line
+and exported span is scrubbed of card numbers, JWTs, bearer tokens,
+emails, IPv4 addresses, AWS key ids and language model provider keys
+before it leaves the process.
+
+## Export traces
+
+Set `OTEL_EXPORTER_OTLP_ENDPOINT` to an OpenTelemetry Collector, such as
+`http://localhost:4318`, and closed spans go to its `/v1/traces` as
+OTLP/HTTP JSON, batched every 5 seconds or 512 spans. The `trace_id`
+and `span_id` in the logs match the exported spans, so the collector
+links the two. The endpoint must be plain `http://`: run the collector
+beside the server and let it handle TLS to the backend.
+
+| Variable | |
+| --- | --- |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | The collector; `/v1/traces` is added. |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | The full traces URL, instead. |
+| `OTEL_EXPORTER_OTLP_HEADERS` | `key=value` pairs, comma-separated, such as an auth header. |
+| `OTEL_SERVICE_NAME` | The service name; `nalufx-api` by default. |
+| `OTEL_SDK_DISABLED` | `true` turns export off. |
+
+Each request is a `request` span (kind server, status error on a 5xx)
+with child spans `forecast`, `allocate` or `report`, and `llm.attempt`
+(kind client) for each call to a language model. On shutdown the server
+waits up to 5 seconds for the last spans to be sent.
 
 ## Read the metrics
 

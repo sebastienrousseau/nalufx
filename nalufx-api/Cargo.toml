@@ -41,9 +41,12 @@ tokio = { version = "1.44", features = ["macros", "net", "rt-multi-thread", "sig
 tower = { version = "0.5", features = ["limit"] }
 tower-http = { version = "0.7", features = ["compression-gzip", "cors", "limit", "request-id", "timeout", "trace", "util"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "registry", "std"] }
 utoipa = { version = "6", features = ["axum_extras"] }
 prometheus-client = "0.26.0"
+rlg = { version = "0.0.19", features = ["tracing-layer"] }
+rlg-otlp = { version = "0.0.19", features = ["tracing"] }
+rlg-redact = { version = "0.0.19", features = ["tracing"] }
 
 [dev-dependencies]
 async-trait = "0.1.80"
@@ -52,6 +55,7 @@ flate2 = "1"
 http-body-util = "0.1"
 tempfile = "3"
 tower = { version = "0.5", features = ["util"] }
+wiremock = "0.6"
 
 [lints.rust]
 # Linting configuration.
