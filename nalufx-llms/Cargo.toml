@@ -57,3 +57,7 @@ wiremock = "0.6.0"
 # Optional features for the package.
 default = []
 openapi = ["dep:utoipa"]
+
+[lints.rust]
+## Forbid: no crate in nalufx needs unsafe code.
+unsafe_code = "forbid"
