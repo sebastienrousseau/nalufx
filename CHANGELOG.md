@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2026-11-27
+
+The HTTP API moves to axum and tower in the `nalufx-api` crate: limits,
+timeouts, authentication, rate limiting and shutdown now come from
+tested middleware instead of a hand-rolled hyper loop.
+
+### Added
+
+- **`nalufx-api`** (library and `nalufx-api` binary): `POST /v1/forecast`,
+  `POST /v1/allocate` and `POST /v1/report`, with `GET /healthz` (the
+  process is up) and `GET /readyz` (configuration loaded, and the
+  language model's endpoint answers if one is configured).
+- **Middleware**, outermost first: request id (`x-request-id`, generated
+  if absent), compression, problem details, tracing, a 30 s timeout
+  (408), a concurrency limit (64 by default; excess requests wait), a
+  1 MiB body limit (413), and CORS, denied unless `NALUFX_CORS_ORIGINS`
+  names origins.
+- **Authentication**: bearer API keys, configured only as SHA-256 hashes
+  (`NALUFX_API_KEY_SHA256`) and compared in constant time against every
+  stored hash. The server does not start without one. `/healthz` and
+  `/readyz` are the only open routes.
+- **Rate limiting** per key (token buckets): 600 requests a minute, and
+  30 `/v1/report` calls a minute, each answering 429 with `Retry-After`.
+- **Graceful shutdown**: SIGTERM or Ctrl-C stops accepting connections
+  and drains in-flight requests for up to 25 s.
+- **OpenAPI 3.1**, generated from the code with utoipa and committed as
+  `nalufx-api/openapi.json`; a test fails when they differ, and CI runs
+  Schemathesis 4.33.4 against it on a release build (with a stub
+  language model) and fails on any 5xx.
+- **Problem details**: every non-2xx body is `application/problem+json`
+  with a stable `type` under `https://nalufx.com/problems/` and the
+  `request_id`, including the responses middleware and axum's
+  extractors produce.
+- Tests, in process with `tower::ServiceExt::oneshot`: a missing or
+  wrong key is 401; an oversize body 413; a slow request 408 at the
+  timeout; a request past the concurrency limit waits; over a key's
+  rate is 429; CORS, request ids, compression and every route. A
+  separate test sends the process SIGTERM with a request in flight,
+  which completes with 200.
+
+### Breaking
+
+- `POST /predict` answers 410 Gone, pointing at `/v1/allocate`, and is
+  removed in 0.0.9.
+- nalufx-core no longer has an HTTP server: its `api` and `config`
+  modules, the `models::cash_flow_dm` request and response types and
+  the `nalufx-core` binary are removed. Install `nalufx-api` instead.
+- `LlmProvider` has a new required method, `base_url`.
+
+### Fixed
+
+- Found by running the server: with a client sending
+  `Accept-Encoding: gzip`, a problem's detail was replaced by
+  "malformed problem", because compression ran inside the problem
+  layer. A regression test covers it.
+
 ## [0.0.7] - 2026-11-27
 
 nalufx-llms is rebuilt around one provider trait: seven copy-pasted
