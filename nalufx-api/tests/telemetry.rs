@@ -1,6 +1,6 @@
 //! What an operator sees: the spans of a request and the metrics. Spans
 //! carry ids, routes, statuses and sizes, never a key, a prompt or the
-//! investor's words; `/metrics` parses as Prometheus text.
+//! investor's words; `/metrics` is well-formed OpenMetrics text.
 
 use async_trait::async_trait;
 use axum::body::{to_bytes, Body};
@@ -140,7 +140,7 @@ async fn an_allocation_span_carries_its_method_size_and_iterations() {
 }
 
 #[tokio::test]
-async fn metrics_need_a_key_and_parse_as_prometheus_text() {
+async fn metrics_need_a_key_and_are_well_formed() {
     let svc = service();
     let r =
         svc.clone().oneshot(Request::get("/metrics").body(Body::empty()).unwrap()).await.unwrap();
@@ -163,22 +163,42 @@ async fn metrics_need_a_key_and_parse_as_prometheus_text() {
         .unwrap()
         .starts_with("application/openmetrics-text"));
     let text = String::from_utf8(to_bytes(r.into_body(), 1 << 20).await.unwrap().to_vec()).unwrap();
-    let parsed = prometheus_parse::Scrape::parse(text.lines().map(|l| Ok(l.to_string())))
-        .expect("/metrics parses as Prometheus text");
-    let value = |name: &str, label: (&str, &str)| {
-        parsed
-            .samples
-            .iter()
-            .find(|s| s.metric == name && s.labels.get(label.0) == Some(label.1))
-            .map(|s| match s.value {
-                prometheus_parse::Value::Counter(v) | prometheus_parse::Value::Untyped(v) => v,
-                _ => f64::NAN,
-            })
-    };
-    assert_eq!(value("http_requests_total", ("route", "/v1/allocate")), Some(1.0), "{text}");
-    assert_eq!(value("llm_tokens_total", ("kind", "prompt")), Some(300.0), "{text}");
-    assert_eq!(value("llm_tokens_total", ("kind", "completion")), Some(120.0), "{text}");
-    assert_eq!(value("llm_requests_total", ("outcome", "ok")), Some(1.0), "{text}");
-    assert!(parsed.samples.iter().any(|s| s.metric.starts_with("allocation_duration_seconds")));
+    if let Ok(path) = std::env::var("NALUFX_METRICS_DUMP") {
+        // CI checks this file with Prometheus's own `promtool check metrics`.
+        std::fs::write(path, &text).unwrap();
+    }
+    let value = |name: &str, label: &str| sample(&text, name, label);
+    assert_eq!(value("http_requests_total", "route=\"/v1/allocate\""), Some(1.0), "{text}");
+    assert_eq!(value("llm_tokens_total", "kind=\"prompt\""), Some(300.0), "{text}");
+    assert_eq!(value("llm_tokens_total", "kind=\"completion\""), Some(120.0), "{text}");
+    assert_eq!(value("llm_requests_total", "outcome=\"ok\""), Some(1.0), "{text}");
+    assert_eq!(value("allocation_duration_seconds_count", "method=\"hrp\""), Some(1.0), "{text}");
     assert!(!text.contains(KEY), "a key in the metrics");
+}
+
+/// The value of the first sample of `name` whose labels contain `label`,
+/// after checking every line has the exposition format's shape: a `#`
+/// line (HELP, TYPE, UNIT or EOF) or `name{labels} value`. The full
+/// check is Prometheus's `promtool check metrics`, run in CI.
+fn sample(text: &str, name: &str, label: &str) -> Option<f64> {
+    assert_eq!(text.lines().last(), Some("# EOF"), "OpenMetrics ends with # EOF");
+    let mut found = None;
+    for line in text.lines() {
+        if let Some(comment) = line.strip_prefix("# ") {
+            let kind = comment.split(' ').next().unwrap_or("");
+            assert!(["HELP", "TYPE", "UNIT", "EOF"].contains(&kind), "bad comment: {line}");
+            continue;
+        }
+        let (series, value) = line.rsplit_once(' ').unwrap_or_else(|| panic!("no value: {line}"));
+        let value: f64 = value.parse().unwrap_or_else(|_| panic!("bad value: {line}"));
+        let metric = series.split('{').next().unwrap_or("");
+        assert!(
+            !metric.is_empty() && metric.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'),
+            "bad metric name: {line}"
+        );
+        if found.is_none() && metric == name && series.contains(label) {
+            found = Some(value);
+        }
+    }
+    found
 }
