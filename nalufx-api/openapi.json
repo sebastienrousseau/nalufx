@@ -72,27 +72,6 @@
         }
       }
     },
-    "/predict": {
-      "post": {
-        "tags": [
-          "routes"
-        ],
-        "summary": "The 0.0.6 endpoint, gone: it points at its replacement.",
-        "operationId": "predict_gone",
-        "responses": {
-          "410": {
-            "description": "Removed; use POST /v1/forecast and POST /v1/allocate",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/readyz": {
       "get": {
         "tags": [

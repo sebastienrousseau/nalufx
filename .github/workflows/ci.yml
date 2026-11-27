@@ -128,6 +128,9 @@ jobs:
       - name: nalufx-api at least 85% of lines
         run: rm -rf target/llvm-cov-target && cargo llvm-cov -p nalufx-api --all-features --summary-only --fail-under-lines 85
 
+      - name: nalufx-cli at least 80% of lines
+        run: rm -rf target/llvm-cov-target && cargo llvm-cov -p nalufx-cli --all-features --summary-only --fail-under-lines 80
+
       - name: Workspace at least 80% of lines
         run: rm -rf target/llvm-cov-target && cargo llvm-cov --workspace --all-features --summary-only --fail-under-lines 80
 
