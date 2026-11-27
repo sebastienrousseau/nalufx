@@ -1814,7 +1814,7 @@ dependencies = [
 
 [[package]]
 name = "nalufx-api"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "async-trait",
  "axum",
@@ -1840,7 +1840,7 @@ dependencies = [
 
 [[package]]
 name = "nalufx-cli"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "clap",
  "comfy-table",
@@ -1858,7 +1858,7 @@ dependencies = [
 
 [[package]]
 name = "nalufx-core"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "async-trait",
  "csv",
@@ -1884,7 +1884,7 @@ dependencies = [
 
 [[package]]
 name = "nalufx-engine"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "augurs-core",
  "augurs-ets",
@@ -1901,7 +1901,7 @@ dependencies = [
 
 [[package]]
 name = "nalufx-llms"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "async-trait",
  "dotenvy",

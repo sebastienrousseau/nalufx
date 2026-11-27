@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.9] - 2026-11-27
+
+The `nalufx` command line, brought forward from M7: the engine is now
+usable from a terminal without writing code or running a server.
+
+### Added
+
+- **`nalufx`** (the `nalufx-cli` crate), with `--help` on every command:
+  - `allocate`: weights by any of the five methods, within bounds.
+  - `forecast`: the next days with a 95% interval, seasonal with
+    `--seasonal`.
+  - `backtest`: one method, or `--method all` (the default) side by side.
+  - `report`: a language model's narrative about an allocation, piped
+    from `allocate --json` or read from a file.
+  - `methods` and `providers`: the choices, and which provider keys are
+    set.
+- Input from live prices (`--assets SPY,TLT,GLD`) or CSV files (`--file`),
+  with synthetic sample data in `nalufx-cli/data` for trying it offline.
+- A table by default and `--json` for scripts.
+- Errors say what to do. Bounds no weights can meet are rejected before
+  any price is fetched, and a missing API key before the input is read.
+- Exit codes: `0` success, `2` usage, `3` unusable input, `4` no answer,
+  `5` a network, price feed or language model failure, `1` anything
+  else.
+- End-to-end tests run the binary on the sample files, every error path
+  included, and `report` against a local mock provider. A CI coverage
+  gate holds nalufx-cli at 80% of lines (measured: 81%).
+
+### Removed
+
+- `POST /predict` (410 Gone in 0.0.8) is gone from the API and its
+  contract.
+- The interactive example menu (`cargo run --example nalufx`); the
+  examples in `nalufx-core/examples/services` remain as library samples.
+
 ## [0.0.8] - 2026-11-27
 
 The HTTP API moves to axum and tower in the `nalufx-api` crate: limits,
