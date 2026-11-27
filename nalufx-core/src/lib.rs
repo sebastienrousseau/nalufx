@@ -1,12 +1,14 @@
 //! # `NaluFx` 🦀
 //!
-//! NaluFX (NFX) is a Rust library that provides sophisticated tools for financial modelling, data fetching, and processing, with a focus on optimizing cash allocation across complex fund structures. It leverages AI-driven predictions and suggestions to enhance decision-making processes.
+//! NaluFX (NFX) forecasts fund cash flows and allocates cash across a forecast horizon. Every number it returns is deterministic, and anything it cannot compute is an explicit error. Its forecasts and allocations are for research and analysis, not financial advice.
 //!
-//! [![NaluFx Logo](https://kura.pro/nalufx/images/banners/banner-nalufx.svg)](https://nalufx.com "A Robust Rust Library for optimizing cash allocation across complex fund structures using AI-driven predictions and suggestions")
+//! [![NaluFx Logo](https://kura.pro/nalufx/images/banners/banner-nalufx.svg)](https://nalufx.com "NaluFX: deterministic cash flow forecasting and allocation")
 //!
 //! ## Features
 //!
-//! - API handlers for processing cash flow requests and generating predictions
+//! - Cash flow forecasts with a 95% prediction interval (AutoETS)
+//! - Inverse-volatility allocation across the forecast horizon
+//! - An HTTP API whose errors are RFC 9457 problem details
 //! - Configuration settings for customizing the behaviour of the library
 //! - Error handling and custom error types
 //! - Data models for representing cash flow requests and responses
@@ -15,11 +17,11 @@
 //!
 //! ## Usage
 //!
-//! To use the Nalufx library in your project, add the following to your `Cargo.toml` file:
+//! NaluFX is not on crates.io yet; depend on it from Git:
 //!
 //! ```toml
 //! [dependencies]
-//! nalufx = "0.0.1"
+//! nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.5", package = "nalufx-core" }
 //! ```
 //!
 //! Then, you can use the modules and functions provided by the library in your code:

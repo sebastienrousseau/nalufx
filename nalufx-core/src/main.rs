@@ -1,10 +1,12 @@
 //! # NaluFx
 //!
-//! NaluFx is a financial forecasting application built using Actix Web. It provides an API for predicting cash flows and optimizing portfolio allocations.
+//! The NaluFx HTTP service, on hyper. `POST /predict` forecasts cash
+//! flows with AutoETS and allocates across the forecast horizon by inverse
+//! volatility; errors are RFC 9457 problem details.
 //!
 //! ## Features
-//! - Predict cash flows based on historical data
-//! - Optimize portfolio allocations
+//! - Cash flow forecasts with a 95% prediction interval
+//! - Inverse-volatility allocation across the forecast horizon
 //!
 //! ## Getting Started
 //! To run the application, ensure that you have the necessary environment variables set in a `.env` file:

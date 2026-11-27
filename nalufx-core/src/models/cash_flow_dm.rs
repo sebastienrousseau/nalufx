@@ -1,3 +1,4 @@
+use crate::models::forecast_dm::IntervalForecast;
 use serde::{Deserialize, Serialize};
 
 /// Represents a request to predict cash flow based on historical data.
@@ -29,96 +30,84 @@ pub struct CashFlowRequest {
     pub historical_data: Vec<f64>,
 }
 
-/// Represents a response with predicted cash flow and optimal allocation.
-///
-/// This struct is used to provide the output of the prediction service,
-/// including the predicted future cash flow values and the optimal allocation
-/// percentages for investment or resource allocation.
+/// The body of a successful `POST /predict` response.
 ///
 /// # Fields
 ///
-/// * `predictions` - A vector of predicted cash flow values. Each entry represents
-///   the predicted cash flow value at a specific future time point.
-/// * `optimal_allocation` - A vector of optimal allocation percentages. Each entry
-///   represents the percentage of allocation for a specific resource or investment
-///   based on the predicted cash flow.
+/// * `forecast` - The cash flow forecast with its 95% prediction interval.
+/// * `optimal_allocation` - One weight per forecast day, each at least 0,
+///   summing to 1 (inverse volatility of the daily-return forecast).
 ///
 /// # Examples
 ///
 /// ```
-/// use nalufx::models::cash_flow_dm::CashFlowResponse;
+/// use nalufx::models::{cash_flow_dm::CashFlowResponse, forecast_dm::IntervalForecast};
 ///
 /// let response = CashFlowResponse {
-///     predictions: vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-///   optimal_allocation: vec![0.5, 0.3, 0.2],
+///     forecast: IntervalForecast {
+///         level: 0.95,
+///         point: vec![1.0, 2.0],
+///         lower: vec![0.5, 1.2],
+///         upper: vec![1.5, 2.8],
+///     },
+///     optimal_allocation: vec![0.6, 0.4],
 /// };
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CashFlowResponse {
-    /// A vector of predicted cash flow values.
-    ///
-    /// Each entry in this vector represents the predicted cash flow value at a specific future time point.
-    pub predictions: Vec<f64>,
-    /// A vector of optimal allocation percentages.
-    ///
-    /// Each entry in this vector represents the percentage of allocation for a specific resource or investment
-    /// based on the predicted cash flow.
+    /// The cash flow forecast with its prediction interval.
+    pub forecast: IntervalForecast,
+    /// One weight per forecast day, summing to 1.
     pub optimal_allocation: Vec<f64>,
 }
 
-/// Represents an error response with an error message.
-///
-/// This struct is used to provide details about any errors that occurred
-/// during the processing of a request. The error message gives more information
-/// about the nature of the error, which can be used for debugging or informing
-/// the user.
+/// An error response body in the RFC 9457 problem details format,
+/// served as `application/problem+json`.
 ///
 /// # Fields
 ///
-/// * `error` - A string containing the error message. This provides a human-readable
-///   explanation of what went wrong.
+/// * `type` - A URI naming the problem type; `about:blank` means the
+///   status code says it all.
+/// * `title` - The status code's reason phrase.
+/// * `status` - The HTTP status code.
+/// * `detail` - What went wrong with this request.
 ///
 /// # Examples
 ///
 /// ```
-/// use nalufx::models::cash_flow_dm::ErrorResponse;
+/// use nalufx::models::cash_flow_dm::ProblemDetails;
 ///
-/// let error_response = ErrorResponse {
-///     error: "Invalid historical data".to_string(),
+/// let problem = ProblemDetails {
+///     problem_type: "about:blank".to_string(),
+///     title: "Bad Request".to_string(),
+///     status: 400,
+///     detail: "Input slices cannot be empty".to_string(),
 /// };
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct ErrorResponse {
-    /// A string containing the error message.
-    ///
-    /// This provides a human-readable explanation of what went wrong during the processing of the request.
-    pub error: String,
+pub struct ProblemDetails {
+    /// A URI naming the problem type.
+    #[serde(rename = "type")]
+    pub problem_type: String,
+    /// A short summary of the problem type.
+    pub title: String,
+    /// The HTTP status code.
+    pub status: u16,
+    /// An explanation specific to this occurrence.
+    pub detail: String,
 }
 
 /// The body of a `POST /predict` request.
 ///
-/// The four series are supplied alongside the historical data in a single
-/// JSON object. They were previously five separate body extractors, which
-/// cannot work: an HTTP request has one body, so only the first could ever
-/// have been read.
-///
 /// # Fields
 ///
-/// * `historical_data` - The cash flow history used to build the prompt.
-/// * `daily_returns` - Daily returns for each fund under consideration.
-/// * `cash_flows` - Observed cash flows for each fund.
-/// * `market_indices` - Market index values aligned with the other series.
-/// * `fund_characteristics` - Per-fund characteristic scores.
+/// * `historical_data` - The cash flow history to forecast, oldest first.
+/// * `daily_returns` - The daily returns the allocation is weighted by,
+///   oldest first.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PredictCashFlowRequest {
-    /// The cash flow history used to build the prompt.
+    /// The cash flow history to forecast, oldest first.
     pub historical_data: Vec<f64>,
-    /// Daily returns for each fund under consideration.
+    /// The daily returns the allocation is weighted by, oldest first.
     pub daily_returns: Vec<f64>,
-    /// Observed cash flows for each fund.
-    pub cash_flows: Vec<f64>,
-    /// Market index values aligned with the other series.
-    pub market_indices: Vec<f64>,
-    /// Per-fund characteristic scores.
-    pub fund_characteristics: Vec<f64>,
 }

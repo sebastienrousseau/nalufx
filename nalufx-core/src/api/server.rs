@@ -8,7 +8,6 @@ use crate::api::router::route;
 use hyper::{server::conn::http1, service::service_fn};
 use hyper_util::rt::TokioIo;
 use log::{error, info};
-use reqwest::Client;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 
@@ -53,9 +52,6 @@ pub async fn serve_on(listener: TcpListener) -> std::io::Result<()> {
         info!("Listening on http://{addr}");
     }
 
-    // One client is shared across connections so its pool is reused.
-    let client = Client::new();
-
     loop {
         let (stream, peer) = match listener.accept().await {
             Ok(accepted) => accepted,
@@ -67,11 +63,10 @@ pub async fn serve_on(listener: TcpListener) -> std::io::Result<()> {
             },
         };
 
-        let client = client.clone();
         // The connection task is detached: it owns its stream and the
         // accept loop must not wait on it.
         drop(tokio::spawn(async move {
-            let service = service_fn(move |req| route(client.clone(), req));
+            let service = service_fn(route);
             if let Err(err) =
                 http1::Builder::new().serve_connection(TokioIo::new(stream), service).await
             {

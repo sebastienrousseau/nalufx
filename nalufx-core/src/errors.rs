@@ -10,8 +10,6 @@ use thiserror::Error;
 ///
 /// * `ClusteringError(String)` - An error occurred during clustering.
 /// * `ForecastingError(String)` - An error occurred during time series forecasting.
-/// * `SentimentAnalysisError(String)` - An error occurred during sentiment analysis.
-/// * `ReinforcementLearningError(String)` - An error occurred during reinforcement learning.
 /// * `InputMismatch` - The input slices must have the same length.
 /// * `EmptyInput` - The input slices cannot be empty.
 /// * `InvalidData` - The input data contains missing or invalid values.
@@ -38,14 +36,6 @@ pub enum NaluFxError {
     /// An error occurred during time series forecasting.
     #[error("Error during time series forecasting: {0}")]
     ForecastingError(String),
-
-    /// An error occurred during sentiment analysis.
-    #[error("Error during sentiment analysis: {0}")]
-    SentimentAnalysisError(String),
-
-    /// An error occurred during reinforcement learning.
-    #[error("Error during reinforcement learning: {0}")]
-    ReinforcementLearningError(String),
 
     /// The input slices must have the same length.
     #[error("Input slices must have the same length")]
@@ -130,8 +120,8 @@ pub enum NaluFxError {
 /// * `InvalidData` - The input data contains missing or invalid values.
 /// * `OutlierData` - The input data contains outliers.
 /// * `ForecastingError(String)` - An error occurred during time series forecasting.
-/// * `SentimentAnalysisError(String)` - An error occurred during sentiment analysis.
-/// * `ReinforcementLearningError(String)` - An error occurred during reinforcement learning.
+/// * `InvalidHorizon` - The forecast horizon is zero days.
+/// * `ZeroVolatility` - A forecast has no uncertainty, so no inverse-volatility weight exists.
 ///
 /// # Examples
 ///
@@ -168,11 +158,16 @@ pub enum AllocationError {
     #[error("Error during time series forecasting: {0}")]
     ForecastingError(String),
 
-    /// An error occurred during sentiment analysis.
-    #[error("Error during sentiment analysis: {0}")]
-    SentimentAnalysisError(String),
+    /// The forecast horizon is zero days.
+    #[error("The forecast horizon must be at least one day")]
+    InvalidHorizon,
 
-    /// An error occurred during reinforcement learning.
-    #[error("Error during reinforcement learning: {0}")]
-    ReinforcementLearningError(String),
+    /// A forecast interval has zero width: the series has no variation to
+    /// weight by, so an inverse-volatility weight does not exist.
+    #[error("The forecast has zero volatility, so no inverse-volatility weight exists")]
+    ZeroVolatility,
+
+    /// An error occurred with a price used as a divisor.
+    #[error("A start price of {0} cannot be used to compute a return")]
+    InvalidPrice(f64),
 }

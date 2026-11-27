@@ -53,6 +53,18 @@ panic = "abort"          # Abort on panic for smaller binaries.
 rpath = false            # Do not include rpath.
 strip = "symbols"        # Strip symbols for smaller binaries.
 
+# The property tests fit thousands of AutoETS models; unoptimised, a fit
+# takes about 12 ms, optimised about 1.6 ms. Only the maths dependencies
+# are optimised, so nalufx's own code still builds with debug checks.
+[profile.test.package.augurs-ets]
+opt-level = 3
+
+[profile.test.package.augurs-core]
+opt-level = 3
+
+[profile.test.package.nalgebra]
+opt-level = 3
+
 [profile.test]
 # Test profile.
 codegen-units = 256     # Faster compilation for tests.

@@ -1,158 +1,166 @@
+//! Forecasting and allocation.
+//!
+//! Every function here is deterministic: the same input gives the same
+//! output, bit for bit, and anything that cannot be computed is an
+//! [`AllocationError`](crate::errors::AllocationError) rather than a
+//! substitute value.
+
 use crate::errors::AllocationError;
+use crate::models::forecast_dm::IntervalForecast;
 use crate::{
     check_empty_inputs, check_input_lengths, check_invalid_data, check_outliers,
-    fill_feature_matrix, handle_result, normalize_features,
+    fill_feature_matrix, normalize_features,
 };
 use augurs_core::{Fit, Predict};
 use augurs_ets::AutoETS;
 use ndarray::prelude::*;
-use std::cmp::Ordering;
-// rand 0.9 renamed `thread_rng()` to `rng()` and moved `gen_range` to
-// `RngExt::random_range`.
-use rand::RngExt;
 
-/// Calculates the optimal allocation based on daily returns and cash flows.
+pub use crate::utils::clustering::perform_clustering;
+
+/// The probability every NaluFX prediction interval covers.
+pub const FORECAST_LEVEL: f64 = 0.95;
+
+/// The horizon, in days, of the allocations and forecasts NaluFX reports
+/// when a caller does not choose one.
+pub const DEFAULT_HORIZON_DAYS: usize = 6;
+
+/// The largest absolute daily return accepted (a 100% move in one day).
+const MAX_ABS_DAILY_RETURN: f64 = 1.0;
+
+/// Allocates across the days of a forecast horizon by inverse volatility.
 ///
-/// This function uses a combination of time series forecasting, sentiment analysis,
-/// reinforcement learning, and clustering to calculate the optimal allocation for each day.
+/// The daily returns are forecast `num_days` ahead with AutoETS, and each
+/// day is weighted by the inverse of its 95% prediction interval's width,
+/// which is proportional to the forecast's standard deviation. Days the
+/// model is surer about get more; the weights are long-only and sum to 1.
+///
+/// This is the interim method until the M2 optimiser: it uses only the
+/// uncertainty of the forecast, not its expected return.
 ///
 /// # Arguments
 ///
-/// * `daily_returns` - A slice of daily returns.
-/// * `cash_flows` - A slice of cash flows.
-/// * `market_indices` - A slice of market indices.
-/// * `fund_characteristics` - A slice of fund characteristics.
-/// * `num_days` - The number of days to generate predictions for.
+/// * `daily_returns` - Historical daily returns, oldest first.
+/// * `num_days` - The number of days to allocate across.
 ///
 /// # Returns
 ///
-/// A vector of optimal allocations for each day, or an error if input slices have different lengths.
+/// One weight per day, each at least 0, summing to 1.
 ///
 /// # Errors
 ///
-/// Returns an error if:
-/// - The input slices have different lengths.
-/// - The input slices are empty.
-/// - An error occurs during the execution of the `perform_clustering` function.
+/// - [`AllocationError::EmptyInput`] if there are no returns.
+/// - [`AllocationError::InvalidData`] if a return is NaN or infinite.
+/// - [`AllocationError::OutlierData`] if a return exceeds 100% in absolute value.
+/// - [`AllocationError::InvalidHorizon`] if `num_days` is 0.
+/// - [`AllocationError::ForecastingError`] if AutoETS cannot fit the series.
+/// - [`AllocationError::ZeroVolatility`] if a forecast interval has no width beyond rounding.
 ///
 /// # Examples
 ///
 /// ```
 /// use nalufx::utils::calculations::calculate_optimal_allocation;
 ///
-/// let daily_returns = vec![0.01, 0.02, -0.01, 0.03, 0.01];
-/// let cash_flows = vec![1000.0, 1020.0, 1010.0, 1030.0, 1025.0];
-/// let market_indices = vec![1.0, 1.01, 1.02, 1.03, 1.04];
-/// let fund_characteristics = vec![0.5, 0.6, 0.7, 0.8, 0.9];
-/// let num_days = 3;
-/// match calculate_optimal_allocation(&daily_returns, &cash_flows, &market_indices, &fund_characteristics, num_days) {
-///     Ok(allocations) => println!("Allocations: {:?}", allocations),
-///   Err(e) => eprintln!("Error: {}", e),
-/// }
+/// let daily_returns = [0.01, -0.02, 0.015, 0.003, -0.007, 0.012, -0.004, 0.009, -0.011, 0.006];
+/// let weights = calculate_optimal_allocation(&daily_returns, 3).unwrap();
+/// assert_eq!(weights.len(), 3);
+/// assert!((weights.iter().sum::<f64>() - 1.0).abs() < 1e-9);
 /// ```
 pub fn calculate_optimal_allocation(
     daily_returns: &[f64],
-    cash_flows: &[f64],
-    market_indices: &[f64],
-    fund_characteristics: &[f64],
     num_days: usize,
 ) -> Result<Vec<f64>, AllocationError> {
-    // Check input lengths
-    check_input_lengths!(daily_returns, cash_flows, market_indices, fund_characteristics)?;
-
-    // Check for empty inputs
-    check_empty_inputs!(daily_returns, cash_flows, market_indices, fund_characteristics)?;
-
-    // Check for invalid data
-    check_invalid_data!(daily_returns, cash_flows)?;
-
-    // Check for outliers
-    check_outliers!(1.0, daily_returns)?;
-    check_outliers!(1_000_000.0, cash_flows)?;
-
-    // Feature Engineering
-    let features =
-        extract_features(daily_returns, cash_flows, market_indices, fund_characteristics)?;
-
-    // Time Series Forecasting
-    let forecasted_returns =
-        handle_result!(forecast_time_series(daily_returns, num_days), ForecastingError)?;
-    let forecasted_cash_flows =
-        handle_result!(forecast_time_series(cash_flows, num_days), ForecastingError)?;
-
-    // Sentiment Analysis
-    let sentiment_scores = handle_result!(analyze_sentiment(num_days), SentimentAnalysisError)?;
-
-    // Reinforcement Learning
-    let optimal_actions =
-        handle_result!(train_reinforcement_learning(num_days), ReinforcementLearningError)?;
-
-    // Clustering
-    let clusters = match perform_clustering(&features) {
-        Ok(clusters) => clusters,
-        Err(err) => {
-            eprintln!("Error during clustering: {}", err);
-            vec![0; num_days]
-        },
-    };
-
-    // Calculate averages
-    let avg_daily_return = daily_returns.iter().sum::<f64>() / daily_returns.len() as f64;
-    let avg_cash_flow = cash_flows.iter().sum::<f64>() / cash_flows.len() as f64;
-
-    // Initialize predictions vector
-    let mut predictions = Vec::with_capacity(num_days);
-
-    // Calculate predictions in one pass
-    for day in 1..=num_days {
-        let predicted_return = if day <= forecasted_returns.len() {
-            forecasted_returns[day - 1]
-        } else {
-            avg_daily_return * day as f64
-        };
-
-        let predicted_cash_flow = if day <= forecasted_cash_flows.len() {
-            forecasted_cash_flows[day - 1]
-        } else {
-            avg_cash_flow * day as f64
-        };
-
-        // Check if the day index is within the valid range
-        if day <= sentiment_scores.len() && day <= optimal_actions.len() && day <= clusters.len() {
-            let sentiment_score = sentiment_scores[day - 1];
-            let optimal_action = optimal_actions[day - 1];
-            let cluster = clusters[day - 1] as f64;
-
-            // Incorporate sentiment score, optimal action, and cluster into the prediction
-            let prediction = predicted_return
-                * predicted_cash_flow
-                * sentiment_score
-                * optimal_action
-                * (cluster + 1.0);
-            predictions.push(prediction);
-        } else {
-            // If the day index is out of range, use default values
-            let prediction = predicted_return * predicted_cash_flow;
-            predictions.push(prediction);
-        }
+    validate_series(daily_returns, num_days)?;
+    check_outliers!(MAX_ABS_DAILY_RETURN, daily_returns)?;
+    // A constant series has no volatility to weight by. Its forecast
+    // interval is rounding noise, which around zero is too small (about
+    // 1e-98) for any floor relative to the interval itself to catch.
+    if is_constant(daily_returns) {
+        return Err(AllocationError::ZeroVolatility);
     }
+    let forecast = forecast_time_series(daily_returns, num_days)?;
+    inverse_volatility(&resolved_widths(&forecast))
+}
 
-    // Calculate total prediction to normalize the predictions
-    let total_prediction: f64 = predictions.iter().sum();
+/// Whether every value equals the first to within rounding.
+fn is_constant(data: &[f64]) -> bool {
+    let (lo, hi) =
+        data.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), &x| (lo.min(x), hi.max(x)));
+    hi - lo <= NOISE_ULPS * f64::EPSILON * lo.abs().max(hi.abs())
+}
 
-    // Handle the case where total prediction is zero
-    if total_prediction == 0.0 {
-        return Ok(vec![0.0; num_days]);
+/// Spreads up to this many ulps of a value's magnitude are rounding noise.
+const NOISE_ULPS: f64 = 64.0;
+
+/// The interval widths, with any width at the floating-point noise floor
+/// set to exactly 0.
+///
+/// A constant series fits with an interval a few ulps wide (about 1e-17
+/// on returns of 0.01): rounding, not uncertainty. Weighting by its
+/// inverse would turn that noise into an allocation, so it counts as
+/// zero volatility.
+fn resolved_widths(forecast: &IntervalForecast) -> Vec<f64> {
+    forecast
+        .widths()
+        .into_iter()
+        .zip(forecast.lower.iter().zip(&forecast.upper))
+        .map(|(width, (lo, hi))| {
+            let floor = NOISE_ULPS * f64::EPSILON * lo.abs().max(hi.abs()).max(f64::MIN_POSITIVE);
+            if width <= floor {
+                0.0
+            } else {
+                width
+            }
+        })
+        .collect()
+}
+
+/// Weights proportional to the inverse of each volatility, summing to 1.
+///
+/// # Arguments
+///
+/// * `volatilities` - One volatility (or any quantity proportional to it) per item.
+///
+/// # Errors
+///
+/// - [`AllocationError::EmptyInput`] if there are no volatilities.
+/// - [`AllocationError::ZeroVolatility`] if one is 0, or so small its inverse overflows.
+/// - [`AllocationError::InvalidData`] if one is negative, NaN or infinite.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::utils::calculations::inverse_volatility;
+///
+/// assert_eq!(inverse_volatility(&[1.0, 1.0]).unwrap(), vec![0.5, 0.5]);
+/// assert!(inverse_volatility(&[1.0, 1e-310]).is_err());
+/// let weights = inverse_volatility(&[1.0, 3.0]).unwrap();
+/// assert!((weights[0] - 0.75).abs() < 1e-12);
+/// ```
+pub fn inverse_volatility(volatilities: &[f64]) -> Result<Vec<f64>, AllocationError> {
+    if volatilities.is_empty() {
+        return Err(AllocationError::EmptyInput);
     }
-
-    // Normalize predictions to get the optimal allocations
-    Ok(predictions.into_iter().map(|p| p / total_prediction).collect())
+    if volatilities.iter().any(|v| !v.is_finite() || *v < 0.0) {
+        return Err(AllocationError::InvalidData);
+    }
+    if volatilities.contains(&0.0) {
+        return Err(AllocationError::ZeroVolatility);
+    }
+    let inverse: Vec<f64> = volatilities.iter().map(|v| 1.0 / v).collect();
+    let total: f64 = inverse.iter().sum();
+    // A volatility so small (subnormal) that its inverse overflows is zero
+    // for any practical purpose; dividing by an infinite total would give 0
+    // or NaN weights.
+    if !total.is_finite() {
+        return Err(AllocationError::ZeroVolatility);
+    }
+    Ok(inverse.into_iter().map(|w| w / total).collect())
 }
 
 /// Extracts features from the input data for clustering.
 ///
-/// This function takes slices of daily returns, cash flows, market indices, and fund characteristics,
-/// and constructs a feature matrix for clustering. It normalizes the features before returning them.
+/// The four series become the four columns of a feature matrix, each
+/// normalised to zero mean and unit variance.
 ///
 /// # Arguments
 ///
@@ -163,11 +171,12 @@ pub fn calculate_optimal_allocation(
 ///
 /// # Returns
 ///
-/// A feature matrix (`Array2<f64>`) for clustering, or an error if input slices have different lengths.
+/// A feature matrix (`Array2<f64>`) with one row per observation.
 ///
 /// # Errors
 ///
-/// Returns an error if the input slices have different lengths.
+/// Returns an error if the slices differ in length, are empty, hold NaN or
+/// infinite values, or hold outliers.
 ///
 /// # Examples
 ///
@@ -189,23 +198,14 @@ pub fn extract_features(
     market_indices: &[f64],
     fund_characteristics: &[f64],
 ) -> Result<Array2<f64>, AllocationError> {
-    // Check if input slices have the same length
     check_input_lengths!(daily_returns, cash_flows, market_indices, fund_characteristics)?;
-
-    // Check for empty inputs
     check_empty_inputs!(daily_returns, cash_flows, market_indices, fund_characteristics)?;
-
-    // Check for invalid data
     check_invalid_data!(daily_returns, cash_flows)?;
-
-    // Check for outliers
-    check_outliers!(1.0, daily_returns)?;
+    check_outliers!(MAX_ABS_DAILY_RETURN, daily_returns)?;
     check_outliers!(1_000_000.0, cash_flows)?;
 
     let n = daily_returns.len();
     let mut features = Array2::<f64>::zeros((n, 4));
-
-    // Fill the feature matrix
     fill_feature_matrix!(
         features,
         n,
@@ -214,392 +214,82 @@ pub fn extract_features(
         market_indices,
         fund_characteristics
     );
-
-    // Normalize the features
     normalize_features!(features);
-
     Ok(features)
 }
 
-/// Forecasts future values of a time series using the AutoETS model.
+/// Forecasts a time series with AutoETS, with its 95% prediction interval.
 ///
-/// This function takes a slice of historical data and forecasts future values
-/// for the specified number of days using the AutoETS model.
+/// AutoETS picks the best non-seasonal exponential smoothing model by
+/// AICc. The search is deterministic: it leaves out multiplicative-trend
+/// models, the only ones whose intervals augurs simulates at random.
 ///
 /// # Arguments
 ///
-/// * `data` - A slice of historical data.
+/// * `data` - Historical values, oldest first.
 /// * `num_days` - The number of days to forecast.
 ///
 /// # Returns
 ///
-/// A vector of forecasted values (`Vec<f64>`) for the specified number of days, or an error if forecasting fails.
+/// The point forecast with its interval at [`FORECAST_LEVEL`].
 ///
 /// # Errors
 ///
-/// Returns an error if the AutoETS model fails to fit the data or generate forecasts.
+/// - [`AllocationError::EmptyInput`] if there is no data.
+/// - [`AllocationError::InvalidData`] if a value is NaN or infinite.
+/// - [`AllocationError::InvalidHorizon`] if `num_days` is 0.
+/// - [`AllocationError::ForecastingError`] if no model fits, or the fit gives no interval.
 ///
 /// # Examples
 ///
 /// ```
 /// use nalufx::utils::calculations::forecast_time_series;
 ///
-/// let data = vec![100.0, 101.0, 102.0, 101.5];
-/// let num_days = 3;
-/// match forecast_time_series(&data, num_days) {
-///     Ok(forecast) => println!("Forecast: {:?}", forecast),
-///   Err(e) => eprintln!("Error: {}", e),
-/// }
+/// let data = [100.0, 101.0, 102.0, 101.5, 103.0, 102.2, 104.1, 103.6];
+/// let forecast = forecast_time_series(&data, 3).unwrap();
+/// assert_eq!(forecast.point.len(), 3);
+/// assert!(forecast.lower[0] <= forecast.point[0] && forecast.point[0] <= forecast.upper[0]);
 /// ```
-pub fn forecast_time_series(data: &[f64], num_days: usize) -> Result<Vec<f64>, String> {
-    let search = AutoETS::new(1, "ZZN").map_err(|e| e.to_string())?;
-    let model = search.fit(data).map_err(|e| e.to_string())?;
-    // augurs 0.10 made `predict` fallible; it returned the Forecast
-    // directly in 0.9.
-    let forecast = model.predict(num_days, 0.95).map_err(|e| e.to_string())?;
-    Ok(forecast.point)
+pub fn forecast_time_series(
+    data: &[f64],
+    num_days: usize,
+) -> Result<IntervalForecast, AllocationError> {
+    validate_series(data, num_days)?;
+    let model = AutoETS::new(1, "ZZN").map_err(failed)?.fit(data).map_err(failed)?;
+    to_interval_forecast(model.predict(num_days, FORECAST_LEVEL).map_err(failed)?)
 }
 
-/// Analyzes sentiment scores for a given number of days.
-///
-/// This function generates sentiment scores for the specified number of days.
-/// The actual implementation should replace the placeholder logic.
-///
-/// # Arguments
-///
-/// * `num_days` - The number of days for which to generate sentiment scores.
-///
-/// # Returns
-///
-/// A vector of sentiment scores (`Vec<f64>`) for the specified number of days, or an error if sentiment analysis fails.
-///
-/// # Errors
-///
-/// Returns an error if the sentiment analysis fails.
-///
-/// # Examples
-///
-/// ```
-/// use nalufx::utils::calculations::analyze_sentiment;
-/// let num_days = 3;
-/// let sentiment_scores = analyze_sentiment(num_days).unwrap();
-/// assert_eq!(sentiment_scores.len(), num_days);
-/// ```
-pub fn analyze_sentiment(num_days: usize) -> Result<Vec<f64>, String> {
-    // Call the sentiment analysis helper function
-    let sentiment_scores = get_sentiment_scores(num_days)?;
-    Ok(sentiment_scores)
+/// An augurs forecast as an [`IntervalForecast`], checked to have an
+/// interval and to be finite throughout.
+fn to_interval_forecast(
+    forecast: augurs_core::Forecast,
+) -> Result<IntervalForecast, AllocationError> {
+    let intervals =
+        forecast.intervals.ok_or_else(|| failed("the model gave no prediction interval"))?;
+    let result = IntervalForecast {
+        level: intervals.level,
+        point: forecast.point,
+        lower: intervals.lower,
+        upper: intervals.upper,
+    };
+    let finite = |v: &[f64]| v.iter().all(|x| x.is_finite());
+    if !(finite(&result.point) && finite(&result.lower) && finite(&result.upper)) {
+        return Err(failed("the forecast is not finite"));
+    }
+    Ok(result)
 }
 
-/// Trains a reinforcement learning model to generate optimal actions for a given number of days.
-///
-/// This function generates optimal actions for the specified number of days using reinforcement learning.
-/// The actual implementation should replace the placeholder logic.
-///
-/// # Arguments
-///
-/// * `num_days` - The number of days for which to generate optimal actions.
-///
-/// # Returns
-///
-/// A vector of optimal actions (`Vec<f64>`) for the specified number of days, or an error if reinforcement learning fails.
-///
-/// # Errors
-///
-/// Returns an error if the reinforcement learning process fails.
-///
-/// # Examples
-///
-/// ```
-/// use nalufx::utils::calculations::train_reinforcement_learning;
-/// let num_days = 3;
-/// let optimal_actions = train_reinforcement_learning(num_days).unwrap();
-/// assert_eq!(optimal_actions.len(), num_days);
-/// ```
-pub fn train_reinforcement_learning(num_days: usize) -> Result<Vec<f64>, String> {
-    // Call the reinforcement learning helper function
-    let optimal_actions = get_optimal_actions(num_days)?;
-    Ok(optimal_actions)
+/// Wraps a forecasting failure.
+fn failed(err: impl std::fmt::Display) -> AllocationError {
+    AllocationError::ForecastingError(err.to_string())
 }
 
-/// Performs clustering on the feature matrix using K-means with hyperparameter tuning.
-///
-/// This function takes a feature matrix and performs K-means clustering to assign each data point to a cluster.
-///
-/// # Arguments
-///
-/// * `features` - A reference to the feature matrix (`Array2<f64>`).
-///
-/// # Returns
-///
-/// A vector of cluster assignments (`Vec<usize>`) for each data point, or an error if clustering fails.
-///
-/// # Errors
-///
-/// Returns an error if the K-means model fails to fit the data or generate cluster assignments.
-///
-/// # Examples
-///
-/// ```
-/// use nalufx::utils::calculations::perform_clustering;
-/// use ndarray::Array2;
-/// let features = Array2::from_shape_vec((3, 4), vec![0.0; 12]).unwrap();
-/// let clusters = perform_clustering(&features).unwrap();
-/// assert_eq!(clusters.len(), 3);
-/// ```
-pub fn perform_clustering(features: &Array2<f64>) -> Result<Vec<usize>, AllocationError> {
-    /// Number of clusters. Matches the previous linfa configuration.
-    const N_CLUSTERS: usize = 2;
-    /// Upper bound on Lloyd iterations; the loop normally converges first.
-    const MAX_ITERATIONS: usize = 100;
-
-    let n_samples = features.nrows();
-    if n_samples == 0 {
-        return Err(AllocationError::ClusteringError(
-            "cannot cluster an empty feature matrix".to_string(),
-        ));
+/// Checks a series and a horizon before anything is computed from them.
+fn validate_series(data: &[f64], num_days: usize) -> Result<(), AllocationError> {
+    check_empty_inputs!(data)?;
+    check_invalid_data!(data)?;
+    if num_days == 0 {
+        return Err(AllocationError::InvalidHorizon);
     }
-
-    // With no more samples than clusters, the assignment is trivial and
-    // seeding distinct centroids is impossible.
-    if n_samples <= N_CLUSTERS {
-        return Ok((0..n_samples).collect());
-    }
-
-    let mut rng = rand::rng();
-
-    // k-means++ seeding: the first centroid is uniform, and each
-    // subsequent one is drawn with probability proportional to its
-    // squared distance from the nearest centroid chosen so far. This is
-    // what keeps the two centroids apart on the first iteration; picking
-    // both uniformly collapses often on clustered data.
-    let mut centroids: Vec<Array1<f64>> =
-        vec![features.row(rng.random_range(0..n_samples)).to_owned()];
-
-    while centroids.len() < N_CLUSTERS {
-        let distances: Vec<f64> = features
-            .rows()
-            .into_iter()
-            .map(|row| {
-                centroids
-                    .iter()
-                    .map(|c| squared_distance(&row.to_owned(), c))
-                    .fold(f64::INFINITY, f64::min)
-            })
-            .collect();
-
-        let total: f64 = distances.iter().sum();
-        let next = if total > 0.0 && total.is_finite() {
-            // Weighted draw over the squared distances.
-            let mut target = rng.random_range(0.0..total);
-            distances
-                .iter()
-                .position(|d| {
-                    target -= d;
-                    target <= 0.0
-                })
-                .unwrap_or(n_samples - 1)
-        } else {
-            // Every point coincides with a centroid (e.g. all-identical
-            // rows), so the weights carry no information — fall back to a
-            // uniform pick rather than dividing by zero.
-            rng.random_range(0..n_samples)
-        };
-        centroids.push(features.row(next).to_owned());
-    }
-
-    let mut assignments = vec![0usize; n_samples];
-
-    for _ in 0..MAX_ITERATIONS {
-        // Assignment step.
-        let mut changed = false;
-        for (i, row) in features.rows().into_iter().enumerate() {
-            let point = row.to_owned();
-            let nearest = centroids
-                .iter()
-                .enumerate()
-                .map(|(k, c)| (k, squared_distance(&point, c)))
-                // `partial_cmp` dates from a declared 1.56 MSRV, when
-                // `total_cmp` (1.62) was out of reach; the workspace now
-                // declares 1.92. Distances here are non-negative and
-                // finite (the inputs are validated by
-                // `check_invalid_data!` upstream), so the orderings agree.
-                .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal))
-                .map_or(0, |(k, _)| k);
-            if assignments[i] != nearest {
-                assignments[i] = nearest;
-                changed = true;
-            }
-        }
-
-        // Update step: each centroid becomes the mean of its members.
-        // An empty cluster keeps its previous position rather than
-        // becoming NaN.
-        for (k, centroid) in centroids.iter_mut().enumerate() {
-            let members: Vec<_> = features
-                .rows()
-                .into_iter()
-                .zip(&assignments)
-                .filter(|(_, &a)| a == k)
-                .map(|(row, _)| row)
-                .collect();
-
-            if members.is_empty() {
-                continue;
-            }
-
-            let mut mean = Array1::<f64>::zeros(features.ncols());
-            for row in &members {
-                mean += &row.to_owned();
-            }
-            #[allow(clippy::cast_precision_loss)]
-            let count = members.len() as f64;
-            mean /= count;
-            *centroid = mean;
-        }
-
-        if !changed {
-            break;
-        }
-    }
-
-    Ok(assignments)
-}
-
-/// Squared Euclidean distance between two equal-length vectors.
-///
-/// Squared rather than actual distance: the square root is monotonic, so
-/// it does not change which centroid is nearest, and skipping it avoids
-/// a `sqrt` per comparison.
-fn squared_distance(a: &Array1<f64>, b: &Array1<f64>) -> f64 {
-    a.iter().zip(b.iter()).map(|(x, y)| (x - y).powi(2)).sum()
-}
-
-/// Helper function for sentiment analysis (placeholder).
-///
-/// This function generates random sentiment scores for demonstration purposes.
-/// Replace this function with the actual sentiment analysis logic.
-///
-/// # Arguments
-///
-/// * `num_days` - The number of days for which to generate sentiment scores.
-///
-/// # Returns
-///
-/// A vector of random sentiment scores (`Vec<f64>`) for the specified number of days, or an error if sentiment analysis fails.
-///
-/// # Errors
-///
-/// Returns an error if the sentiment analysis fails.
-///
-/// # Examples
-///
-/// ```
-/// use nalufx::utils::calculations::get_sentiment_scores;
-/// let num_days = 3;
-/// let sentiment_scores = get_sentiment_scores(num_days).unwrap();
-/// assert_eq!(sentiment_scores.len(), num_days);
-/// ```
-pub fn get_sentiment_scores(num_days: usize) -> Result<Vec<f64>, String> {
-    // Implement the actual sentiment analysis logic here
-    // For demonstration purposes, we'll return random scores
-    let mut rng = rand::rng();
-    let sentiment_scores: Vec<f64> = (0..num_days).map(|_| rng.random_range(0.0..1.0)).collect();
-    Ok(sentiment_scores)
-}
-
-/// Helper function for reinforcement learning (placeholder).
-///
-/// This function generates random optimal actions for demonstration purposes.
-/// Replace this function with the actual reinforcement learning logic.
-///
-/// # Arguments
-///
-/// * `num_days` - The number of days for which to generate optimal actions.
-///
-/// # Returns
-///
-/// A vector of random optimal actions (`Vec<f64>`) for the specified number of days, or an error if reinforcement learning fails.
-///
-/// # Errors
-///
-/// Returns an error if the reinforcement learning process fails.
-///
-/// # Examples
-///
-/// ```
-/// use nalufx::utils::calculations::get_optimal_actions;
-/// let num_days = 3;
-/// let optimal_actions = get_optimal_actions(num_days).unwrap();
-/// assert_eq!(optimal_actions.len(), num_days);
-/// ```
-pub fn get_optimal_actions(num_days: usize) -> Result<Vec<f64>, String> {
-    // Implement the actual reinforcement learning logic here
-    // For demonstration purposes, we'll return random actions
-    let mut rng = rand::rng();
-    let optimal_actions: Vec<f64> = (0..num_days).map(|_| rng.random_range(0.0..1.0)).collect();
-    Ok(optimal_actions)
-}
-
-#[cfg(test)]
-mod clustering_tests {
-    use super::perform_clustering;
-    use ndarray::Array2;
-
-    /// Two well-separated groups must land in two different clusters,
-    /// with every member of a group agreeing.
-    #[test]
-    fn separates_two_distinct_groups() {
-        let features = Array2::from_shape_vec(
-            (6, 2),
-            vec![
-                0.0, 0.0, 0.1, 0.1, 0.2, 0.0, // tight cluster near the origin
-                50.0, 50.0, 50.1, 49.9, 49.9, 50.2, // and one far away
-            ],
-        )
-        .unwrap();
-
-        let clusters = perform_clustering(&features).unwrap();
-        assert_eq!(clusters.len(), 6);
-
-        let (low, high) = clusters.split_at(3);
-        assert!(low.iter().all(|&c| c == low[0]), "near group split: {clusters:?}");
-        assert!(high.iter().all(|&c| c == high[0]), "far group split: {clusters:?}");
-        assert_ne!(low[0], high[0], "the two groups collapsed: {clusters:?}");
-    }
-
-    /// All-identical rows have no meaningful split; the k-means++ weights
-    /// are all zero, which must not divide by zero or emit NaN labels.
-    #[test]
-    fn handles_identical_rows() {
-        let features = Array2::from_shape_vec((3, 4), vec![0.0; 12]).unwrap();
-        let clusters = perform_clustering(&features).unwrap();
-        assert_eq!(clusters.len(), 3);
-        assert!(clusters.iter().all(|&c| c < 2));
-    }
-
-    /// Fewer samples than clusters short-circuits rather than trying to
-    /// seed distinct centroids.
-    #[test]
-    fn handles_fewer_samples_than_clusters() {
-        let features = Array2::from_shape_vec((2, 2), vec![1.0, 2.0, 3.0, 4.0]).unwrap();
-        assert_eq!(perform_clustering(&features).unwrap(), vec![0, 1]);
-    }
-
-    /// An empty matrix is an error, not a panic.
-    #[test]
-    fn rejects_empty_input() {
-        let features = Array2::<f64>::zeros((0, 4));
-        assert!(perform_clustering(&features).is_err());
-    }
-
-    /// Labels are always valid cluster indices.
-    #[test]
-    fn labels_are_in_range() {
-        let features =
-            Array2::from_shape_vec((5, 2), vec![1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 9.0, 9.0, 8.0, 8.0])
-                .unwrap();
-        let clusters = perform_clustering(&features).unwrap();
-        assert!(clusters.iter().all(|&c| c < 2), "out-of-range label: {clusters:?}");
-    }
+    Ok(())
 }

@@ -1,3 +1,5 @@
+use crate::errors::AllocationError;
+
 /// Calculates the daily returns from a slice of closing prices.
 ///
 /// This function takes a slice of closing prices and calculates the daily returns
@@ -12,16 +14,26 @@
 ///
 /// A vector of daily returns (`Vec<f64>`) where each entry represents the return for a given day.
 ///
+/// # Errors
+///
+/// Returns [`AllocationError::InvalidPrice`] for the first close that is
+/// zero, negative, NaN or infinite: a return from it would be infinite or
+/// meaningless.
+///
 /// # Examples
 ///
 /// ```
 /// use nalufx::services::processing_svc::calculate_daily_returns;
 /// let closes = vec![100.0, 101.0, 102.0, 101.5];
-/// let daily_returns = calculate_daily_returns(&closes);
+/// let daily_returns = calculate_daily_returns(&closes).unwrap();
 /// assert_eq!(daily_returns, vec![0.010000000000000009, 0.00990099009900991, -0.004901960784313708]);
+/// assert!(calculate_daily_returns(&[0.0, 1.0]).is_err());
 /// ```
-pub fn calculate_daily_returns(closes: &[f64]) -> Vec<f64> {
-    closes.windows(2).map(|w| (w[1] / w[0]) - 1.0).collect()
+pub fn calculate_daily_returns(closes: &[f64]) -> Result<Vec<f64>, AllocationError> {
+    if let Some(&bad) = closes.iter().find(|c| !(c.is_finite() && **c > 0.0)) {
+        return Err(AllocationError::InvalidPrice(bad));
+    }
+    Ok(closes.windows(2).map(|w| (w[1] / w[0]) - 1.0).collect())
 }
 
 /// Calculates the cash flows from daily returns and an initial investment.

@@ -92,7 +92,13 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     for &investment in &esg_investments {
         match fetch_data(investment, None, None).await {
             Ok(closes) => {
-                let daily_returns = calculate_daily_returns(&closes);
+                let daily_returns = match calculate_daily_returns(&closes) {
+                    Ok(daily_returns) => daily_returns,
+                    Err(e) => {
+                        eprintln!("Skipping {}: {}", investment, e);
+                        continue;
+                    },
+                };
                 if daily_returns.is_empty() {
                     eprintln!("Insufficient data for investment {}", investment);
                     continue;

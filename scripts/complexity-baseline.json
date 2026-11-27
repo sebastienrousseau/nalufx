@@ -6,40 +6,8 @@
     "halstead": 30,
     "sloc": 60
   },
-  "files": {
-    "nalufx-core/src/utils/calculations.rs": 606
-  },
+  "files": {},
   "functions": {
-    "nalufx-core/src/api/handlers.rs::predict_cash_flow": {
-      "cognitive": 10.0,
-      "cyclomatic": 13.0,
-      "halstead": 24.8,
-      "sloc": 86.0
-    },
-    "nalufx-core/src/services/bellwether_stock_analysis_svc.rs::generate_analysis": {
-      "cognitive": 28.0,
-      "cyclomatic": 21.0,
-      "halstead": 45.5,
-      "sloc": 173.0
-    },
-    "nalufx-core/src/services/diversified_etf_portfolio_optimization_svc.rs::generate_analysis": {
-      "cognitive": 46.0,
-      "cyclomatic": 60.0,
-      "halstead": 59.1,
-      "sloc": 325.0
-    },
-    "nalufx-core/src/utils/calculations.rs::calculate_optimal_allocation": {
-      "cognitive": 13.0,
-      "cyclomatic": 21.0,
-      "halstead": 43.7,
-      "sloc": 98.0
-    },
-    "nalufx-core/src/utils/calculations.rs::perform_clustering": {
-      "cognitive": 23.0,
-      "cyclomatic": 21.0,
-      "halstead": 42.7,
-      "sloc": 118.0
-    },
     "nalufx-core/src/utils/date.rs::parse_ymd": {
       "cognitive": 2.0,
       "cyclomatic": 12.0,

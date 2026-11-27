@@ -1,3 +1,4 @@
+use crate::errors::AllocationError;
 use crate::models::allocation_dm::AllocationOrder;
 use crate::utils::currency::format_currency;
 use nalufx_llms::llms::LLM;
@@ -42,6 +43,12 @@ pub struct AnalysisRequest<'a> {
 /// # Returns
 ///
 /// * `Result<String, Box<dyn std::error::Error>>` - A Result containing the generated report as a string on success, or an error on failure.
+///
+/// # Errors
+///
+/// [`AllocationError::InvalidPrice`] if a start price is zero, negative or
+/// not finite, so its return cannot be computed; or any error from the
+/// model provider.
 pub async fn generate_analysis(
     llm: Box<dyn LLM>,
     client: &Client,
@@ -72,16 +79,16 @@ pub async fn generate_analysis(
 
     let performance_str = real_time_prices
         .iter()
-        .map(|(symbol, (start_price, end_price))| {
-            format!(
+        .map(|(symbol, &(start_price, end_price))| {
+            Ok(format!(
                 "{}: Start Price: {}, End Price: {}, Return: {:.2}%",
                 symbol,
-                format_currency(*start_price),
-                format_currency(*end_price),
-                ((*end_price - *start_price) / *start_price) * 100.0
-            )
+                format_currency(start_price),
+                format_currency(end_price),
+                percent_return(start_price, end_price)?
+            ))
         })
-        .collect::<Vec<_>>()
+        .collect::<Result<Vec<_>, AllocationError>>()?
         .join("\n");
 
     let prompt = format!(
@@ -95,4 +102,34 @@ pub async fn generate_analysis(
         response["choices"][0]["message"]["content"].as_str().unwrap_or("").to_string();
 
     Ok(generated_report)
+}
+
+/// The return from `start` to `end`, in percent.
+///
+/// # Errors
+///
+/// [`AllocationError::InvalidPrice`] if `start` is zero, negative or not
+/// finite: the division would be infinite or meaningless.
+fn percent_return(start: f64, end: f64) -> Result<f64, AllocationError> {
+    if !(start.is_finite() && start > 0.0) {
+        return Err(AllocationError::InvalidPrice(start));
+    }
+    Ok((end - start) / start * 100.0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn percent_return_is_the_change_over_the_start_price() {
+        assert_eq!(percent_return(100.0, 110.0), Ok(10.0));
+    }
+
+    #[test]
+    fn a_zero_start_price_is_an_error_not_infinity() {
+        assert_eq!(percent_return(0.0, 110.0), Err(AllocationError::InvalidPrice(0.0)));
+        assert!(percent_return(f64::NAN, 1.0).is_err());
+        assert!(percent_return(-1.0, 1.0).is_err());
+    }
 }

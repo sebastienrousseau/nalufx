@@ -1,13 +1,15 @@
+//! Bellwether stock report: an inverse-volatility allocation over the
+//! next few days, with a language model's commentary on it.
+//!
+//! The numbers come from the maths in
+//! [`calculate_optimal_allocation`](crate::utils::calculations::calculate_optimal_allocation);
+//! the language model writes words about them and nothing else.
+
 use crate::{
     errors::NaluFxError,
-    services::{
-        fetch_data_svc::fetch_data,
-        processing_svc::{calculate_cash_flows, calculate_daily_returns},
-    },
+    services::{fetch_data_svc::fetch_data, processing_svc::calculate_daily_returns},
     utils::{
-        calculations::{
-            analyze_sentiment, calculate_optimal_allocation, train_reinforcement_learning,
-        },
+        calculations::{calculate_optimal_allocation, DEFAULT_HORIZON_DAYS},
         date::validate_date,
     },
 };
@@ -15,21 +17,23 @@ use nalufx_llms::llms::LLM;
 use reqwest::Client;
 use time::OffsetDateTime;
 
-/// Generates an analysis report based on historical stock data, optimal allocation, and LLM analysis.
+/// Generates a report on one stock from its price history.
 ///
 /// # Arguments
 ///
-/// * `llm` - A boxed trait object implementing the LLM trait for language model operations.
-/// * `client` - A reference to the reqwest Client for making HTTP requests.
-/// * `api_key` - A string reference to the API key for accessing the LLM service.
-/// * `ticker` - A string reference to the ticker symbol of the stock to analyze.
-/// * `initial_investment` - A f64 representing the initial investment amount.
-/// * `start_date` - A string reference to the start date of the analysis period in "YYYY-MM-DD" format.
-/// * `end_date` - A string reference to the end date of the analysis period in "YYYY-MM-DD" format.
+/// * `llm` - The language model that writes the commentary.
+/// * `client` - The HTTP client used to reach the model provider.
+/// * `api_key` - The API key for the model provider.
+/// * `ticker` - The ticker symbol of the stock to analyse.
+/// * `initial_investment` - The amount the allocation is applied to.
+/// * `start_date` - The start of the price history, "YYYY-MM-DD".
+/// * `end_date` - The end of the price history, "YYYY-MM-DD".
 ///
-/// # Returns
+/// # Errors
 ///
-/// * `Result<(), NaluFxError>` - Returns Ok(()) if the analysis is successful, otherwise returns an error.
+/// - [`NaluFxError::InvalidOption`] if a date is invalid or no history is available.
+/// - [`NaluFxError::PortfolioOptimizationError`] if the prices or the allocation fail.
+/// - Any error from the model provider.
 pub async fn generate_analysis(
     llm: Box<dyn LLM>,
     client: &Client,
@@ -39,167 +43,113 @@ pub async fn generate_analysis(
     start_date: &str,
     end_date: &str,
 ) -> Result<(), NaluFxError> {
-    let start_date = match validate_date(start_date) {
-        Ok(date) => date,
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            return Err(NaluFxError::InvalidOption);
-        },
-    };
+    let start = validate_date(start_date).map_err(invalid_option)?;
+    let end = validate_date(end_date).map_err(invalid_option)?;
+    let closes = fetch_data(ticker, Some(start), Some(end)).await.map_err(|e| {
+        eprintln!("Historical data not available for {ticker} in that date range: {e}");
+        println!("Please try a different date range or choose another ticker symbol.");
+        NaluFxError::InvalidOption
+    })?;
+    if closes.is_empty() {
+        eprintln!("No closing prices found for ticker {ticker} in the specified date range");
+        return Ok(());
+    }
 
-    let end_date = match validate_date(end_date) {
-        Ok(date) => date,
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            return Err(NaluFxError::InvalidOption);
-        },
-    };
+    let allocation = allocate(&closes)?;
+    let prompt = format!(
+        "Analyze the following stock data for {ticker}:\n\n\
+         - Allocation over the next {DEFAULT_HORIZON_DAYS} trading days (fractions of the \
+         investment, by inverse forecast volatility): {allocation:?}\n\n\
+         Provide an investment commentary on this data, and the current market context for \
+         {ticker} in {year}.",
+        year = OffsetDateTime::now_utc().year(),
+    );
+    let response = llm.send_request(client, api_key, &prompt, 1500).await?;
+    let commentary = response["choices"][0]["message"]["content"].as_str().unwrap_or("");
 
-    match fetch_data(ticker, Some(start_date), Some(end_date)).await {
-        Ok(closes) => {
-            if closes.is_empty() {
-                eprintln!(
-                    "No closing prices found for ticker {} in the specified date range",
-                    ticker
-                );
-                return Ok(());
-            }
+    let dates = (start_date, end_date);
+    print_report(&Report {
+        ticker,
+        dates,
+        initial_investment,
+        allocation: &allocation,
+        commentary,
+    });
+    Ok(())
+}
 
-            let daily_returns = calculate_daily_returns(&closes);
-            let cash_flows = calculate_cash_flows(&daily_returns, initial_investment);
+/// The daily inverse-volatility allocation for a price history.
+fn allocate(closes: &[f64]) -> Result<Vec<f64>, NaluFxError> {
+    calculate_daily_returns(closes)
+        .and_then(|returns| calculate_optimal_allocation(&returns, DEFAULT_HORIZON_DAYS))
+        .map_err(|e| NaluFxError::PortfolioOptimizationError(e.to_string()))
+}
 
-            let min_length = daily_returns.len().min(cash_flows.len());
-            let daily_returns = &daily_returns[..min_length];
-            let cash_flows = &cash_flows[..min_length];
+/// Logs an invalid date and turns it into [`NaluFxError::InvalidOption`].
+fn invalid_option(err: impl std::fmt::Display) -> NaluFxError {
+    eprintln!("Error: {err}");
+    NaluFxError::InvalidOption
+}
 
-            let optimal_allocation_result = calculate_optimal_allocation(
-                daily_returns,
-                cash_flows,
-                &vec![1.0; min_length],
-                &vec![1.0; min_length],
-                min_length,
-            );
+/// What the report prints.
+#[derive(Debug, Clone, Copy)]
+struct Report<'a> {
+    ticker: &'a str,
+    dates: (&'a str, &'a str),
+    initial_investment: f64,
+    allocation: &'a [f64],
+    commentary: &'a str,
+}
 
-            match optimal_allocation_result {
-                Ok(mut optimal_allocation) => {
-                    optimal_allocation = optimal_allocation
-                        .into_iter()
-                        .map(|alloc| if alloc < 0.0 { 0.0 } else { alloc })
-                        .collect();
-                    let total_allocation: f64 = optimal_allocation.iter().sum();
-                    if total_allocation == 0.0 {
-                        eprintln!("Error: Total allocation is zero for ticker {}", ticker);
-                        return Ok(());
-                    }
-                    optimal_allocation = optimal_allocation
-                        .into_iter()
-                        .map(|alloc| alloc / total_allocation)
-                        .collect();
-                    let current_year = OffsetDateTime::now_utc().year();
-                    let prompt = format!(
-                        "Analyze the following stock data for {}:\n\n\
-                        - Optimal Allocation: {:?}\n\n\
-                        Provide a detailed investment recommendation based on this data.\n\
-                        Additionally, provide the Current Market Context for {} in {}.\n\
-                        This context is essential for understanding the potential drivers behind the stock's performance and the recommendations provided.",
-                        ticker, optimal_allocation, ticker, current_year
-                    );
+/// Prints the report.
+fn print_report(r: &Report<'_>) {
+    let ticker = r.ticker;
+    println!("\n--- Bellwether Stock Report: {ticker} ---\n");
+    println!("- **Date Range:** {} - {}", r.dates.0, r.dates.1);
+    println!("- **Initial Investment:** ${:.2}\n", r.initial_investment);
 
-                    let response = llm.send_request(client, api_key, &prompt, 1500).await?;
-                    let message =
-                        response["choices"][0]["message"]["content"].as_str().unwrap_or("");
+    println!("--- Methodology ---\n");
+    println!("The daily returns of {ticker} over the date range are forecast {DEFAULT_HORIZON_DAYS} trading days ahead with an exponential smoothing model (AutoETS). Each of those days is weighted by the inverse of its 95% forecast interval's width, so the days the model is surer about get more of the investment. The weights sum to 100%. The method uses the uncertainty of the forecast only, not its expected return.\n");
 
-                    // Extract key findings from the message
-                    let key_findings = "\n--- Key findings ---\n\n";
-                    let mut summary = key_findings.to_string();
-                    for line in message.lines() {
-                        if line.contains(ticker) {
-                            summary.push_str(line);
-                            summary.push('\n');
-                        }
-                    }
+    println!("--- Allocation ---\n");
+    for (day, weight) in r.allocation.iter().enumerate() {
+        let amount = weight * r.initial_investment;
+        println!("- Day {}: {:.2}% (${amount:.2})", day + 1, weight * 100.0);
+    }
+    let (low, high) = range(r.allocation);
+    println!("\nDaily weights range from {:.2}% to {:.2}%.\n", low * 100.0, high * 100.0);
 
-                    let sentiment_scores = match analyze_sentiment(min_length) {
-                        Ok(scores) => scores,
-                        Err(e) => {
-                            eprintln!("Error in sentiment analysis for ticker {}: {}", ticker, e);
-                            Vec::new()
-                        },
-                    };
+    println!("--- Commentary (written by the language model) ---\n");
+    println!("{}\n", r.commentary);
 
-                    let optimal_actions = match train_reinforcement_learning(min_length) {
-                        Ok(actions) => actions,
-                        Err(e) => {
-                            eprintln!(
-                                "Error in reinforcement learning for ticker {}: {}",
-                                ticker, e
-                            );
-                            Vec::new()
-                        },
-                    };
+    println!("--- Risks ---\n");
+    println!("Investing in {ticker} carries market, economic and company-specific risks. A forecast from past prices does not anticipate news, and its interval is only as good as the model's fit.");
 
-                    // Generate Report
-                    println!("\n--- Bellwether Stock Report: {} ---\n", ticker);
-                    println!("- **Date Range:** {} - {}", start_date, end_date);
-                    println!("- **Initial Investment:** ${:.2}\n", initial_investment);
+    println!("\n--- Disclaimer ---\n");
+    println!("This report is for research and information only and is not financial advice. Past performance is not indicative of future results. Consult a financial professional before making any investment decision.");
+}
 
-                    // Explanation of Methodology
-                    println!("--- Methodology ---\n");
-                    println!("This report combines several analytical techniques to provide a comprehensive view of {}'s potential performance:", ticker);
-                    println!("\n- **Optimal Allocation:** Uses historical price data and statistical modelling to suggest a daily allocation of your investment amount to {}. This helps in balancing risk and maximizing returns by identifying optimal investment proportions.", ticker);
-                    println!("- **Sentiment Analysis:** Gauges market sentiment towards {} by analysing news articles, social media, and other relevant sources. This helps in understanding the market's perception and potential impact on stock performance.", ticker);
-                    println!("- **Reinforcement Learning (RL):** A machine learning model trained on historical data to suggest buy/sell actions based on market conditions. This helps in identifying strategic actions to maximize returns based on learned patterns.\n");
+/// The smallest and largest weight; `(0.0, 0.0)` for no weights.
+fn range(weights: &[f64]) -> (f64, f64) {
+    if weights.is_empty() {
+        return (0.0, 0.0);
+    }
+    weights.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), &w| (lo.min(w), hi.max(w)))
+}
 
-                    // Summary of Key Findings
-                    println!("{}", summary);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-                    // Current Market Context
-                    let current_year = OffsetDateTime::now_utc().year();
-                    println!("\n--- Current Market Context ---\n");
-                    println!("As of the analysis period {}, {} has been experiencing the following market conditions:", current_year, ticker);
-                    println!("\n- **Technological Innovations:** {} is known for its continuous focus on technological innovations. The market is closely watching for any new product launches or updates that could impact {}'s stock performance.", ticker, ticker);
-                    println!("\n- **Competition:** {} faces stiff competition from other tech giants. Any advancements or setbacks from competitors could impact {}'s market position and stock performance.", ticker, ticker);
-                    println!("\n- **Macroeconomic Factors:** Economic indicators, inflation rates, interest rates, and government policies can all affect the stock market in general and {} specifically. Monitoring these macroeconomic factors is essential for predicting {}'s stock performance.", ticker, ticker);
-                    println!("\n- **Regulatory Environment:** Changes in regulations related to data privacy, antitrust laws, or other regulatory issues can have a significant impact on {}'s business operations and stock performance.", ticker);
-                    println!("\n- **Global Events:** Geopolitical events, natural disasters, pandemics, and other global factors can also influence {}'s stock performance. Keeping an eye on such events is essential for understanding the broader market context.\n", ticker);
+    #[test]
+    fn range_is_the_smallest_and_largest_weight() {
+        assert_eq!(range(&[0.2, 0.5, 0.3]), (0.2, 0.5));
+        assert_eq!(range(&[]), (0.0, 0.0));
+    }
 
-                    println!("\n--- Key Findings ---\n");
-                    println!("- **1. Optimal Allocation:** The model recommends a diversified approach, with daily allocations within a diversified portfolio containing {} ranging from {:.2}% to {:.2}% of your initial investment. This aims to mitigate risk and capture potential gains across different market conditions.\n", ticker, optimal_allocation.iter().cloned().fold(f64::NAN, f64::min) * 100.0, optimal_allocation.iter().cloned().fold(f64::NAN, f64::max) * 100.0);
-                    println!("- **2. Sentiment Analysis:** Market sentiment towards {} fluctuates within the specified period, ranging from very positive ({:.2} on Day {}) to somewhat negative ({:.2} on Day {}). This suggests a dynamic market environment.\n", ticker, sentiment_scores.iter().cloned().fold(f64::NAN, f64::max), sentiment_scores.iter().position(|&s| s == sentiment_scores.iter().cloned().fold(f64::NAN, f64::max)).unwrap() + 1, sentiment_scores.iter().cloned().fold(f64::NAN, f64::min), sentiment_scores.iter().position(|&s| s == sentiment_scores.iter().cloned().fold(f64::NAN, f64::min)).unwrap() + 1);
-                    println!("- **3. Reinforcement Learning:** The RL model suggests a mix of buy and hold actions, with higher buying recommendations on certain days (e.g., {:.2} on Day {}) and lower on others (e.g., {:.2} on Day {}). This highlights potential opportunities to adjust your position based on the model's predictions.\n", optimal_actions.iter().cloned().fold(f64::NAN, f64::max), optimal_actions.iter().position(|&a| a == optimal_actions.iter().cloned().fold(f64::NAN, f64::max)).unwrap() + 1, optimal_actions.iter().cloned().fold(f64::NAN, f64::min), optimal_actions.iter().position(|&a| a == optimal_actions.iter().cloned().fold(f64::NAN, f64::min)).unwrap() + 1);
-
-                    // Risk Assessment
-                    println!("\n--- Risk Assessment ---\n");
-                    println!("Investing in {} carries several risks, including market volatility, economic downturns, and company-specific risks such as changes in management or financial performance. It is essential to consider these risks and diversify your investments to mitigate potential losses.", ticker);
-
-                    // Investment Recommendations
-                    println!("\n--- Investment Recommendations ---\n");
-                    println!("Based on this analysis, here's a possible investment strategy for the specified period, starting with your initial ${:.2}:", initial_investment);
-                    println!("\n- 1. Follow the daily optimal allocation percentages for {} as a baseline strategy.", ticker);
-                    println!("\n- 2. Consider increasing your {} allocation on days when sentiment is positive and the RL model recommends buying.", ticker);
-                    println!("\n- 3. Be cautious about increasing your position on days with negative sentiment or low RL buying recommendations.");
-                    println!("\n- 4. Monitor {}'s performance and broader market trends throughout this period.", ticker);
-                    println!("\n- 5. Consult with a financial advisor to tailor this strategy to your risk tolerance and investment goals.\n");
-
-                    // Disclaimer
-                    println!("\n--- Disclaimer ---\n");
-                    println!("This report is intended for informational purposes only and should not be considered financial advice. Investing in the stock market carries risks, and past performance is not indicative of future results. Always conduct thorough research and consult with a financial professional before making any investment decisions.");
-
-                    Ok(())
-                },
-                Err(e) => {
-                    eprintln!("Error calculating optimal allocation for ticker {}: {}", ticker, e);
-                    Err(NaluFxError::PortfolioOptimizationError(e.to_string()))
-                },
-            }
-        },
-        Err(e) => {
-            eprintln!(
-                "Historical data not available for ticker {} in the specified date range: {}",
-                ticker, e
-            );
-            println!("Please try a different date range or choose another ticker symbol.");
-            Err(NaluFxError::InvalidOption)
-        },
+    #[test]
+    fn a_zero_price_is_an_error_not_an_infinite_return() {
+        let err = allocate(&[100.0, 0.0, 101.0]).expect_err("a zero close must not divide");
+        assert!(err.to_string().contains("start price of 0"), "{err}");
     }
 }
