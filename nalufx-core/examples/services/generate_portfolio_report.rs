@@ -13,7 +13,6 @@
 //! 6. The code will fetch historical data, perform analysis, and generate a Gain/Loss Analysis report.
 //!
 
-use log::error;
 use nalufx::{
     errors::NaluFxError,
     services::fetch_data_svc::fetch_data,
@@ -32,6 +31,7 @@ use nalufx_llms::{
     registry::from_env,
 };
 use time::OffsetDateTime;
+use tracing::error;
 
 #[derive(Debug)]
 struct StockAnalysis {

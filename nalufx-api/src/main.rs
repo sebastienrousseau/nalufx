@@ -1,6 +1,7 @@
 //! The NaluFX API server. See [`nalufx_api::config`] for its settings.
 
 use nalufx_api::app::{app, AppState};
+use nalufx_api::audit::FileSink;
 use nalufx_api::config::ApiConfig;
 use nalufx_api::server::serve_until_signal;
 use nalufx_llms::http::Http;
@@ -12,32 +13,45 @@ use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
-        )
-        .init();
-    match run().await {
+    let config = match ApiConfig::from_env() {
+        Ok(config) => config,
+        Err(e) => {
+            eprintln!("nalufx-api: {e}");
+            return ExitCode::FAILURE;
+        },
+    };
+    let telemetry = match nalufx_api::telemetry::init(config.log_format) {
+        Ok(telemetry) => telemetry,
+        Err(e) => {
+            eprintln!("nalufx-api: {e}");
+            return ExitCode::FAILURE;
+        },
+    };
+    let code = match run(config).await {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             tracing::error!("{e}");
             ExitCode::FAILURE
         },
-    }
+    };
+    telemetry.shutdown();
+    code
 }
 
 /// Loads the configuration, builds the provider if one is set, and serves
 /// until SIGTERM or Ctrl-C.
-async fn run() -> Result<(), String> {
-    let config = ApiConfig::from_env()?;
+async fn run(config: ApiConfig) -> Result<(), String> {
     let provider = provider(&config)?;
     let listener = TcpListener::bind(config.addr)
         .await
         .map_err(|e| format!("cannot listen on {}: {e}", config.addr))?;
     tracing::info!("listening on http://{}", config.addr);
-    serve_until_signal(listener, app(AppState::new(config, provider)))
-        .await
-        .map_err(|e| e.to_string())
+    let mut state = AppState::new(config.clone(), provider);
+    if let Some(path) = &config.audit_log {
+        state = state.with_audit(Arc::new(FileSink::open(path)?));
+        tracing::info!(path = %path.display(), "writing the audit log");
+    }
+    serve_until_signal(listener, app(state)).await.map_err(|e| e.to_string())
 }
 
 /// The language model for `/v1/report`, if one is configured.

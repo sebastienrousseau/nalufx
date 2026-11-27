@@ -35,7 +35,7 @@ path = "src/lib.rs" # The path to the library file.
 utoipa = { version = "6", optional = true }
 async-trait = "0.1.80"
 dotenvy = "0.15.7"
-log = "0.4.21"
+tracing = "0.1"
 reqwest = { version = "0.13.4", features = ["json"] }
 # Generates the JSON Schema a structured reply is asked to match.
 schemars = "1.2"
@@ -51,6 +51,7 @@ version_check = "0.9.4"
 
 [dev-dependencies]
 tokio = { version = "1.44", features = ["macros", "rt-multi-thread", "sync", "time"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["registry", "std"] }
 wiremock = "0.6.0"
 
 [features]

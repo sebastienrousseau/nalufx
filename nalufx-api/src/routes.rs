@@ -1,9 +1,12 @@
 //! The routes, their request bodies and their errors.
 
 use crate::app::AppState;
+use crate::audit::{audit_allocation, audit_report, Caller};
+use crate::auth::KeyId;
+use crate::metrics::LlmCall;
 use crate::problem::Problem;
-use axum::extract::State;
-use axum::http::{header, StatusCode};
+use axum::extract::{Extension, State};
+use axum::http::{header, HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use nalufx_engine::allocate::{by_name, Allocation, AllocationInput, Constraints};
@@ -16,7 +19,8 @@ use nalufx_llms::report::{self, Report, ReportInput};
 use ndarray::Array2;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
+use tracing::Instrument;
 use utoipa::ToSchema;
 
 /// The longest forecast horizon accepted, in days.
@@ -145,6 +149,13 @@ pub async fn forecast(
             format!("horizon_days must be 1 to {MAX_HORIZON_DAYS}"),
         ));
     }
+    let span = tracing::info_span!(
+        "forecast",
+        points = request.history.len(),
+        days,
+        periods = request.seasonal_periods.len()
+    );
+    let _entered = span.enter();
     let forecast = if request.seasonal_periods.is_empty() {
         forecast_time_series(&request.history, days)
     } else {
@@ -162,18 +173,38 @@ pub async fn forecast(
         (status = 422, description = "No weights meet the bounds, or the solver failed", body = Problem, content_type = "application/problem+json"),
         (status = 429, description = "Over the key's rate limit", body = Problem, content_type = "application/problem+json"),
     ))]
-pub async fn allocate(Json(request): Json<AllocateRequest>) -> Result<Json<Allocation>, Problem> {
+pub async fn allocate(
+    State(state): State<Arc<AppState>>,
+    Extension(key): Extension<KeyId>,
+    headers: HeaderMap,
+    Json(request): Json<AllocateRequest>,
+) -> Result<Json<Allocation>, Problem> {
     within("assets", request.assets.len(), MAX_ASSETS)?;
     within("returns", request.returns.len(), MAX_POINTS)?;
+    let span = tracing::info_span!(
+        "allocate",
+        method = %request.method,
+        assets = request.assets.len(),
+        rows = request.returns.len(),
+        iterations = tracing::field::Empty,
+    );
+    let _entered = span.enter();
     let input = AllocationInput {
         returns: returns_matrix(&request.returns, request.assets.len())
             .map_err(allocation_problem)?,
-        assets: request.assets,
+        assets: request.assets.clone(),
         constraints: request.constraints,
         estimator: request.estimator,
     };
     let method = by_name(&request.method, request.risk_aversion).map_err(allocation_problem)?;
-    Ok(Json(method.allocate(&input).map_err(allocation_problem)?))
+    let started = Instant::now();
+    let result = method.allocate(&input);
+    let solver_failed = matches!(result, Err(AllocationError::SolverFailed(_)));
+    state.metrics.allocation(method.name(), started.elapsed(), solver_failed);
+    let allocation = result.map_err(allocation_problem)?;
+    let _ = span.record("iterations", allocation.diagnostics.iterations);
+    audit_allocation(&state, &Caller::new(&key, &headers), &request, &allocation)?;
+    Ok(Json(allocation))
 }
 
 /// Has the configured language model write a schema-checked report on
@@ -190,15 +221,52 @@ pub async fn allocate(Json(request): Json<AllocateRequest>) -> Result<Json<Alloc
     ))]
 pub async fn report(
     State(state): State<Arc<AppState>>,
+    Extension(key): Extension<KeyId>,
+    headers: HeaderMap,
     Json(input): Json<ReportInput>,
 ) -> Result<Json<Report>, Problem> {
     let provider = state.provider.as_ref().ok_or_else(|| {
-        Problem::new(
-            StatusCode::SERVICE_UNAVAILABLE,
-            "no language model is configured: set NALUFX_LLM_PROVIDER and NALUFX_LLM_MODEL",
-        )
+        Problem::new(StatusCode::SERVICE_UNAVAILABLE, "no language model is configured")
     })?;
-    Ok(Json(report::generate(provider.as_ref(), &input).await.map_err(llm_problem)?))
+    let span = tracing::info_span!(
+        "report",
+        provider = provider.name(),
+        model = provider.model(),
+        prompt_version = tracing::field::Empty,
+        prompt_tokens = tracing::field::Empty,
+        completion_tokens = tracing::field::Empty,
+    );
+    let started = Instant::now();
+    let result = report::generate(provider.as_ref(), &input).instrument(span.clone()).await;
+    let usage = result.as_ref().map(|r| r.usage).unwrap_or_default();
+    state.metrics.llm(&LlmCall {
+        provider: provider.name(),
+        model: provider.model(),
+        outcome: llm_outcome(result.as_ref().err()),
+        prompt_tokens: usage.input_tokens,
+        completion_tokens: usage.output_tokens,
+        took: started.elapsed(),
+    });
+    let report = result.map_err(llm_problem)?;
+    let _ = span.record("prompt_version", report.prompt.version);
+    let _ = span.record("prompt_tokens", usage.input_tokens);
+    let _ = span.record("completion_tokens", usage.output_tokens);
+    audit_report(&state, &Caller::new(&key, &headers), &input, &report)?;
+    Ok(Json(report))
+}
+
+/// A report request's outcome for its metric: `ok`, or the kind of
+/// failure.
+const fn llm_outcome(err: Option<&LlmError>) -> &'static str {
+    match err {
+        None => "ok",
+        Some(LlmError::Transport { timeout: true, .. }) => "timeout",
+        Some(LlmError::Status { status: 429, .. }) => "rate_limited",
+        Some(LlmError::Status { .. } | LlmError::Transport { .. }) => "provider_error",
+        Some(LlmError::Schema { .. } | LlmError::ParseResponse { .. }) => "bad_reply",
+        Some(LlmError::Input(_)) => "bad_input",
+        Some(LlmError::MissingApiKey { .. } | LlmError::Config(_)) => "not_configured",
+    }
 }
 
 /// Answers while the process is up.
@@ -218,9 +286,12 @@ pub async fn readyz(State(state): State<Arc<AppState>>) -> Result<Json<Health>, 
         let probe =
             state.probe.get(provider.base_url()).timeout(Duration::from_secs(2)).send().await;
         if let Err(e) = probe {
+            // The error names the provider's address, which an open route
+            // must not show; the log keeps it for the operator.
+            tracing::warn!(provider = provider.name(), error = %e, "readiness probe failed");
             return Err(Problem::new(
                 StatusCode::SERVICE_UNAVAILABLE,
-                format!("{} does not answer: {e}", provider.name()),
+                format!("{} does not answer", provider.name()),
             ));
         }
     }
@@ -292,10 +363,33 @@ pub fn llm_problem(err: LlmError) -> Problem {
         | LlmError::ParseResponse { .. }
         | LlmError::Schema { .. } => (StatusCode::BAD_GATEWAY, None),
     };
-    let problem = Problem::new(status, err.to_string());
+    tracing::warn!(provider = err.provider(), status = status.as_u16(), "language model failed");
+    let problem = Problem::new(status, public_detail(&err));
     match retry {
         Some(seconds) => problem.retry_after(seconds),
         None => problem,
+    }
+}
+
+/// What a client may read about a provider error: the provider and the
+/// kind of failure, never the provider's body or message (they can name
+/// the operator's account or echo the prompt) nor the server's settings.
+/// An input error describes the caller's own request, so it stays whole.
+fn public_detail(err: &LlmError) -> String {
+    match err {
+        LlmError::Input(_) => err.to_string(),
+        LlmError::Status { provider, status, .. } => format!("{provider} returned HTTP {status}"),
+        LlmError::Transport { provider, timeout: true, .. } => format!("{provider} timed out"),
+        LlmError::Transport { provider, .. } => format!("{provider} could not be reached"),
+        LlmError::ParseResponse { provider, .. } => {
+            format!("{provider} replied in an unexpected format")
+        },
+        LlmError::Schema { provider, .. } => {
+            format!("{provider}'s reply did not match the report schema")
+        },
+        LlmError::MissingApiKey { .. } | LlmError::Config(_) => {
+            "the language model is not available".to_string()
+        },
     }
 }
 
@@ -327,6 +421,31 @@ mod tests {
         assert_eq!(llm_problem(schema).status, 502);
         assert_eq!(llm_problem(LlmError::Config(String::new())).status, 503);
         assert_eq!(llm_problem(LlmError::Input(String::new())).status, 400);
+    }
+
+    #[test]
+    fn a_problem_never_carries_what_the_provider_sent() {
+        let private = "org-7Hq2 quota exceeded; your prompt was: secret";
+        let errors = [
+            LlmError::Status {
+                provider: "p",
+                status: 500,
+                retry_after: None,
+                body: private.into(),
+            },
+            LlmError::Transport { provider: "p", message: private.into(), timeout: false },
+            LlmError::ParseResponse { provider: "p", message: private.into() },
+            LlmError::Schema { provider: "p", schema: "s", message: private.into() },
+            LlmError::Config(private.into()),
+            LlmError::MissingApiKey { provider: "p", variable: "P_SECRET_KEY_VAR" },
+        ];
+        for err in errors {
+            let detail = llm_problem(err).detail;
+            assert!(!detail.contains("org-7Hq2") && !detail.contains("secret"), "{detail}");
+            assert!(!detail.contains("P_SECRET_KEY_VAR"), "{detail}");
+        }
+        let input = llm_problem(LlmError::Input("context has 3000 characters".into()));
+        assert!(input.detail.contains("3000 characters"), "the caller's own input error stays");
     }
 
     #[test]

@@ -218,6 +218,74 @@ jobs:
       - name: cargo deny
         run: cargo deny check
 
+  # /metrics checked by Prometheus's own parser: a test writes the
+  # output of a real scrape, and promtool (from a release whose SHA-256
+  # is pinned here) must accept it.
+  metrics-format:
+    name: Metrics format
+    runs-on: ubuntu-latest
+    env:
+      PROMETHEUS_VERSION: 3.16.0
+      PROMETHEUS_SHA256: 68727009472a2c02e1ff7f062fd5b3e637285bffc8fc2d340c76fb449d6e0f34
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+
+      - name: Scrape /metrics in a test
+        run: NALUFX_METRICS_DUMP="$RUNNER_TEMP/metrics.txt" cargo test -p nalufx-api --test telemetry metrics
+
+      - name: Install promtool
+        run: |
+          set -euo pipefail
+          archive="prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/$archive" \
+            "https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/${archive}"
+          echo "${PROMETHEUS_SHA256}  $RUNNER_TEMP/$archive" | sha256sum -c -
+          tar xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" "prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool"
+
+      # promtool parses the scrape (exit 1 on a parse error) and lints it
+      # (exit 3 on findings). Its help-text lint reads the classic format:
+      # in OpenMetrics a counter's HELP names the family (http_requests)
+      # while its samples are http_requests_total, so it reports
+      # "http_requests_total no help text" for help that is there. That
+      # finding alone is accepted, and only when the family's HELP line is
+      # in the file; any other finding, or a parse error, fails.
+      - name: promtool check metrics
+        run: |
+          set -uo pipefail
+          file="$RUNNER_TEMP/metrics.txt"
+          test -s "$file" || exit 1
+          # In an `if`, so the runner's `bash -e` does not stop the step
+          # at promtool's exit 3 before the findings are read.
+          if out=$("$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check metrics < "$file" 2>&1); then
+            rc=0
+          else
+            rc=$?
+          fi
+          printf '%s\n' "$out"
+          [ "$rc" -eq 0 ] && exit 0
+          [ "$rc" -eq 3 ] || exit "$rc"
+          while IFS= read -r finding; do
+            [ -z "$finding" ] && continue
+            name=${finding% no help text}
+            family=${name%_total}
+            if [ "$finding" = "$name" ] || [ "$family" = "$name" ] || ! grep -q "^# HELP ${family} " "$file"; then
+              echo "::error::promtool: $finding"
+              exit 3
+            fi
+          done <<< "$out"
+          echo "only OpenMetrics counter help findings, each with its family's HELP: accepted"
+
+      - name: promtool check rules
+        run: '"$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check rules docs/alerts.yml'
+
   # Every crate in the tree must be audited, by us or by a trusted
   # organisation whose audits are imported in supply-chain/config.toml,
   # or be in its exemptions. A new dependency fails here until someone

@@ -36,6 +36,11 @@ pub fn matches(hashes: &[[u8; 32]], candidate: &[u8; 32]) -> bool {
     hashes.iter().fold(Choice::from(0), |found, h| found | h.ct_eq(candidate)).into()
 }
 
+/// The id of the key that made a request, for the handlers: see
+/// [`crate::telemetry::key_id`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct KeyId(pub String);
+
 /// The per-key token buckets.
 #[derive(Debug)]
 pub struct Limits {
@@ -72,7 +77,7 @@ impl Limits {
 /// key's rate (429 with `Retry-After`).
 pub async fn authenticate(
     State(state): State<Arc<AppState>>,
-    request: Request,
+    mut request: Request,
     next: Next,
 ) -> Response {
     let Some(key) = bearer(&request) else {
@@ -82,6 +87,9 @@ pub async fn authenticate(
     if !matches(&state.config.key_hashes, &hash) {
         return unauthorized("the API key is not valid");
     }
+    let key_id = crate::telemetry::key_id(&hash);
+    let _ = tracing::Span::current().record("key_id", key_id.as_str());
+    let _ = request.extensions_mut().insert(KeyId(key_id));
     if let Some(seconds) = state.limits.check(&hash, request.uri().path() == REPORT_PATH) {
         let detail = format!("this key is over its rate limit; retry in {seconds} s");
         return Problem::new(StatusCode::TOO_MANY_REQUESTS, detail)

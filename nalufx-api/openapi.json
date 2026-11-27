@@ -10,7 +10,7 @@
       "name": "MIT OR Apache-2.0",
       "identifier": "MIT OR Apache-2.0"
     },
-    "version": "0.0.11"
+    "version": "0.0.12"
   },
   "paths": {
     "/": {
@@ -53,6 +53,48 @@
             }
           }
         }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "crate::metrics"
+        ],
+        "summary": "`GET /metrics`: every metric, in the OpenMetrics text format.",
+        "operationId": "serve",
+        "responses": {
+          "200": {
+            "description": "Every metric, in the OpenMetrics text format",
+            "content": {
+              "application/openmetrics-text": {}
+            }
+          },
+          "401": {
+            "description": "No valid API key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Over the key's rate limit",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
       }
     },
     "/openapi.json": {

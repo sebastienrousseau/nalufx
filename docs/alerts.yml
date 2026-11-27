@@ -1,0 +1,40 @@
+# Prometheus alerting rules for nalufx-api. Load this file into
+# Prometheus (rule_files) after scraping /metrics with an API key.
+# docs/runbook.md says what each alert means and what to do.
+# CI checks it with `promtool check rules`.
+groups:
+  - name: nalufx-api
+    rules:
+      - alert: NalufxHighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+            / sum(rate(http_requests_total[5m])) > 0.01
+        for: 10m
+        labels:
+          severity: page
+        annotations:
+          summary: "More than 1% of nalufx-api requests answer 5xx"
+          runbook: "docs/runbook.md#nalufxhigherrorrate"
+
+      - alert: NalufxSlowRequests
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(http_request_duration_seconds_bucket{route!~"/v1/report|/healthz|/readyz|/metrics"}[5m]))
+          ) > 1
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "p95 latency of nalufx-api's forecast and allocate routes is over 1 s"
+          runbook: "docs/runbook.md#nalufxslowrequests"
+
+      - alert: NalufxProviderErrors
+        expr: |
+          sum by (provider, model) (rate(llm_requests_total{outcome!~"ok|bad_input"}[15m]))
+            / sum by (provider, model) (rate(llm_requests_total[15m])) > 0.05
+        for: 15m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "More than 5% of report requests to {{ $labels.provider }} {{ $labels.model }} fail"
+          runbook: "docs/runbook.md#nalufxprovidererrors"
