@@ -1,0 +1,19 @@
+{
+  "ceilings": {
+    "cognitive": 15,
+    "cyclomatic": 10,
+    "file_lines": 500,
+    "halstead": 30,
+    "sloc": 60
+  },
+  "files": {},
+  "functions": {
+    "nalufx-core/src/utils/date.rs::parse_ymd": {
+      "cognitive": 2.0,
+      "cyclomatic": 12.0,
+      "halstead": 19.0,
+      "sloc": 10.0
+    }
+  },
+  "notes": {}
+}

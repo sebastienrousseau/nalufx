@@ -390,7 +390,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         Ok(report) => report,
         Err(err) => {
             eprintln!("Error: {}", err);
-            return Err(NaluFxError::ReinforcementLearningError(
+            return Err(NaluFxError::TechnicalAnalysisError(
                 "Failed to generate technical analysis report".to_string(),
             ));
         },

@@ -5,6 +5,9 @@ pub mod ascii;
 /// mathematical errors, or insufficient data for analysis.
 pub mod calculations;
 
+/// This module provides deterministic K-means clustering of feature rows.
+pub mod clustering;
+
 /// This module provides utilities for formatting currency values.
 pub mod currency;
 

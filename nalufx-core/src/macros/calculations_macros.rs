@@ -136,13 +136,14 @@ macro_rules! check_outliers {
 ///
 /// ```
 /// use nalufx::handle_result;
-/// use nalufx::utils::calculations::forecast_time_series;
 /// use nalufx::errors::AllocationError;
 ///
-/// let data: Vec<f64> = vec![0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1];
-/// let num_days: usize = 3;
-/// let forecast_result: Result<Vec<f64>, String> = forecast_time_series(&data, num_days);
-/// let forecasted_values = handle_result!(forecast_result, ForecastingError)?;
+/// let parsed: Result<f64, std::num::ParseFloatError> = "0.25".parse();
+/// let value = handle_result!(parsed, ForecastingError)?;
+/// assert_eq!(value, 0.25);
+///
+/// let failed: Result<f64, std::num::ParseFloatError> = "x".parse();
+/// assert!(matches!(handle_result!(failed, ForecastingError), Err(AllocationError::ForecastingError(_))));
 /// # Ok::<(), AllocationError>(())
 /// ```
 #[macro_export]
@@ -222,16 +223,30 @@ macro_rules! fill_feature_matrix {
 /// let mut features = Array2::<f64>::zeros((n, 4));
 /// fill_feature_matrix!(features, n, daily_returns, cash_flows, market_indices, fund_characteristics);
 /// normalize_features!(features);
+/// assert!(features.iter().all(|x| x.is_finite()));
+///
+/// // A constant column is centred, not divided into NaN.
+/// let mut constant = Array2::<f64>::ones((3, 1));
+/// normalize_features!(constant);
+/// assert!(constant.iter().all(|&x| x == 0.0));
+///
+/// // An empty matrix is left as it is rather than panicking.
+/// let mut empty = Array2::<f64>::zeros((0, 4));
+/// normalize_features!(empty);
 /// # Ok::<(), AllocationError>(())
 /// ```
 #[macro_export]
 macro_rules! normalize_features {
     ($features:expr) => {{
         use ndarray::Axis;
-        let mean = $features.mean_axis(Axis(0)).unwrap();
-        let std_dev = $features.std_axis(Axis(0), 0.0);
-        $features -= &mean;
-        $features /= &std_dev;
+        // An empty matrix has no mean and nothing to normalise.
+        if let Some(mean) = $features.mean_axis(Axis(0)) {
+            // A constant column has a standard deviation of 0; it is only
+            // centred (to all zeros) rather than divided into NaN.
+            let std_dev = $features.std_axis(Axis(0), 0.0).mapv(|s| if s > 0.0 { s } else { 1.0 });
+            $features -= &mean;
+            $features /= &std_dev;
+        }
     }};
 }
 

@@ -6,114 +6,67 @@
 
 use crate::{
     api::response::{self, JsonResponse},
+    errors::AllocationError,
     models::cash_flow_dm::{CashFlowResponse, PredictCashFlowRequest},
-    utils::calculations::calculate_optimal_allocation,
+    utils::calculations::{
+        calculate_optimal_allocation, forecast_time_series, DEFAULT_HORIZON_DAYS,
+    },
 };
 use hyper::StatusCode;
-use log::{debug, error};
-use nalufx_llms::llms::openai::{get_openai_api_key, parse_openai_response, send_openai_request};
-use reqwest::Client;
-use serde_json::json;
+use log::error;
 
-/// The number of predicted values the model is asked for.
-const PREDICTION_WINDOW: usize = 6;
-
-/// Predicts upcoming cash flows and derives an optimal allocation.
+/// Forecasts cash flows and allocates across the forecast horizon.
+///
+/// The cash flow history is forecast [`DEFAULT_HORIZON_DAYS`] ahead with
+/// AutoETS, with its 95% interval, and the allocation weights those days
+/// by the inverse volatility of the daily-return forecast. Nothing is
+/// sent to a model provider.
 ///
 /// # Arguments
 ///
-/// * `client` - The HTTP client used to reach the model provider.
 /// * `request` - The deserialised request body.
 ///
 /// # Returns
 ///
-/// `200` with a [`CashFlowResponse`] on success. `400` if the historical
-/// data is empty, `503` if the provider is unreachable, and `500` for a
-/// malformed provider response or a failed allocation.
-pub async fn predict_cash_flow(client: &Client, request: PredictCashFlowRequest) -> JsonResponse {
-    if request.historical_data.is_empty() {
-        error!("Historical data is empty");
-        return response::error(StatusCode::BAD_REQUEST, "Invalid historical data");
+/// `200` with a [`CashFlowResponse`]; otherwise an RFC 9457 problem: `400`
+/// for input that is malformed for the maths (empty, NaN, outliers) and
+/// `422` for valid input that cannot be forecast or weighted.
+#[must_use]
+pub fn predict_cash_flow(request: &PredictCashFlowRequest) -> JsonResponse {
+    match predict(request) {
+        Ok(body) => response::json(StatusCode::OK, &body),
+        Err(err) => {
+            error!("predict: {err}");
+            response::problem(status_for(&err), err.to_string())
+        },
     }
+}
 
-    let api_key = match get_openai_api_key() {
-        Ok(key) => key,
-        Err(err) => {
-            error!("{err}");
-            return response::error(StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error");
-        },
-    };
+/// The forecast and allocation for a request.
+fn predict(request: &PredictCashFlowRequest) -> Result<CashFlowResponse, AllocationError> {
+    let forecast = forecast_time_series(&request.historical_data, DEFAULT_HORIZON_DAYS)?;
+    let optimal_allocation =
+        calculate_optimal_allocation(&request.daily_returns, DEFAULT_HORIZON_DAYS)?;
+    Ok(CashFlowResponse { forecast, optimal_allocation })
+}
 
-    let historical_data_str =
-        request.historical_data.iter().map(|d| d.to_string()).collect::<Vec<_>>().join(", ");
-
-    let request_body = json!({
-        "model": "gpt-3.5-turbo",
-        "messages": [
-            {"role": "system", "content": "You are a highly skilled financial assistant with expertise in forecasting cash flows and optimizing financial allocations to enhance returns while minimizing risks. Your predictions are based on thorough analysis of historical data and contemporary financial models."},
-            {"role": "user", "content": format!("Based on the provided historical cash flow data: [{}], please predict the cash flow values for the upcoming week. Additionally, suggest an optimal allocation strategy that maximizes returns and minimizes risks. The historical data is presented in chronological order, from the earliest to the most recent.", historical_data_str)}
-        ],
-        "max_tokens": 100,
-    });
-
-    debug!("Request body: {request_body:?}");
-
-    let openai_url = "https://api.openai.com/v1/chat/completions";
-    let body = match send_openai_request(client, openai_url, &api_key, request_body).await {
-        Ok(body) => body,
-        Err(err) => {
-            error!("{err}");
-            // A transport failure may succeed on retry; a malformed request
-            // will not. Signalling the two apart lets callers back off.
-            return if err.is_retryable() {
-                response::error(
-                    StatusCode::SERVICE_UNAVAILABLE,
-                    format!("Upstream {} is unavailable", err.provider()),
-                )
-            } else {
-                response::error(StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
-            };
-        },
-    };
-
-    let predictions = match parse_openai_response(&body) {
-        Ok(predictions) => predictions,
-        // The adapters return a transport-agnostic `LlmError`; deciding the
-        // HTTP status is this layer's job, not the library's.
-        Err(err) => {
-            error!("{err}");
-            return response::error(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Error parsing response from {}", err.provider()),
-            );
-        },
-    };
-
-    // The allocation step is sized by the prediction window, so a short or
-    // long completion is replaced rather than allowed to resize it.
-    let predictions = if predictions.len() == PREDICTION_WINDOW {
-        predictions
-    } else {
-        vec![0.0; PREDICTION_WINDOW]
-    };
-
-    match calculate_optimal_allocation(
-        &request.daily_returns,
-        &request.cash_flows,
-        &request.market_indices,
-        &request.fund_characteristics,
-        predictions.len(),
-    ) {
-        Ok(optimal_allocation) => {
-            response::json(StatusCode::OK, &CashFlowResponse { predictions, optimal_allocation })
-        },
-        Err(e) => {
-            error!("Error calculating optimal allocation: {e}");
-            response::error(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Error calculating optimal allocation",
-            )
-        },
+/// The HTTP status for an allocation error.
+///
+/// `400` when the input itself is unusable; `422` when it is well formed
+/// but the maths has no answer for it. The match is exhaustive so a new
+/// variant has to be given a status here.
+#[must_use]
+pub const fn status_for(err: &AllocationError) -> StatusCode {
+    match err {
+        AllocationError::InputMismatch
+        | AllocationError::EmptyInput
+        | AllocationError::InvalidData
+        | AllocationError::OutlierData
+        | AllocationError::InvalidHorizon
+        | AllocationError::InvalidPrice(_) => StatusCode::BAD_REQUEST,
+        AllocationError::ClusteringError(_)
+        | AllocationError::ForecastingError(_)
+        | AllocationError::ZeroVolatility => StatusCode::UNPROCESSABLE_ENTITY,
     }
 }
 
@@ -121,19 +74,45 @@ pub async fn predict_cash_flow(client: &Client, request: PredictCashFlowRequest)
 mod tests {
     use super::*;
 
-    fn request(historical_data: Vec<f64>) -> PredictCashFlowRequest {
-        PredictCashFlowRequest {
-            historical_data,
-            daily_returns: vec![0.1, 0.2, 0.3],
-            cash_flows: vec![1.0, 2.0, 3.0],
-            market_indices: vec![100.0, 101.0, 102.0],
-            fund_characteristics: vec![0.5, 0.6, 0.7],
+    fn request(historical_data: Vec<f64>, daily_returns: Vec<f64>) -> PredictCashFlowRequest {
+        PredictCashFlowRequest { historical_data, daily_returns }
+    }
+
+    #[test]
+    fn empty_historical_data_is_a_bad_request() {
+        let response = predict_cash_flow(&request(vec![], vec![0.01, -0.01, 0.02]));
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[test]
+    fn a_constant_return_series_is_unprocessable() {
+        let history: Vec<f64> = (0..30).map(|i| 100.0 + f64::from(i % 5)).collect();
+        let response = predict_cash_flow(&request(history, vec![0.01; 30]));
+        assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    }
+
+    #[test]
+    fn every_input_error_is_a_bad_request() {
+        for err in [
+            AllocationError::InputMismatch,
+            AllocationError::EmptyInput,
+            AllocationError::InvalidData,
+            AllocationError::OutlierData,
+            AllocationError::InvalidHorizon,
+            AllocationError::InvalidPrice(0.0),
+        ] {
+            assert_eq!(status_for(&err), StatusCode::BAD_REQUEST, "{err}");
         }
     }
 
-    #[tokio::test]
-    async fn empty_historical_data_is_rejected_before_any_network_call() {
-        let response = predict_cash_flow(&Client::new(), request(vec![])).await;
-        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    #[test]
+    fn every_maths_error_is_unprocessable() {
+        for err in [
+            AllocationError::ClusteringError(String::new()),
+            AllocationError::ForecastingError(String::new()),
+            AllocationError::ZeroVolatility,
+        ] {
+            assert_eq!(status_for(&err), StatusCode::UNPROCESSABLE_ENTITY, "{err}");
+        }
     }
 }

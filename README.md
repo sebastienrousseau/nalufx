@@ -2,47 +2,38 @@
 
 # NaluFX (NFX)
 
-A Rust library designed to optimize cash allocation across complex fund structures using AI-driven predictions and suggestions. It implements advanced financial models, data fetching, and processing for enhanced cash flow management.
+A Rust library and HTTP service that forecasts fund cash flows and allocates cash across a forecast horizon. Every number it returns is deterministic: the same input gives the same output, and anything it cannot compute is an explicit error.
 
 [![Made With Love][made-with-rust]][05]
-[![Crates.io][crates-badge]][07]
-[![Lib.rs][libs-badge]][09]
-[![Docs.rs][docs-badge]][08]
 [![License][license-badge]][02]
 
 ## Important Notice
 
-1. **Early Stage Development:** NaluFX is currently in its early stages of development and should be considered experimental. The codebase is evolving, and significant changes may occur as the project matures.
+1. **Early stage:** NaluFX is in early development. Its interfaces change between releases until v0.1.0.
 
-2. **Research and Analysis Only:** The predictions and suggestions provided by NaluFX are intended for research and analysis purposes only. They should not be construed as investment recommendations or financial advice. Always consult with a qualified financial advisor before making investment decisions.
+2. **Research and analysis only:** NaluFX's forecasts and allocations are for research and analysis. They are not investment recommendations or financial advice. Consult a qualified financial advisor before making investment decisions.
 
-3. **Educational Project:** NaluFX originated as a side project to explore and study cash allocation algorithms and theories. Its primary purpose is educational and for academic research in the field of financial technology.
+## What it does
 
-Users are encouraged to approach NaluFX as a learning tool and contribute to its development with this understanding in mind.
-
-## Overview
-
-NaluFX (NFX) is an experimental Rust library that provides sophisticated tools for financial modelling, data fetching, and processing, with a focus on optimizing cash allocation across complex fund structures. It leverages AI-driven predictions and suggestions to enhance decision-making processes. Developed as an educational project, NaluFX aims to explore cash allocation algorithms and theories for study and research purposes.
-
-## Features
-
-- Advanced cash flow prediction models
-- AI-driven suggestions for cash allocation optimization
-- Clustering using K-means for data segmentation
-- Data fetching from multiple sources
-- Data processing and transformation utilities
-- Reinforcement learning for dynamic decision-making
-- Sentiment analysis
-- Structured and easy-to-parse output formats
-- Time series forecasting
+- **Cash flow forecasting:** AutoETS (automatic exponential smoothing, via [augurs][10]) picks the best non-seasonal model by AICc and returns a point forecast with its 95% prediction interval.
+- **Allocation across a horizon:** the investment is spread over the next days by inverse volatility, each day weighted by the inverse of its forecast interval's width. Weights are long-only and sum to 1. This is the interim method; a mean-variance optimiser replaces it in a later release.
+- **HTTP API:** `POST /predict` returns the forecast and the allocation; errors are RFC 9457 problem details (`application/problem+json`).
+- **Deterministic clustering:** K-means with farthest-point seeding, for segmenting feature rows.
+- **Reports:** example reports that put the computed numbers in front of a language model for commentary. The model writes words only; it never produces a figure NaluFX reports.
 
 ## Installation
 
-To use `nalufx` in your Rust project, add the following to your `Cargo.toml` file:
+NaluFX is not on crates.io yet. Depend on it from Git:
 
 ```toml
 [dependencies]
-nalufx = "0.0.4"
+nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.5", package = "nalufx-core" }
+```
+
+Or install the HTTP service:
+
+```shell
+cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.5 nalufx-core
 ```
 
 ### Requirements
@@ -51,54 +42,37 @@ nalufx = "0.0.4"
 
 ### Documentation
 
-> ℹ️ **Info:** Please check out our [website][00] for more information and find our documentation on [docs.rs][08], [lib.rs][09], and [crates.io][07].
+Build the API documentation locally with `cargo doc --open -p nalufx-core`. More is on the [website][00].
 
 ## Usage
 
-### Fetching Data
+### Forecasting and allocating
 
 ```rust
-use nalufx::services::fetch_data_svc::fetch_cash_flow_data;
+use nalufx::utils::calculations::{calculate_optimal_allocation, forecast_time_series};
 
-let data = fetch_cash_flow_data("some_data_source").unwrap();
+let daily_returns = [0.01, -0.02, 0.015, 0.003, -0.007, 0.012, -0.004, 0.009, -0.011, 0.006];
+
+// A 3-day forecast with its 95% interval.
+let forecast = forecast_time_series(&daily_returns, 3)?;
+println!("{:?} in [{:?}, {:?}]", forecast.point, forecast.lower, forecast.upper);
+
+// The same 3 days, weighted by inverse forecast volatility.
+let weights = calculate_optimal_allocation(&daily_returns, 3)?;
+assert!((weights.iter().sum::<f64>() - 1.0).abs() < 1e-9);
+# Ok::<(), nalufx::errors::AllocationError>(())
 ```
 
-### Processing Data
+### The HTTP API
 
-```rust
-use nalufx::services::processing_svc::process_cash_flow_data;
-
-let processed_data = process_cash_flow_data(&data);
+```shell
+curl -s localhost:8080/predict -H 'content-type: application/json' -d '{
+  "historical_data": [1000, 1012, 1009, 1021, 1030, 1026, 1041, 1038, 1050, 1047],
+  "daily_returns":   [0.01, -0.02, 0.015, 0.003, -0.007, 0.012, -0.004, 0.009, -0.011, 0.006]
+}'
 ```
 
-### Cash Flow Predictions
-
-```rust
-use nalufx::services::models::{CashFlowRequest, CashFlowResponse};
-
-let request = CashFlowRequest {
-    historical_data: vec![100.0, 200.0, 300.0],
-};
-
-let response: CashFlowResponse = nalufx::handlers::predict_cash_flows(request).unwrap();
-
-println!("Predictions: {:?}", response.predictions);
-```
-
-### AI-Driven Cash Allocation Suggestions
-
-```rust
-use nalufx::services::handlers::{AllocationRequest, AllocationResponse};
-
-let allocation_request = AllocationRequest {
-    fund_data: vec![/* Your fund data here */],
-    market_conditions: vec![/* Current market conditions */],
-};
-
-let allocation_response: AllocationResponse = nalufx::handlers::suggest_allocations(allocation_request).unwrap();
-
-println!("Allocation Suggestions: {:?}", allocation_response.suggestions);
-```
+A success is `200` with `{"forecast": {"level", "point", "lower", "upper"}, "optimal_allocation": [...]}` for the next 6 days. Input that cannot be used (empty, NaN, a daily return over 100%) is `400`; valid input that cannot be forecast or weighted (for example a constant series) is `422`.
 
 ## Examples
 
@@ -220,12 +194,7 @@ A special thank you goes to the [Rust Reddit](https://www.reddit.com/r/rust/) co
 [02]: http://opensource.org/licenses/MIT
 [05]: https://github.com/sebastienrousseau/nalufx/graphs/contributors
 [06]: http://semver.org/
-[07]: https://crates.io/crates/nalufx
-[08]: https://docs.rs/nalufx
-[09]: https://lib.rs/crates/nalufx
+[10]: https://github.com/grafana/augurs
 
-[crates-badge]: https://img.shields.io/crates/v/nalufx.svg?style=for-the-badge 'Crates.io'
-[docs-badge]: https://img.shields.io/docsrs/nalufx.svg?style=for-the-badge 'Docs.rs'
-[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.1-orange.svg?style=for-the-badge 'Lib.rs'
-[license-badge]: https://img.shields.io/crates/l/nalufx.svg?style=for-the-badge 'License'
+[license-badge]: https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=for-the-badge 'License'
 [made-with-rust]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust'

@@ -18,7 +18,7 @@ repository = "https://github.com/sebastienrousseau/nalufx/"
 # highest floor a dependency now declares is nalgebra's 1.89; the
 # workspace keeps 1.92 because no older toolchain is tested in CI.
 rust-version = "1.92"
-version = "0.0.4"
+version = "0.0.5"
 
 [profile.dev]
 # Development profile.
@@ -52,6 +52,18 @@ overflow-checks = false  # Disable overflow checks for performance.
 panic = "abort"          # Abort on panic for smaller binaries.
 rpath = false            # Do not include rpath.
 strip = "symbols"        # Strip symbols for smaller binaries.
+
+# The property tests fit thousands of AutoETS models; unoptimised, a fit
+# takes about 12 ms, optimised about 1.6 ms. Only the maths dependencies
+# are optimised, so nalufx's own code still builds with debug checks.
+[profile.test.package.augurs-ets]
+opt-level = 3
+
+[profile.test.package.augurs-core]
+opt-level = 3
+
+[profile.test.package.nalgebra]
+opt-level = 3
 
 [profile.test]
 # Test profile.

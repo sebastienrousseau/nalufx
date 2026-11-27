@@ -1,17 +1,16 @@
-//! Tests for the `/predict` endpoint.
+//! Tests for the `/predict` endpoint and the OpenAI adapter.
 //!
-//! These drive a real server on an ephemeral port rather than a mock
-//! handler. The previous versions of these tests asserted against a
-//! `mock_predict_cash_flow` defined in this file, so they passed on
-//! hardcoded constants and exercised none of the production path.
-//!
-//! Every case here is reachable without a network call to the model
-//! provider: rejection happens before the provider is contacted.
+//! The `/predict` cases drive a real server on an ephemeral port rather
+//! than a mock handler. The endpoint makes no network call: it forecasts
+//! with AutoETS. The adapter cases use a local mock provider.
 
 #[cfg(test)]
 mod tests {
     use lazy_static::lazy_static;
-    use nalufx::{api::server::serve_on, models::cash_flow_dm::ErrorResponse};
+    use nalufx::{
+        api::server::serve_on,
+        models::cash_flow_dm::{CashFlowResponse, ProblemDetails},
+    };
     use nalufx_llms::{
         error::LlmError,
         llms::openai::{get_openai_api_key, parse_openai_response, send_openai_request},
@@ -41,23 +40,78 @@ mod tests {
         format!("http://{addr}")
     }
 
-    #[tokio::test]
-    async fn empty_historical_data_is_rejected() {
+    /// Synthetic history long enough for AutoETS to fit.
+    fn history(n: usize) -> Vec<f64> {
+        (0..n).map(|i| 1000.0 + 25.0 * (i as f64 * 0.7).sin() + i as f64).collect()
+    }
+
+    fn returns(n: usize) -> Vec<f64> {
+        (0..n).map(|i| 0.01 * (i as f64 * 1.3).sin()).collect()
+    }
+
+    async fn post_predict(body: serde_json::Value) -> reqwest::Response {
         let base = spawn_server().await;
-        let response = Client::new()
+        Client::new()
             .post(format!("{base}/predict"))
-            .json(&json!({
-                "historical_data": [],
-                "daily_returns": [0.1], "cash_flows": [1.0],
-                "market_indices": [100.0], "fund_characteristics": [0.5],
-            }))
+            .json(&body)
             .send()
             .await
-            .expect("should reach the server");
+            .expect("should reach the server")
+    }
 
+    async fn problem(response: reqwest::Response) -> ProblemDetails {
+        assert_eq!(response.headers()["content-type"], "application/problem+json");
+        response.json().await.expect("should be a problem details body")
+    }
+
+    #[tokio::test]
+    async fn a_valid_request_gets_a_forecast_with_its_interval_and_an_allocation() {
+        let response =
+            post_predict(json!({ "historical_data": history(60), "daily_returns": returns(60) }))
+                .await;
+        assert_eq!(response.status(), 200);
+        let body: CashFlowResponse = response.json().await.expect("should be a CashFlowResponse");
+        assert_eq!(body.forecast.level, 0.95);
+        assert_eq!(body.forecast.point.len(), 6);
+        for day in 0..6 {
+            let (lo, p, hi) =
+                (body.forecast.lower[day], body.forecast.point[day], body.forecast.upper[day]);
+            assert!(lo <= p && p <= hi, "day {day}: {lo} <= {p} <= {hi}");
+        }
+        assert_eq!(body.optimal_allocation.len(), 6);
+        assert!(body.optimal_allocation.iter().all(|w| *w >= 0.0));
+        assert!((body.optimal_allocation.iter().sum::<f64>() - 1.0).abs() < 1e-9);
+        // The old handler replaced a short forecast with six zeros.
+        assert_ne!(body.forecast.point, vec![0.0; 6]);
+    }
+
+    #[tokio::test]
+    async fn the_same_request_gets_the_same_bytes() {
+        let body = json!({ "historical_data": history(60), "daily_returns": returns(60) });
+        let first = post_predict(body.clone()).await.bytes().await.expect("body");
+        let second = post_predict(body).await.bytes().await.expect("body");
+        assert_eq!(first, second);
+    }
+
+    #[tokio::test]
+    async fn empty_historical_data_is_a_bad_request_problem() {
+        let response =
+            post_predict(json!({ "historical_data": [], "daily_returns": returns(60) })).await;
         assert_eq!(response.status(), 400);
-        let body: ErrorResponse = response.json().await.expect("should be an ErrorResponse");
-        assert_eq!(body.error, "Invalid historical data");
+        let body = problem(response).await;
+        assert_eq!(body.status, 400);
+        assert_eq!(body.title, "Bad Request");
+        assert_eq!(body.detail, "Input slices cannot be empty");
+    }
+
+    #[tokio::test]
+    async fn a_series_that_cannot_be_weighted_is_unprocessable() {
+        let response = post_predict(
+            json!({ "historical_data": history(60), "daily_returns": vec![0.01; 60] }),
+        )
+        .await;
+        assert_eq!(response.status(), 422);
+        assert_eq!(problem(response).await.status, 422);
     }
 
     #[tokio::test]
@@ -72,22 +126,12 @@ mod tests {
             .expect("should reach the server");
 
         assert_eq!(response.status(), 400);
-        let body: ErrorResponse = response.json().await.expect("should be an ErrorResponse");
-        assert_eq!(body.error, "Invalid request body");
+        assert!(problem(response).await.detail.starts_with("Invalid request body"));
     }
 
     #[tokio::test]
     async fn a_body_missing_a_series_is_rejected() {
-        // The endpoint needs all four series; supplying only the history
-        // used to be accepted because each series was its own extractor.
-        let base = spawn_server().await;
-        let response = Client::new()
-            .post(format!("{base}/predict"))
-            .json(&json!({ "historical_data": [1.0, 2.0, 3.0] }))
-            .send()
-            .await
-            .expect("should reach the server");
-
+        let response = post_predict(json!({ "historical_data": [1.0, 2.0, 3.0] })).await;
         assert_eq!(response.status(), 400);
     }
 
@@ -102,6 +146,7 @@ mod tests {
             .expect("should reach the server");
 
         assert_eq!(response.status(), 404);
+        assert_eq!(problem(response).await.status, 404);
     }
 
     #[tokio::test]
