@@ -35,14 +35,14 @@ NaluFX is not on crates.io yet. Depend on it from Git:
 
 ```toml
 [dependencies]
-nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.11", package = "nalufx-core" }
+nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.12", package = "nalufx-core" }
 ```
 
 Or install the command line and the HTTP server:
 
 ```shell
-cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.11 nalufx-cli   # the `nalufx` command
-cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.11 nalufx-api   # the HTTP server
+cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.12 nalufx-cli   # the `nalufx` command
+cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.12 nalufx-api   # the HTTP server
 ```
 
 ### Requirements

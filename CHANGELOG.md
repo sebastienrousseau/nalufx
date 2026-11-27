@@ -5,6 +5,66 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.12] - 2026-11-27
+
+Observability and operations (M6): every request can be explained
+after the fact, and every allocation can be reproduced.
+
+### Added
+
+- **Traces.** Every request runs in a `request` span (method, route,
+  request id, key id, status, latency) with child spans for `forecast`,
+  `allocate` (method, assets, rows, solver iterations), `report`
+  (provider, model, prompt version, tokens) and each provider attempt.
+  A key appears only as its id, the first 8 hex characters of its
+  SHA-256.
+- **Logs through RustLogs (rlg 0.0.19).** JSON lines by default
+  (`NALUFX_LOG_FORMAT=text` for logfmt), each carrying the fields of
+  its request plus `trace_id` and `span_id`. Every line and exported
+  span is scrubbed of card numbers, tokens, emails, IP addresses and
+  provider keys.
+- **OpenTelemetry.** With `OTEL_EXPORTER_OTLP_ENDPOINT` set, spans go
+  to the collector as OTLP traces, linked to the logs.
+- **Metrics** at `GET /metrics` (behind an API key): requests and
+  latency by route and status, allocation time and solver failures by
+  method, and language model requests, tokens and latency by provider
+  and model. CI checks the output with Prometheus's `promtool`.
+- **Audit log.** With `NALUFX_AUDIT_LOG` set, one JSON line per
+  allocation (canonical input and its SHA-256, engine version, method,
+  parameters, weights) and per report (input hash, prompt version,
+  provider, model, tokens; never the investor's words). A line replays
+  through the engine to the same weights, bit for bit. A line that
+  cannot be written fails the request with 503.
+- **Runbook** (`docs/runbook.md`): running, configuring, key rotation,
+  logs, traces, metrics, the audit log, and three alerts with what to
+  do about each, shipped as Prometheus rules in `docs/alerts.yml`.
+- Releases attach their signed provenance as
+  `nalufx-v<version>.intoto.jsonl`, verifiable offline with
+  `gh attestation verify <file> --bundle <it> --repo
+  sebastienrousseau/nalufx`.
+
+### Security
+
+- A retry warning logged the provider's error reply, which can echo
+  the prompt. It now logs the provider and attempt only.
+- A failed `/v1/report` answered with the provider's reply, its
+  address or the server's settings. Problems now name the provider and
+  the kind of failure only.
+- `/readyz`, which needs no key, named the provider's address when the
+  provider did not answer. It no longer does.
+- `.github/SECURITY.md` held a generic policy with no way to report a
+  vulnerability, and GitHub showed it instead of the real one. The
+  real policy replaces it.
+
+### Changed
+
+- **Breaking (library):** nalufx-llms and nalufx-core log through
+  `tracing` instead of `log`.
+- **Breaking:** the server logs through rlg, so log lines have rlg's
+  shape (`Level`, `Timestamp`, `Description`, `Attributes`), and go to
+  journald when the host has it (`RLG_FALLBACK_STDOUT=1` for standard
+  output).
+
 ## [0.0.11] - 2026-11-27
 
 The release that ships 0.0.10's code. The code is the same as 0.0.10;
