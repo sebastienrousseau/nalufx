@@ -82,7 +82,7 @@ async fn every_adapter_kind_produces_a_valid_report() {
         let report =
             generate(provider.as_ref(), &input()).await.unwrap_or_else(|e| panic!("{route}: {e}"));
         assert_eq!(report.report.rationale.len(), 2);
-        assert_eq!((report.prompt.name.as_str(), report.prompt.version), ("allocation_report", 1));
+        assert_eq!((report.prompt.name.as_str(), report.prompt.version), ("allocation_report", 2));
         assert_eq!(report.provider, provider.name());
 
         // The request carried the figures, the schema and the context.

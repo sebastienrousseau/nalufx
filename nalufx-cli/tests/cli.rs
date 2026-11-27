@@ -185,5 +185,5 @@ async fn allocate_json_pipes_into_a_report() {
     .unwrap();
     assert!(o.status.success(), "{}", stderr(&o));
     assert!(stdout(&o).contains("Bonds lead."));
-    assert!(stdout(&o).contains("prompt allocation_report v1"));
+    assert!(stdout(&o).contains("prompt allocation_report v2"));
 }

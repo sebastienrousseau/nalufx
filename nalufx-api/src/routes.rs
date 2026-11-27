@@ -163,6 +163,7 @@ pub async fn allocate(Json(request): Json<AllocateRequest>) -> Result<Json<Alloc
 #[utoipa::path(post, path = "/v1/report", request_body = ReportInput, security(("api_key" = [])),
     responses(
         (status = 200, description = "The validated report, with the prompt, provider and model that wrote it", body = Report),
+        (status = 400, description = "Unusable input, such as a context over 2,000 characters", body = Problem, content_type = "application/problem+json"),
         (status = 401, description = "No valid API key", body = Problem, content_type = "application/problem+json"),
         (status = 429, description = "Over the key's report rate limit", body = Problem, content_type = "application/problem+json"),
         (status = 502, description = "The provider failed or replied off the schema", body = Problem, content_type = "application/problem+json"),
@@ -253,6 +254,7 @@ pub fn llm_problem(err: LlmError) -> Problem {
         LlmError::Status { status: 429, retry_after, .. } => {
             (StatusCode::SERVICE_UNAVAILABLE, Some(retry_after.map_or(30, |d| d.as_secs().max(1))))
         },
+        LlmError::Input(_) => (StatusCode::BAD_REQUEST, None),
         LlmError::MissingApiKey { .. } | LlmError::Config(_) => {
             (StatusCode::SERVICE_UNAVAILABLE, None)
         },
@@ -295,6 +297,7 @@ mod tests {
         let schema = LlmError::Schema { provider: "p", schema: "s", message: String::new() };
         assert_eq!(llm_problem(schema).status, 502);
         assert_eq!(llm_problem(LlmError::Config(String::new())).status, 503);
+        assert_eq!(llm_problem(LlmError::Input(String::new())).status, 400);
     }
 
     #[test]

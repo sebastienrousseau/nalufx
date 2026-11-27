@@ -171,7 +171,7 @@ mod tests {
     #[test]
     fn the_shipped_report_prompt_parses_and_takes_its_four_values() {
         let p = Prompt::parse(ALLOCATION_REPORT).unwrap();
-        assert_eq!(p.id, PromptId { name: "allocation_report".into(), version: 1 });
+        assert_eq!(p.id, PromptId { name: "allocation_report".into(), version: 2 });
         let values = [("schema", "{}"), ("portfolio", "P"), ("facts", "{}"), ("context", "none")];
         assert!(p.render(&values).is_ok());
         assert!(p.render(&values[..3]).is_err());

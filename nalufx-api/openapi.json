@@ -283,6 +283,16 @@
               }
             }
           },
+          "400": {
+            "description": "Unusable input, such as a context over 2,000 characters",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
           "401": {
             "description": "No valid API key",
             "content": {
@@ -765,7 +775,8 @@
         "properties": {
           "context": {
             "type": "string",
-            "description": "The investor's stated values and objectives, in their words."
+            "description": "The investor's values and objectives, in their words; at most 2,000 characters.",
+            "maxLength": 2000
           },
           "facts": {
             "type": "object",
@@ -773,7 +784,8 @@
           },
           "portfolio": {
             "type": "string",
-            "description": "The portfolio's name."
+            "description": "The portfolio's name, at most 200 characters.",
+            "maxLength": 200
           }
         }
       },

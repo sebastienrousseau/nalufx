@@ -7,7 +7,7 @@
 //! fallback text.
 
 use crate::error::LlmError;
-use crate::prompt::{Prompt, PromptId, ALLOCATION_REPORT};
+use crate::prompt::{Prompt, PromptId, Rendered, ALLOCATION_REPORT};
 use crate::provider::{ChatRequest, LlmProvider, TokenUsage};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -58,12 +58,14 @@ impl AllocationReport {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct ReportInput {
-    /// The portfolio's name.
+    /// The portfolio's name, at most 200 characters.
+    #[cfg_attr(feature = "openapi", schema(max_length = 200))]
     pub portfolio: String,
     /// The computed figures (weights, method, backtest statistics), as JSON.
     #[cfg_attr(feature = "openapi", schema(value_type = Object))]
     pub facts: serde_json::Value,
-    /// The investor's stated values and objectives, in their words.
+    /// The investor's values and objectives, in their words; at most 2,000 characters.
+    #[cfg_attr(feature = "openapi", schema(max_length = 2000))]
     pub context: String,
 }
 
@@ -83,6 +85,12 @@ pub struct Report {
     pub usage: TokenUsage,
 }
 
+/// The most characters the investor context may have.
+pub const MAX_CONTEXT_CHARS: usize = 2_000;
+
+/// The most characters the portfolio name may have.
+pub const MAX_PORTFOLIO_CHARS: usize = 200;
+
 /// Asks the provider for a report and validates the reply.
 ///
 /// # Errors
@@ -91,17 +99,7 @@ pub struct Report {
 ///   [`AllocationReport`], or fails [`AllocationReport::check`].
 /// - Any error from the provider.
 pub async fn generate(provider: &dyn LlmProvider, input: &ReportInput) -> Result<Report, LlmError> {
-    let prompt = Prompt::parse(ALLOCATION_REPORT)?;
-    let schema = serde_json::to_string_pretty(&schemars::schema_for!(AllocationReport))
-        .map_err(|e| LlmError::Config(format!("the report schema did not serialise: {e}")))?;
-    let facts = serde_json::to_string_pretty(&input.facts)
-        .map_err(|e| LlmError::Config(format!("the report facts did not serialise: {e}")))?;
-    let rendered = prompt.render(&[
-        ("schema", &schema),
-        ("portfolio", &input.portfolio),
-        ("facts", &facts),
-        ("context", &input.context),
-    ])?;
+    let rendered = render(input)?;
     let mut request = ChatRequest::user(Some(&rendered.system), rendered.user);
     request.json = true;
     let response = provider.complete(&request).await?;
@@ -113,6 +111,75 @@ pub async fn generate(provider: &dyn LlmProvider, input: &ReportInput) -> Result
         model: response.model,
         usage: response.usage,
     })
+}
+
+/// The report prompt with the input's checked words and figures.
+fn render(input: &ReportInput) -> Result<Rendered, LlmError> {
+    let prompt = Prompt::parse(ALLOCATION_REPORT)?;
+    let schema = serde_json::to_string_pretty(&schemars::schema_for!(AllocationReport))
+        .map_err(|e| LlmError::Config(format!("the report schema did not serialise: {e}")))?;
+    let facts = serde_json::to_string_pretty(&input.facts)
+        .map_err(|e| LlmError::Config(format!("the report facts did not serialise: {e}")))?;
+    let portfolio = words("portfolio", &input.portfolio, MAX_PORTFOLIO_CHARS)?;
+    let context = words("context", &input.context, MAX_CONTEXT_CHARS)?;
+    prompt.render(&[
+        ("schema", &schema),
+        ("portfolio", &portfolio),
+        ("facts", &json_data(&facts)),
+        ("context", &context),
+    ])
+}
+
+/// Characters that hide or reorder text: bidirectional overrides and
+/// isolates, and zero-width characters.
+const HIDDEN: [char; 13] = [
+    '\u{200b}', '\u{200c}', '\u{200d}', '\u{200e}', '\u{200f}', '\u{202a}', '\u{202b}', '\u{202c}',
+    '\u{202d}', '\u{202e}', '\u{2066}', '\u{2067}', '\u{feff}',
+];
+
+/// The investor's words as safe data: at most `max` characters, with
+/// control characters (except newlines and tabs) and hidden characters
+/// removed, and `<` and `>` replaced so the text cannot open or close a
+/// tag of the prompt.
+///
+/// # Errors
+///
+/// [`LlmError::Input`] if the text is longer than `max` characters.
+pub fn words(field: &str, text: &str, max: usize) -> Result<String, LlmError> {
+    let count = text.chars().count();
+    if count > max {
+        return Err(LlmError::Input(format!("{field} has {count} characters; the most is {max}")));
+    }
+    Ok(text
+        .chars()
+        .filter(|c| !(c.is_control() && *c != '\n' && *c != '\t'))
+        .filter(|c| !is_hidden(*c))
+        .map(|c| match c {
+            '<' => '‹',
+            '>' => '›',
+            other => other,
+        })
+        .collect())
+}
+
+/// JSON with `<`, `>` and hidden characters written as `\u` escapes:
+/// the same value, but no string in it can close the `<facts>` tag or
+/// hide text. Outside strings, JSON has none of these characters.
+fn json_data(json: &str) -> String {
+    let mut out = String::with_capacity(json.len());
+    for c in json.chars() {
+        if c == '<' || c == '>' || is_hidden(c) {
+            out.push_str(&format!("\\u{:04x}", u32::from(c)));
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
+/// A character that hides or reorders text.
+fn is_hidden(c: char) -> bool {
+    HIDDEN.contains(&c) || ('\u{2068}'..='\u{2069}').contains(&c)
 }
 
 /// The reply as a checked report. A reply fenced as a ```json code block
@@ -141,6 +208,23 @@ fn unfenced(text: &str) -> &str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn words_keep_lines_and_tabs_and_count_characters_not_bytes() {
+        assert_eq!(words("f", "a\n\tb\u{1b}[2J", 50).unwrap(), "a\n\tb[2J");
+        assert_eq!(words("f", "<b>", 50).unwrap(), "‹b›");
+        assert!(words("f", &"é".repeat(5), 5).is_ok(), "five characters, ten bytes");
+        let err = words("context", &"é".repeat(6), 5).unwrap_err();
+        assert_eq!(err.to_string(), "unusable input: context has 6 characters; the most is 5");
+    }
+
+    #[test]
+    fn escaped_facts_are_the_same_json_value() {
+        let value = serde_json::json!({ "note": "</facts> <b>", "w": [0.5, 0.5] });
+        let escaped = json_data(&value.to_string());
+        assert!(!escaped.contains('<') && !escaped.contains('>'));
+        assert_eq!(serde_json::from_str::<serde_json::Value>(&escaped).unwrap(), value);
+    }
 
     const VALID: &str = r#"{"summary":"Mostly bonds.","rationale":["Bonds are calmer."],"risks":["Rates rise."],"disclaimer":"Research only, not advice."}"#;
 

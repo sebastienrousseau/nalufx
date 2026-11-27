@@ -291,6 +291,17 @@ async fn reports_need_a_provider_and_a_reply_in_schema() {
 }
 
 #[tokio::test]
+async fn an_overlong_context_is_400_and_never_reaches_the_model() {
+    let stub = Stub::answering(REPORT);
+    let entered = Arc::clone(&stub.entered);
+    let input = json!({ "portfolio": "P", "facts": {}, "context": "a".repeat(2_001) });
+    let r = service(config(), Some(stub)).oneshot(post("/v1/report", &input)).await.unwrap();
+    assert_eq!(r.status(), StatusCode::BAD_REQUEST);
+    assert!(problem(r).await.detail.contains("2001 characters"));
+    assert_eq!(entered.load(Ordering::SeqCst), 0);
+}
+
+#[tokio::test]
 async fn the_removed_endpoint_is_not_found() {
     let r = service(config(), None)
         .oneshot(Request::post("/predict").body(Body::from("{}")).unwrap())
