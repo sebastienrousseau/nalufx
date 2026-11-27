@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.10] - 2026-11-27
+
+Security and supply chain (M5): every control comes with a test or a CI
+job, so it cannot quietly regress.
+
+### Security
+
+- **API keys never print.** The adapters derived `Debug` over the raw
+  key, so formatting one with `{:?}` printed it. Keys are now an
+  `ApiKey` (wrapping `secrecy::SecretString`): `{:?}` shows
+  `[REDACTED]`, there is no `Display`, and the key is wiped from memory
+  when dropped.
+- **Prompt injection.** Prompt `allocation_report` v2 puts the
+  portfolio name, the figures and the investor context inside
+  `<portfolio>`, `<facts>` and `<investor_context>` tags and tells the
+  model never to follow instructions there. Control, bidirectional and
+  zero-width characters are removed, `<` and `>` cannot close a tag,
+  and the words are capped at 200 and 2,000 characters. An injection
+  corpus test in the OWASP LLM01 style guards it.
+- **Denial of service.** Every allocation computed the covariance's
+  condition number by Jacobi sweeps that never met their stopping rule
+  on wide inputs: 500 assets took 66 seconds whatever the method. The
+  eigenvalues now come from nalgebra: 0.1 to 0.5 seconds for 500
+  assets.
+- **Input limits.** The API refuses, with a 400 naming the limit, more
+  than 10,000 history points or rows of returns, more than 500 assets
+  and more than 4 seasonal periods. The limits are in the contract.
+- **NaN weights.** Subnormal variances (returns near 1e-160) made HRP
+  answer NaN weights, which JSON sends as `null`. They are now
+  `ZeroVolatility`, and any method's non-finite weights are an error:
+  an `Ok` always holds usable weights. Found by fuzzing.
+- `unsafe` code is forbidden in every crate.
+
+### Added
+
+- Fuzzing: four cargo-fuzz targets in `fuzz/` (the CSV reader, the API
+  request bodies through the real handlers, the allocator and the
+  prompt cleaning), one minute each on every pull request and 30
+  minutes each every night.
+- Releases carry a CycloneDX SBOM for each binary and SLSA build
+  provenance for every archive and SBOM, verified in the release job.
+  Check one with `gh attestation verify <file> --repo
+  sebastienrousseau/nalufx`.
+- `cargo vet` in CI: 95 crates audited by Mozilla, Google, the
+  Bytecode Alliance, ISRG, Zcash and Embark, the rest exempted as a
+  baseline; a new dependency fails until it is reviewed.
+- gitleaks scans every pushed commit for secrets.
+- OpenSSF Scorecard runs weekly and on every push to `main`.
+- `SECURITY.md`: private reporting through GitHub, response times and
+  a 90-day disclosure limit.
+
+### Changed
+
+- **Breaking:** reports record prompt `allocation_report` version 2. A
+  portfolio name over 200 or a context over 2,000 characters is
+  refused (the new `LlmError::Input`: 400 from the API, exit code 3
+  from the CLI).
+- Every GitHub Action is pinned to a commit. Workflows default to a
+  read-only token, and checkouts no longer keep it in `.git/config`.
+- `LICENSE-APACHE` carried another project's copyright notice; both
+  licences now name Sebastien Rousseau.
+
 ## [0.0.9] - 2026-11-27
 
 The `nalufx` command line, brought forward from M7: the engine is now

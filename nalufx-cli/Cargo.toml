@@ -27,9 +27,9 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-nalufx-core = { path = "../nalufx-core", version = "0.0.9" }
-nalufx-engine = { path = "../nalufx-engine", version = "0.0.9" }
-nalufx-llms = { path = "../nalufx-llms", version = "0.0.9" }
+nalufx-core = { path = "../nalufx-core", version = "0.0.10" }
+nalufx-engine = { path = "../nalufx-engine", version = "0.0.10" }
+nalufx-llms = { path = "../nalufx-llms", version = "0.0.10" }
 clap = { version = "4.6", features = ["derive", "env"] }
 comfy-table = "8"
 csv = "1.3.0"
