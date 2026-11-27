@@ -1,0 +1,17 @@
+{
+  "method": "min_variance",
+  "params": {},
+  "config": {
+    "lookback": 120,
+    "rebalance_every": 21,
+    "cost_bps": 10.0,
+    "periods_per_year": 252.0
+  },
+  "periods": 380,
+  "rebalances": 19,
+  "annualised_return": 0.1115930568250314,
+  "annualised_volatility": 0.04050772620521482,
+  "sharpe": 2.632443707010091,
+  "max_drawdown": 0.018924753571112785,
+  "annual_turnover": 1.0846361880719642
+}

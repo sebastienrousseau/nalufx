@@ -1,0 +1,20 @@
+{
+  "method": "hrp",
+  "params": {
+    "distance": "correlation",
+    "linkage": "single"
+  },
+  "config": {
+    "lookback": 120,
+    "rebalance_every": 21,
+    "cost_bps": 10.0,
+    "periods_per_year": 252.0
+  },
+  "periods": 380,
+  "rebalances": 19,
+  "annualised_return": 0.11729447561525075,
+  "annualised_volatility": 0.05429307112651823,
+  "sharpe": 2.070326802931053,
+  "max_drawdown": 0.025895060321241337,
+  "annual_turnover": 1.154760743217977
+}

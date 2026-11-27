@@ -1,4 +1,5 @@
 use crate::errors::AllocationError;
+use ndarray::Array2;
 
 /// Calculates the daily returns from a slice of closing prices.
 ///
@@ -62,4 +63,65 @@ pub fn calculate_daily_returns(closes: &[f64]) -> Result<Vec<f64>, AllocationErr
 /// ```
 pub fn calculate_cash_flows(daily_returns: &[f64], initial_investment: f64) -> Vec<f64> {
     daily_returns.iter().map(|&r| r * initial_investment).collect()
+}
+
+/// Daily-return series as a matrix, one column per series, aligned on
+/// their most recent common length.
+///
+/// Price feeds that return closes without dates can only be aligned by
+/// position: this keeps the last `n` returns of each series, where `n` is
+/// the shortest, and assumes the series share a trading calendar.
+///
+/// # Errors
+///
+/// - [`AllocationError::EmptyInput`] if there are no series.
+/// - [`AllocationError::InvalidParameter`] if the shortest has fewer than
+///   two returns.
+///
+/// # Examples
+///
+/// ```
+/// use nalufx::services::processing_svc::align_returns;
+///
+/// let m = align_returns(&[vec![0.1, 0.2, 0.3], vec![0.5, 0.6]]).unwrap();
+/// assert_eq!(m.column(0).to_vec(), vec![0.2, 0.3]);
+/// assert_eq!(m.column(1).to_vec(), vec![0.5, 0.6]);
+/// ```
+pub fn align_returns(series: &[Vec<f64>]) -> Result<Array2<f64>, AllocationError> {
+    let n = series.iter().map(Vec::len).min().ok_or(AllocationError::EmptyInput)?;
+    if n < 2 {
+        return Err(AllocationError::InvalidParameter(format!(
+            "the shortest series has {n} returns; at least 2 are needed"
+        )));
+    }
+    Ok(Array2::from_shape_fn((n, series.len()), |(i, j)| series[j][series[j].len() - n + i]))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cash_flows_scale_the_returns_by_the_investment() {
+        assert_eq!(calculate_cash_flows(&[0.01, -0.02], 1000.0), vec![10.0, -20.0]);
+    }
+
+    #[test]
+    fn a_bad_close_is_named_in_the_error() {
+        for bad in [0.0, -5.0, f64::INFINITY] {
+            assert_eq!(
+                calculate_daily_returns(&[100.0, bad]),
+                Err(AllocationError::InvalidPrice(bad))
+            );
+        }
+    }
+
+    #[test]
+    fn align_returns_rejects_no_series_and_a_short_one() {
+        assert_eq!(align_returns(&[]), Err(AllocationError::EmptyInput));
+        assert!(matches!(
+            align_returns(&[vec![0.1, 0.2], vec![0.3]]),
+            Err(AllocationError::InvalidParameter(_))
+        ));
+    }
 }

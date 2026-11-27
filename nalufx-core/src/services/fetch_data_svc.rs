@@ -87,3 +87,38 @@ pub async fn fetch_data(
         },
     }
 }
+
+/// Daily returns for each ticker over its full available history, as a
+/// matrix with one column per ticker that has usable data.
+///
+/// Tickers that fail to fetch, or have a bad price, are logged and left
+/// out; the rest are aligned by
+/// [`align_returns`](crate::services::processing_svc::align_returns).
+///
+/// # Errors
+///
+/// [`crate::errors::NaluFxError::NaluFxError`] if no ticker has at least
+/// two returns in common with the others.
+pub async fn fetch_returns(
+    tickers: &[String],
+) -> Result<(Vec<String>, ndarray::Array2<f64>), crate::errors::NaluFxError> {
+    use crate::services::processing_svc::{align_returns, calculate_daily_returns};
+    let mut names = Vec::new();
+    let mut series = Vec::new();
+    for ticker in tickers {
+        let returns = match fetch_data(ticker, None, None).await {
+            Ok(closes) => calculate_daily_returns(&closes).map_err(|e| e.to_string()),
+            Err(e) => Err(e.to_string()),
+        };
+        match returns {
+            Ok(r) => {
+                names.push(ticker.clone());
+                series.push(r);
+            },
+            Err(e) => error!("Skipping {ticker}: {e}"),
+        }
+    }
+    let matrix = align_returns(&series)
+        .map_err(|e| crate::errors::NaluFxError::NaluFxError(e.to_string()))?;
+    Ok((names, matrix))
+}

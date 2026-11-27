@@ -15,10 +15,18 @@ A Rust library and HTTP service that forecasts fund cash flows and allocates cas
 
 ## What it does
 
-- **Cash flow forecasting:** AutoETS (automatic exponential smoothing, via [augurs][10]) picks the best non-seasonal model by AICc and returns a point forecast with its 95% prediction interval.
-- **Allocation across a horizon:** the investment is spread over the next days by inverse volatility, each day weighted by the inverse of its forecast interval's width. Weights are long-only and sum to 1. This is the interim method; a mean-variance optimiser replaces it in a later release.
-- **HTTP API:** `POST /predict` returns the forecast and the allocation; errors are RFC 9457 problem details (`application/problem+json`).
-- **Deterministic clustering:** K-means with farthest-point seeding, for segmenting feature rows.
+- **Allocation across assets** (`nalufx-engine`), each method long-only with a budget of 1, a per-asset cap and an optional floor, and each result recording its method, parameters and solver diagnostics:
+  - `equal_weight`: the baseline every other method must beat.
+  - `min_variance`: the least-variance portfolio, a quadratic programme solved with [clarabel][11].
+  - `mean_variance`: Markowitz, `mu' w - (lambda / 2) w' S w`, with the risk aversion as a parameter. It leans on estimated mean returns, which are noisy, so out of sample it often trails equal weight (DeMiguel, Garlappi and Uppal, 2009); on NaluFX's backtest fixture its Sharpe ratio is 1.49 against equal weight's 1.52, and the report shows that rather than tuning it away.
+  - `risk_parity`: equal risk contribution, by Newton's method on the convex log-barrier formulation.
+  - `hrp`: hierarchical risk parity, with no matrix inversion, for near-singular covariances.
+- **Covariance:** sample, or Ledoit-Wolf shrinkage towards a scaled identity (the default).
+- **Backtests:** walk-forward, rebalancing on a schedule, net of a cost in basis points, reporting annualised return, volatility, Sharpe, maximum drawdown and turnover.
+- **Cash flow forecasting:** AutoETS (via [augurs][10]) for a plain series, or MSTL for weekly, monthly or other cycles; every forecast carries its 95% prediction interval.
+- **Screening:** keep the assets whose score (an ESG rating you supply, for example) meets a threshold. NaluFX has no rating data of its own.
+- **HTTP API:** `POST /predict` returns the forecast and an allocation by the method you name; errors are RFC 9457 problem details (`application/problem+json`).
+- **Deterministic throughout:** the same input gives the same output, bit for bit, and anything that cannot be computed is an explicit error. A 20-asset, 250-day allocation takes well under a millisecond.
 - **Reports:** example reports that put the computed numbers in front of a language model for commentary. The model writes words only; it never produces a figure NaluFX reports.
 
 ## Installation
@@ -27,13 +35,13 @@ NaluFX is not on crates.io yet. Depend on it from Git:
 
 ```toml
 [dependencies]
-nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.5", package = "nalufx-core" }
+nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.6", package = "nalufx-core" }
 ```
 
 Or install the HTTP service:
 
 ```shell
-cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.5 nalufx-core
+cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.6 nalufx-core
 ```
 
 ### Requirements
@@ -46,21 +54,41 @@ Build the API documentation locally with `cargo doc --open -p nalufx-core`. More
 
 ## Usage
 
-### Forecasting and allocating
+### Allocating across assets
 
 ```rust
-use nalufx::utils::calculations::{calculate_optimal_allocation, forecast_time_series};
+use nalufx_engine::allocate::{by_name, AllocationInput, Constraints};
+use nalufx_engine::covariance::CovarianceEstimator;
+use ndarray::array;
 
-let daily_returns = [0.01, -0.02, 0.015, 0.003, -0.007, 0.012, -0.004, 0.009, -0.011, 0.006];
+let input = AllocationInput {
+    assets: vec!["BONDS".into(), "STOCKS".into(), "GOLD".into()],
+    // One row per day, one column per asset.
+    returns: array![
+        [0.001, 0.012, -0.004], [0.002, -0.010, 0.006], [-0.001, 0.015, 0.001],
+        [0.001, -0.004, -0.007], [0.000, 0.008, 0.002], [0.001, -0.006, 0.004],
+    ],
+    constraints: Constraints { max_weight: 0.6, min_weight: 0.05 },
+    estimator: CovarianceEstimator::LedoitWolf,
+};
+let allocation = by_name("min_variance", None)?.allocate(&input)?;
+println!("{allocation}");
+# Ok::<(), nalufx_engine::AllocationError>(())
+```
 
-// A 3-day forecast with its 95% interval.
-let forecast = forecast_time_series(&daily_returns, 3)?;
-println!("{:?} in [{:?}, {:?}]", forecast.point, forecast.lower, forecast.upper);
+### Backtesting a method
 
-// The same 3 days, weighted by inverse forecast volatility.
-let weights = calculate_optimal_allocation(&daily_returns, 3)?;
-assert!((weights.iter().sum::<f64>() - 1.0).abs() < 1e-9);
-# Ok::<(), nalufx::errors::AllocationError>(())
+```rust
+use nalufx_engine::allocate::{Constraints, Hrp};
+use nalufx_engine::backtest::{run, BacktestConfig};
+use nalufx_engine::covariance::CovarianceEstimator;
+
+# let assets: Vec<String> = vec!["A".into(), "B".into()];
+# let returns = ndarray::Array2::from_shape_fn((300, 2), |(i, j)| 0.01 * ((i * (j + 3)) as f64).sin());
+let config = BacktestConfig { lookback: 120, rebalance_every: 21, cost_bps: 10.0, periods_per_year: 252.0 };
+let report = run(&Hrp, &assets, &returns, Constraints::default(), CovarianceEstimator::LedoitWolf, config)?;
+println!("Sharpe {:.2}, max drawdown {:.1}%", report.sharpe, report.max_drawdown * 100.0);
+# Ok::<(), nalufx_engine::AllocationError>(())
 ```
 
 ### The HTTP API
@@ -68,11 +96,14 @@ assert!((weights.iter().sum::<f64>() - 1.0).abs() < 1e-9);
 ```shell
 curl -s localhost:8080/predict -H 'content-type: application/json' -d '{
   "historical_data": [1000, 1012, 1009, 1021, 1030, 1026, 1041, 1038, 1050, 1047],
-  "daily_returns":   [0.01, -0.02, 0.015, 0.003, -0.007, 0.012, -0.004, 0.009, -0.011, 0.006]
+  "assets": ["BONDS", "STOCKS"],
+  "returns": [[0.001, 0.012], [0.002, -0.010], [-0.001, 0.015], [0.001, -0.004], [0.000, 0.008], [0.001, -0.006]],
+  "method": "risk_parity",
+  "constraints": { "max_weight": 0.8 }
 }'
 ```
 
-A success is `200` with `{"forecast": {"level", "point", "lower", "upper"}, "optimal_allocation": [...]}` for the next 6 days. Input that cannot be used (empty, NaN, a daily return over 100%) is `400`; valid input that cannot be forecast or weighted (for example a constant series) is `422`.
+A success is `200` with `{"forecast": {"level", "point", "lower", "upper"}, "allocation": {"assets", "weights", "method", "params", "diagnostics"}}`. `method` is one of `equal_weight`, `min_variance` (the default), `mean_variance` (with an optional `risk_aversion`), `risk_parity` and `hrp`; `estimator` is `ledoit_wolf` (the default) or `sample`; add `"seasonal_periods": [5]` to forecast a weekly cycle with MSTL. Input that cannot be used (empty, NaN, a ragged returns matrix, an unknown method) is `400`; valid input that cannot be forecast or solved (bounds no weights can meet, for example) is `422`.
 
 ## Examples
 
@@ -195,6 +226,7 @@ A special thank you goes to the [Rust Reddit](https://www.reddit.com/r/rust/) co
 [05]: https://github.com/sebastienrousseau/nalufx/graphs/contributors
 [06]: http://semver.org/
 [10]: https://github.com/grafana/augurs
+[11]: https://clarabel.org
 
 [license-badge]: https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=for-the-badge 'License'
 [made-with-rust]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust'

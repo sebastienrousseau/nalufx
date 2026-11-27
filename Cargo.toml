@@ -1,7 +1,7 @@
 [workspace]
 # Workspace configuration.
 resolver = "2"
-members = ["nalufx-api", "nalufx-cli", "nalufx-core", "nalufx-llms"]
+members = ["nalufx-api", "nalufx-cli", "nalufx-core", "nalufx-engine", "nalufx-llms"]
 
 # default-members = ["nalufx-core", "nalufx-llms"]
 
@@ -18,7 +18,7 @@ repository = "https://github.com/sebastienrousseau/nalufx/"
 # highest floor a dependency now declares is nalgebra's 1.89; the
 # workspace keeps 1.92 because no older toolchain is tested in CI.
 rust-version = "1.92"
-version = "0.0.5"
+version = "0.0.6"
 
 [profile.dev]
 # Development profile.
@@ -63,6 +63,12 @@ opt-level = 3
 opt-level = 3
 
 [profile.test.package.nalgebra]
+opt-level = 3
+
+[profile.test.package.augurs-mstl]
+opt-level = 3
+
+[profile.test.package.clarabel]
 opt-level = 3
 
 [profile.test]

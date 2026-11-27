@@ -40,9 +40,33 @@ pub fn format_currency(value: f64) -> String {
     let cents = (int_value % 100).abs(); // Absolute value for cents
     let formatted_dollars = format_dollars(dollars);
 
-    if value < 0.0 {
+    // The sign of the rounded cents, so -0.004 is "$0.00", not "-$0.00".
+    if int_value < 0 {
         format!("-${}.{:02}", formatted_dollars, cents)
     } else {
         format!("${}.{:02}", formatted_dollars, cents)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::format_currency;
+
+    #[test]
+    fn groups_thousands_and_rounds_to_cents() {
+        assert_eq!(format_currency(1_234_567.891), "$1,234,567.89");
+        assert_eq!(format_currency(999.995), "$1,000.00");
+        assert_eq!(format_currency(0.0), "$0.00");
+    }
+
+    #[test]
+    fn negatives_keep_their_sign() {
+        assert_eq!(format_currency(-1500.5), "-$1,500.50");
+        assert_eq!(format_currency(-0.25), "-$0.25");
+    }
+
+    #[test]
+    fn a_value_that_rounds_to_zero_has_no_sign() {
+        assert_eq!(format_currency(-0.004), "$0.00");
     }
 }

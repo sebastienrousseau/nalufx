@@ -109,10 +109,10 @@ mod tests {
 
     #[tokio::test]
     async fn a_well_formed_body_deserialises() {
-        let body = r#"{"historical_data":[1.0],"daily_returns":[0.1]}"#;
+        let body = r#"{"historical_data":[1.0],"assets":["A"],"returns":[[0.1]]}"#;
         let parsed = read(post("/predict", body)).await.expect("should deserialise");
         assert_eq!(parsed.historical_data, vec![1.0]);
-        assert_eq!(parsed.daily_returns, vec![0.1]);
+        assert_eq!(parsed.returns, vec![vec![0.1]]);
     }
 
     #[tokio::test]

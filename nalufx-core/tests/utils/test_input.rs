@@ -1,22 +1,12 @@
 #[cfg(test)]
 mod tests {
     use nalufx::errors::NaluFxError;
+    use nalufx::utils::input::read_line_from;
     use std::io::{BufRead, BufReader};
 
-    #[cfg(test)]
-    #[allow(dead_code)]
-    pub(crate) fn read_input_for_test<R: BufRead>(mut reader: R) -> Result<String, NaluFxError> {
-        let mut input = String::new();
-        let _ = reader.read_line(&mut input).map_err(NaluFxError::InputError)?;
-        Ok(input.trim().to_string())
-    }
-
-    #[cfg(test)]
-    #[allow(dead_code)]
-    pub(crate) fn get_input_for_test_err<R: BufRead>(mut reader: R) -> Result<String, NaluFxError> {
-        let mut input = String::new();
-        let _ = reader.read_line(&mut input).map_err(NaluFxError::InputError)?;
-        Ok(input.trim().to_string())
+    /// The production reader, trimmed as `get_input` trims it.
+    fn read_input_for_test<R: BufRead>(reader: R) -> Result<String, NaluFxError> {
+        Ok(read_line_from(reader)?.trim().to_string())
     }
 
     #[test]
@@ -33,7 +23,7 @@ mod tests {
         let input = "Hello, World!\n";
         let expected = "Hello, World!";
         let reader = BufReader::new(input.as_bytes());
-        let result = get_input_for_test_err(reader).unwrap();
+        let result = read_input_for_test(reader).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -51,7 +41,23 @@ mod tests {
         let input = "  Hello, World!  \n";
         let expected = "Hello, World!";
         let reader = BufReader::new(input.as_bytes());
-        let result = get_input_for_test_err(reader).unwrap();
+        let result = read_input_for_test(reader).unwrap();
         assert_eq!(result, expected);
+    }
+
+    /// A reader that always fails.
+    struct Broken;
+
+    impl std::io::Read for Broken {
+        fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
+            Err(std::io::Error::other("disk on fire"))
+        }
+    }
+
+    #[test]
+    fn the_line_ending_is_kept_and_a_read_error_is_typed() {
+        assert_eq!(read_line_from("a line\n".as_bytes()).unwrap(), "a line\n");
+        let err = read_line_from(BufReader::new(Broken)).unwrap_err();
+        assert!(matches!(err, NaluFxError::InputError(_)), "{err}");
     }
 }

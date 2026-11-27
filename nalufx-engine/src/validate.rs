@@ -1,3 +1,8 @@
+//! Input validation and feature macros.
+//!
+//! Each `check_*` macro returns early from the calling function with an
+//! [`AllocationError`](crate::AllocationError) when its check fails.
+
 /// Checks if the input slices have the same length.
 ///
 /// This macro accepts multiple slices and verifies that all slices have the same length. If any
@@ -10,8 +15,8 @@
 /// # Example
 ///
 /// ```
-/// use nalufx::check_input_lengths;
-/// use nalufx::errors::AllocationError;
+/// use nalufx_engine::check_input_lengths;
+/// use nalufx_engine::AllocationError;
 ///
 /// let daily_returns = vec![0.01, 0.02, -0.01];
 /// let cash_flows = vec![1000.0, 1020.0, 1010.0];
@@ -23,9 +28,9 @@ macro_rules! check_input_lengths {
     ($($input:expr),+ $(,)?) => {{
         let lengths = vec![$($input.len()),+];
         if lengths.windows(2).any(|w| w[0] != w[1]) {
-            return Err(AllocationError::InputMismatch);
+            return Err($crate::AllocationError::InputMismatch);
         }
-        Ok::<(), AllocationError>(())
+        Ok::<(), $crate::AllocationError>(())
     }};
 }
 
@@ -41,8 +46,8 @@ macro_rules! check_input_lengths {
 /// # Example
 ///
 /// ```
-/// use nalufx::check_empty_inputs;
-/// use nalufx::errors::AllocationError;
+/// use nalufx_engine::check_empty_inputs;
+/// use nalufx_engine::AllocationError;
 ///
 /// let daily_returns = vec![0.01, 0.02, -0.01];
 /// let cash_flows = vec![1000.0, 1020.0, 1010.0];
@@ -53,9 +58,9 @@ macro_rules! check_input_lengths {
 macro_rules! check_empty_inputs {
     ($($input:expr),+ $(,)?) => {{
         if $($input.is_empty())||+ {
-            return Err(AllocationError::EmptyInput);
+            return Err($crate::AllocationError::EmptyInput);
         }
-        Ok::<(), AllocationError>(())
+        Ok::<(), $crate::AllocationError>(())
     }};
 }
 
@@ -71,8 +76,8 @@ macro_rules! check_empty_inputs {
 /// # Example
 ///
 /// ```
-/// use nalufx::check_invalid_data;
-/// use nalufx::errors::AllocationError;
+/// use nalufx_engine::check_invalid_data;
+/// use nalufx_engine::AllocationError;
 ///
 /// let daily_returns: Vec<f64> = vec![0.01, 0.02, -0.01];
 /// let cash_flows: Vec<f64> = vec![1000.0, 1020.0, 1010.0];
@@ -83,9 +88,9 @@ macro_rules! check_empty_inputs {
 macro_rules! check_invalid_data {
     ($($input:expr),+ $(,)?) => {{
         if $($input.iter().any(|&x| x.is_nan() || x.is_infinite()))||+ {
-            return Err(AllocationError::InvalidData);
+            return Err($crate::AllocationError::InvalidData);
         }
-        Ok::<(), AllocationError>(())
+        Ok::<(), $crate::AllocationError>(())
     }};
 }
 
@@ -103,8 +108,8 @@ macro_rules! check_invalid_data {
 /// # Example
 ///
 /// ```
-/// use nalufx::check_outliers;
-/// use nalufx::errors::AllocationError;
+/// use nalufx_engine::check_outliers;
+/// use nalufx_engine::AllocationError;
 ///
 /// let daily_returns: Vec<f64> = vec![0.01, 0.02, -0.01];
 /// let cash_flows: Vec<f64> = vec![1000.0, 1020.0, 1010.0];
@@ -116,9 +121,9 @@ macro_rules! check_invalid_data {
 macro_rules! check_outliers {
     ($threshold:expr, $($input:expr),+ $(,)?) => {{
         if $($input.iter().any(|&x| x.abs() > $threshold))||+ {
-            return Err(AllocationError::OutlierData);
+            return Err($crate::AllocationError::OutlierData);
         }
-        Ok::<(), AllocationError>(())
+        Ok::<(), $crate::AllocationError>(())
     }};
 }
 
@@ -135,8 +140,8 @@ macro_rules! check_outliers {
 /// # Example
 ///
 /// ```
-/// use nalufx::handle_result;
-/// use nalufx::errors::AllocationError;
+/// use nalufx_engine::handle_result;
+/// use nalufx_engine::AllocationError;
 ///
 /// let parsed: Result<f64, std::num::ParseFloatError> = "0.25".parse();
 /// let value = handle_result!(parsed, ForecastingError)?;
@@ -151,7 +156,7 @@ macro_rules! handle_result {
     ($result:expr, $err_type:ident) => {
         match $result {
             Ok(val) => Ok(val),
-            Err(err) => Err(AllocationError::$err_type(err.to_string())),
+            Err(err) => Err($crate::AllocationError::$err_type(err.to_string())),
         }
     };
 }
@@ -172,8 +177,8 @@ macro_rules! handle_result {
 /// # Example
 ///
 /// ```
-/// use nalufx::fill_feature_matrix;
-/// use nalufx::errors::AllocationError;
+/// use nalufx_engine::fill_feature_matrix;
+/// use nalufx_engine::AllocationError;
 /// use ndarray::Array2;
 ///
 /// let daily_returns: Vec<f64> = vec![0.01, 0.02, -0.01];
@@ -209,9 +214,9 @@ macro_rules! fill_feature_matrix {
 /// # Example
 ///
 /// ```
-/// use nalufx::normalize_features;
-/// use nalufx::fill_feature_matrix;
-/// use nalufx::errors::AllocationError;
+/// use nalufx_engine::normalize_features;
+/// use nalufx_engine::fill_feature_matrix;
+/// use nalufx_engine::AllocationError;
 /// use ndarray::Array2;
 /// use ndarray::Axis;
 ///
@@ -271,10 +276,10 @@ macro_rules! normalize_features {
 /// # Example
 ///
 /// ```
-/// use nalufx::extract_features;
-/// use nalufx::normalize_features;
-/// use nalufx::fill_feature_matrix;
-/// use nalufx::errors::AllocationError;
+/// use nalufx_engine::extract_features;
+/// use nalufx_engine::normalize_features;
+/// use nalufx_engine::fill_feature_matrix;
+/// use nalufx_engine::AllocationError;
 /// use ndarray::Array2;
 ///
 /// let daily_returns: Vec<f64> = vec![0.01, 0.02, -0.01];
@@ -299,6 +304,6 @@ macro_rules! extract_features {
             $fund_characteristics
         );
         $crate::normalize_features!(features);
-        Ok::<_, $crate::errors::AllocationError>(features)
+        Ok::<_, $crate::AllocationError>(features)
     }};
 }
