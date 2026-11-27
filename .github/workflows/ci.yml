@@ -250,16 +250,33 @@ jobs:
           echo "${PROMETHEUS_SHA256}  $RUNNER_TEMP/$archive" | sha256sum -c -
           tar xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" "prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool"
 
-      # --lint=duplicates: promtool still parses every line and rejects
-      # duplicate series, but skips its help-text lint, which expects the
-      # classic format. In OpenMetrics a counter's HELP names the family
-      # (http_requests) while its samples are http_requests_total, so
-      # that lint reports "no help text" for help that is there.
+      # promtool parses the scrape (exit 1 on a parse error) and lints it
+      # (exit 3 on findings). Its help-text lint reads the classic format:
+      # in OpenMetrics a counter's HELP names the family (http_requests)
+      # while its samples are http_requests_total, so it reports
+      # "http_requests_total no help text" for help that is there. That
+      # finding alone is accepted, and only when the family's HELP line is
+      # in the file; any other finding, or a parse error, fails.
       - name: promtool check metrics
         run: |
-          set -euo pipefail
-          test -s "$RUNNER_TEMP/metrics.txt"
-          "$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check metrics --lint=duplicates < "$RUNNER_TEMP/metrics.txt"
+          set -uo pipefail
+          file="$RUNNER_TEMP/metrics.txt"
+          test -s "$file" || exit 1
+          out=$("$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check metrics < "$file" 2>&1)
+          rc=$?
+          printf '%s\n' "$out"
+          [ "$rc" -eq 0 ] && exit 0
+          [ "$rc" -eq 3 ] || exit "$rc"
+          while IFS= read -r finding; do
+            [ -z "$finding" ] && continue
+            name=${finding% no help text}
+            family=${name%_total}
+            if [ "$finding" = "$name" ] || [ "$family" = "$name" ] || ! grep -q "^# HELP ${family} " "$file"; then
+              echo "::error::promtool: $finding"
+              exit 3
+            fi
+          done <<< "$out"
+          echo "only OpenMetrics counter help findings, each with its family's HELP: accepted"
 
       - name: promtool check rules
         run: '"$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check rules docs/alerts.yml'
