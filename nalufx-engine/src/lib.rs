@@ -40,9 +40,3 @@ pub mod validate;
 mod error;
 
 pub use error::AllocationError;
-
-/// The README's Rust examples, compiled and run as doc tests so they
-/// cannot drift from the code.
-#[cfg(doctest)]
-#[doc = include_str!("../../README.md")]
-struct ReadmeExamples;

@@ -77,6 +77,14 @@ pub enum NaluFxError {
     #[error("HTTP request error: {0}")]
     HttpRequestError(#[from] reqwest::Error),
 
+    /// A language model could not produce a valid reply.
+    #[error("language model error: {0}")]
+    Llm(#[from] nalufx_llms::error::LlmError),
+
+    /// A forecast or allocation could not be computed.
+    #[error("allocation error: {0}")]
+    Allocation(#[from] AllocationError),
+
     /// Not all assets have the same number of returns
     #[error("Not all assets have the same number of returns")]
     UnequalReturnsLength,

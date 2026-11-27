@@ -13,31 +13,23 @@
 //!
 use nalufx::services::bellwether_stock_analysis_svc::generate_analysis;
 use nalufx::{errors::NaluFxError, utils::input::get_input};
-use nalufx_llms::llms::{openai, openai::OpenAI, LLM};
-use reqwest::Client;
+use nalufx_llms::{
+    http::Http,
+    provider::{ClientConfig, LlmConfig},
+    registry::from_env,
+};
 
 #[tokio::main]
 pub(crate) async fn main() -> Result<(), NaluFxError> {
-    // Get user input for LLM choice
-    let llm_choice =
-        get_input("Enter the LLM to use (e.g., openai, claude, gemini, llama, mistral, ollama):")?;
-    let (llm, api_key): (Box<dyn LLM>, String) = match llm_choice.as_str() {
-        "openai" => {
-            let api_key = match openai::get_openai_api_key() {
-                Ok(key) => key,
-                Err(e) => {
-                    eprintln!("Error: {}", e);
-                    return Err(NaluFxError::InvalidData);
-                },
-            };
-            (Box::new(OpenAI), api_key)
-        },
-        // Add other cases for different LLMs with their respective API key functions
-        _ => {
-            eprintln!("Unsupported LLM choice");
-            return Err(NaluFxError::InvalidOption);
-        },
-    };
+    let provider_name = get_input(
+        "Enter the provider (anthropic, gemini, openai, mistral, ollama, agy, openai_compatible):",
+    )?;
+    let model = get_input("Enter the model name at that provider:")?;
+    let provider = from_env(
+        &provider_name,
+        LlmConfig::new(model, 2048)?,
+        Http::new(ClientConfig::default())?,
+    )?;
 
     // Get user input for ticker, initial investment amount, start date, and end date
     let ticker_input = get_input("Enter the ticker symbol for a bellwether stock:")?;
@@ -65,9 +57,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
 
     // Call the generate_analysis function from the new service
     generate_analysis(
-        llm,
-        &Client::new(),
-        &api_key,
+        provider.as_ref(),
         &ticker,
         initial_investment,
         &start_date_input,

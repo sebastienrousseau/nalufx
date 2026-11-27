@@ -91,8 +91,8 @@ jobs:
       - name: Benchmarks compile
         run: cargo bench -p nalufx-engine --no-run
 
-  # Line coverage gates from the 10/10 plan: nalufx-engine at least 90%,
-  # the workspace at least 80%. Property tests run fewer cases here; the
+  # Line coverage gates from the 10/10 plan: nalufx-engine and
+  # nalufx-llms at least 90%, the workspace at least 80%. Property tests run fewer cases here; the
   # Rust CI job runs them in full.
   coverage:
     name: Coverage
@@ -118,6 +118,9 @@ jobs:
 
       - name: nalufx-engine at least 90% of lines
         run: cargo llvm-cov -p nalufx-engine --all-features --summary-only --fail-under-lines 90
+
+      - name: nalufx-llms at least 90% of lines
+        run: cargo llvm-cov -p nalufx-llms --all-features --summary-only --fail-under-lines 90
 
       - name: Workspace at least 80% of lines
         run: cargo llvm-cov --workspace --all-features --summary-only --fail-under-lines 80

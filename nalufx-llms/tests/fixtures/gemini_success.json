@@ -1,0 +1,11 @@
+{
+  "candidates": [
+    {
+      "content": { "role": "model", "parts": [ { "text": "The allocation leans on bonds." } ] },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": { "promptTokenCount": 412, "candidatesTokenCount": 37, "totalTokenCount": 449 },
+  "modelVersion": "gemini-3.0-pro"
+}

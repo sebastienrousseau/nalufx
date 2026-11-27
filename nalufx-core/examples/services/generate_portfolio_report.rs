@@ -25,10 +25,12 @@ use nalufx::{
         validation::validate_positive_float,
     },
 };
-use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
-use nalufx_llms::models::openai_dm::OpenAIResponse;
-use reqwest::Client;
-use serde_json::json;
+use nalufx_llms::{
+    error::LlmError,
+    http::Http,
+    provider::{ChatRequest, ClientConfig, LlmConfig, LlmProvider},
+    registry::from_env,
+};
 use time::OffsetDateTime;
 
 #[derive(Debug)]
@@ -47,19 +49,11 @@ struct StockAnalysis {
 }
 
 async fn generate_combined_market_analysis_report(
+    provider: &dyn LlmProvider,
     stocks: Vec<StockAnalysis>,
     start_date: OffsetDateTime,
     end_date: OffsetDateTime,
-) -> Result<String, &'static str> {
-    let client = Client::new();
-    let api_key = match get_openai_api_key() {
-        Ok(key) => key,
-        Err(err) => {
-            eprintln!("{}", err);
-            return Err("Failed to get OpenAI API key");
-        },
-    };
-
+) -> Result<String, LlmError> {
     let stock_details: Vec<String> = stocks
         .iter()
         .map(|stock| {
@@ -93,16 +87,8 @@ Dividend Yield: {dividend_yield}%",
 
     let combined_stock_details = stock_details.join("\n");
 
-    let request_body = json!({
-        "model": "gpt-3.5-turbo",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are a highly skilled financial analyst working for a reputable investment firm. Your task is to generate a comprehensive market analysis report for a portfolio of stocks. The report should be written in a professional tone, similar to reports published by Bloomberg or other leading financial institutions. Provide detailed data-driven insights, quantitative analysis, and actionable recommendations. Please use the following structure:"
-            },
-            {
-                "role": "user",
-                "content": format!(
+    let system = "You are a highly skilled financial analyst working for a reputable investment firm. Your task is to generate a comprehensive market analysis report for a portfolio of stocks. The report should be written in a professional tone, similar to reports published by Bloomberg or other leading financial institutions. Provide detailed data-driven insights, quantitative analysis, and actionable recommendations. Please use the following structure:";
+    let user = format!(
                     "
 1. **Executive Summary:** Provide a concise summary of the key findings and recommendations.
 
@@ -132,29 +118,9 @@ Portfolio Details:
                     start_date = format_date(start_date),
                     end_date = format_date(end_date),
                     combined_stock_details = combined_stock_details
-                )
-            }
-        ],
-        "max_tokens": 1500,
-    });
-
-    let openai_url = "https://api.openai.com/v1/chat/completions";
-    let response = send_openai_request(&client, openai_url, &api_key, request_body)
-        .await
-        .map_err(|_| "Failed to send OpenAI request")?;
-
-    let openai_response: OpenAIResponse =
-        serde_json::from_str(&response).map_err(|_| "Failed to parse OpenAI response")?;
-
-    let generated_text = openai_response
-        .choices
-        .first()
-        .ok_or("No content found in response")?
-        .message
-        .content
-        .clone();
-
-    Ok(generated_text)
+                );
+    let request = ChatRequest::user(Some(system), user);
+    Ok(provider.complete(&request).await?.text)
 }
 
 async fn fetch_data_with_logging(
@@ -173,6 +139,15 @@ async fn fetch_data_with_logging(
 
 #[tokio::main]
 pub(crate) async fn main() -> Result<(), NaluFxError> {
+    let provider_name = get_input(
+        "Enter the provider (anthropic, gemini, openai, mistral, ollama, agy, openai_compatible):",
+    )?;
+    let model = get_input("Enter the model name at that provider:")?;
+    let provider = from_env(
+        &provider_name,
+        LlmConfig::new(model, 2048)?,
+        Http::new(ClientConfig::default())?,
+    )?;
     // Get user input for tickers, initial investment amount, start date, and end date
     let tickers_input =
         get_input("Enter the ticker symbols for the stocks or portfolio (comma-separated):")?;
@@ -271,6 +246,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
 
     // Generate the combined market analysis report using OpenAI
     let combined_analysis_report = match generate_combined_market_analysis_report(
+        provider.as_ref(),
         stock_analyses,
         start_date,
         end_date,
