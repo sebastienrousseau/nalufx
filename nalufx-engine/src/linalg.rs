@@ -90,97 +90,30 @@ fn back_substitute(l: &Array2<f64>, y: &Array1<f64>) -> Array1<f64> {
     x
 }
 
-/// The eigenvalues of a symmetric matrix, ascending, by cyclic Jacobi
-/// rotations.
+/// The eigenvalues of a symmetric matrix, ascending. nalgebra reduces it
+/// to tridiagonal form and runs implicit QR: O(n^3) once, a few
+/// milliseconds for hundreds of assets. The iterations are capped at
+/// `30 n`, LAPACK's bound.
 ///
 /// # Errors
 ///
-/// [`AllocationError::InvalidData`] if `a` is not square or not finite.
+/// [`AllocationError::InvalidData`] if `a` is not square or not finite,
+/// or if the iteration does not converge.
 pub fn symmetric_eigenvalues(a: &Array2<f64>) -> Result<Vec<f64>, AllocationError> {
-    /// Sweeps before giving up; Jacobi converges quadratically, and a
-    /// 50-asset matrix needs well under 15.
-    const MAX_SWEEPS: usize = 100;
     let n = a.nrows();
     if a.ncols() != n || a.iter().any(|x| !x.is_finite()) {
         return Err(AllocationError::InvalidData);
     }
-    let mut m = a.clone();
-    let scale = m.iter().map(|x| x * x).sum::<f64>().sqrt().max(f64::MIN_POSITIVE);
-    for _ in 0..MAX_SWEEPS {
-        if off_diagonal_norm(&m) <= f64::EPSILON * scale {
-            break;
-        }
-        for p in 0..n {
-            for q in (p + 1)..n {
-                rotate(&mut m, p, q);
-            }
-        }
-    }
-    let mut values: Vec<f64> = (0..n).map(|i| m[[i, i]]).collect();
+    let matrix = nalgebra::DMatrix::from_fn(n, n, |i, j| a[[i, j]]);
+    let mut values: Vec<f64> =
+        nalgebra::linalg::SymmetricEigen::try_new(matrix, f64::EPSILON, 30 * n.max(1))
+            .ok_or(AllocationError::InvalidData)?
+            .eigenvalues
+            .iter()
+            .copied()
+            .collect();
     values.sort_by(f64::total_cmp);
     Ok(values)
-}
-
-/// The Frobenius norm of the off-diagonal part.
-fn off_diagonal_norm(m: &Array2<f64>) -> f64 {
-    let n = m.nrows();
-    (0..n)
-        .flat_map(|i| (0..n).filter(move |&j| j != i).map(move |j| (i, j)))
-        .map(|(i, j)| m[[i, j]].powi(2))
-        .sum::<f64>()
-        .sqrt()
-}
-
-/// One Jacobi rotation zeroing `m[p][q]` (and `m[q][p]`).
-fn rotate(m: &mut Array2<f64>, p: usize, q: usize) {
-    if m[[p, q]] == 0.0 {
-        return;
-    }
-    let cs = rotation(m[[p, p]], m[[q, q]], m[[p, q]]);
-    // Columns p and q, then rows p and q: m <- J' m J.
-    turn_lines(m, p, q, cs, column_entry);
-    turn_lines(m, p, q, cs, row_entry);
-}
-
-/// Entry `k` of column `line`.
-const fn column_entry(k: usize, line: usize) -> [usize; 2] {
-    [k, line]
-}
-
-/// Entry `k` of row `line`.
-const fn row_entry(k: usize, line: usize) -> [usize; 2] {
-    [line, k]
-}
-
-/// Turns lines `p` and `q` of `m` by the rotation `cs`; `at(k, line)`
-/// names the entry `k` of a line (a column or a row).
-fn turn_lines(
-    m: &mut Array2<f64>,
-    p: usize,
-    q: usize,
-    cs: (f64, f64),
-    at: impl Fn(usize, usize) -> [usize; 2],
-) {
-    for k in 0..m.nrows() {
-        let (x, y) = turn(cs.0, cs.1, m[at(k, p)], m[at(k, q)]);
-        m[at(k, p)] = x;
-        m[at(k, q)] = y;
-    }
-}
-
-/// The cosine and sine of the rotation that zeroes the off-diagonal
-/// entry `apq` between diagonal entries `app` and `aqq`.
-fn rotation(app: f64, aqq: f64, apq: f64) -> (f64, f64) {
-    let theta = (aqq - app) / (2.0 * apq);
-    // `signum(0.0)` is 1, so a zero theta rotates by 45 degrees.
-    let t = theta.signum() / (theta.abs() + theta.mul_add(theta, 1.0).sqrt());
-    let c = 1.0 / t.mul_add(t, 1.0).sqrt();
-    (c, t * c)
-}
-
-/// The pair `(x, y)` turned by the rotation `(c, s)`.
-fn turn(c: f64, s: f64, x: f64, y: f64) -> (f64, f64) {
-    (c.mul_add(x, -s * y), s.mul_add(x, c * y))
 }
 
 /// The 2-norm condition number of a symmetric positive-definite matrix:
@@ -235,5 +168,40 @@ mod tests {
         let values = symmetric_eigenvalues(&a).unwrap();
         assert!((values.iter().sum::<f64>() - 12.0).abs() < 1e-10);
         assert!(values.windows(2).all(|w| w[0] <= w[1]));
+    }
+
+    #[test]
+    fn a_hundred_assets_take_milliseconds_with_exact_values() {
+        // 0.5 I + 0.01 J: eigenvalue 0.5 ninety-nine times, and
+        // 0.5 + 100 x 0.01 = 1.5 once.
+        let n = 100;
+        let a = Array2::from_shape_fn((n, n), |(i, j)| if i == j { 0.51 } else { 0.01 });
+        let values = symmetric_eigenvalues(&a).unwrap();
+        assert!(values[..n - 1].iter().all(|v| (v - 0.5).abs() < 1e-12), "{values:?}");
+        assert!((values[n - 1] - 1.5).abs() < 1e-12);
+        assert!((condition_number(&a).unwrap() - 3.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn a_wide_shrunk_covariance_takes_milliseconds() {
+        // 30 days of 100 noisy assets, shrunk by Ledoit-Wolf: the shape on
+        // which the Jacobi sweeps this replaced never met their stopping
+        // rule and ran all 100 sweeps (66 s for 500 assets).
+        let mut state: u64 = 0x9e37_79b9_7f4a_7c15;
+        let returns = Array2::from_shape_fn((30, 100), |_| {
+            state = state.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+            (f64::from((state >> 33) as u32) / f64::from(u32::MAX) - 0.5) * 0.02
+        });
+        let covariance = crate::covariance::CovarianceEstimator::LedoitWolf
+            .estimate(&returns)
+            .unwrap()
+            .covariance;
+        let start = std::time::Instant::now();
+        let values = symmetric_eigenvalues(&covariance).unwrap();
+        let took = start.elapsed();
+        assert!(took < std::time::Duration::from_secs(1), "took {took:?}");
+        let trace: f64 = (0..100).map(|i| covariance[[i, i]]).sum();
+        assert!((values.iter().sum::<f64>() - trace).abs() < 1e-12 * trace.max(1.0));
+        assert!(values[0] > 0.0 && values.windows(2).all(|w| w[0] <= w[1]));
     }
 }
