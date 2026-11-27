@@ -11,13 +11,14 @@
 //! | `NALUFX_CONCURRENCY` | `64` | Requests handled at once; the rest wait. |
 //! | `NALUFX_LLM_PROVIDER`, `NALUFX_LLM_MODEL` | unset | The provider and model for `/v1/report`; without them it answers 503. |
 //! | `NALUFX_LLM_MAX_TOKENS` | `2048` | The report's token limit. |
-//! | `NALUFX_LOG_FORMAT` | `json` | `json` lines or `text`; the level comes from `RUST_LOG`. |
+//! | `NALUFX_LOG_FORMAT` | `json` | `json` lines or `text` (logfmt); the level comes from `RUST_LOG`. |
+//! | `NALUFX_LOG_SINK` | `stdout` | `stdout`, or `native` for journald (Linux) or os_log (macOS). |
 //! | `NALUFX_AUDIT_LOG` | unset | A file to append one JSON line to per allocation and report; unset, no audit log. |
 //!
 //! Keys are stored only as hashes. Hash one with
 //! `printf %s "$KEY" | sha256sum`.
 
-use crate::telemetry::LogFormat;
+use crate::telemetry::{LogFormat, LogSink};
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -60,6 +61,8 @@ pub struct ApiConfig {
     pub llm: Option<LlmSettings>,
     /// How log lines are written.
     pub log_format: LogFormat,
+    /// Where log lines go.
+    pub log_sink: LogSink,
     /// The audit log's file, if there is one.
     pub audit_log: Option<PathBuf>,
 }
@@ -79,6 +82,7 @@ impl ApiConfig {
             concurrency: 64,
             llm: None,
             log_format: LogFormat::Json,
+            log_sink: LogSink::Stdout,
             audit_log: None,
         }
     }
@@ -124,6 +128,9 @@ impl ApiConfig {
     fn read_operations(&mut self, get: &impl Fn(&str) -> Option<String>) -> Result<(), String> {
         if let Some(format) = get("NALUFX_LOG_FORMAT") {
             self.log_format = format.parse()?;
+        }
+        if let Some(sink) = get("NALUFX_LOG_SINK") {
+            self.log_sink = sink.parse()?;
         }
         self.audit_log = get("NALUFX_AUDIT_LOG").map(PathBuf::from);
         Ok(())
@@ -231,6 +238,7 @@ mod tests {
             ("NALUFX_LLM_MODEL", "claude-sonnet-5-5"),
             ("NALUFX_LLM_MAX_TOKENS", "512"),
             ("NALUFX_LOG_FORMAT", "text"),
+            ("NALUFX_LOG_SINK", "native"),
             ("NALUFX_AUDIT_LOG", "/var/log/nalufx/audit.jsonl"),
         ])
         .unwrap();
@@ -240,6 +248,7 @@ mod tests {
         assert_eq!((c.rate_per_minute, c.report_rate_per_minute, c.concurrency), (100, 5, 8));
         assert_eq!(c.llm.unwrap().max_tokens, 512);
         assert_eq!(c.log_format, LogFormat::Text);
+        assert_eq!(c.log_sink, LogSink::Native);
         assert_eq!(c.audit_log, Some(PathBuf::from("/var/log/nalufx/audit.jsonl")));
     }
 

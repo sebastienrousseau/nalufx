@@ -41,7 +41,8 @@ Everything comes from the environment.
 | `NALUFX_CONCURRENCY` | `64` | Requests handled at once; the rest wait. |
 | `NALUFX_LLM_PROVIDER`, `NALUFX_LLM_MODEL` | unset | The provider and model for `/v1/report`; without them it answers 503. |
 | `NALUFX_LLM_MAX_TOKENS` | `2048` | The report's token limit. |
-| `NALUFX_LOG_FORMAT` | `json` | `json` lines, or `text` for a terminal. |
+| `NALUFX_LOG_FORMAT` | `json` | `json` lines, or `text` (logfmt) for a terminal. |
+| `NALUFX_LOG_SINK` | `stdout` | `stdout`, or `native` for journald (Linux) or os_log (macOS). |
 | `RUST_LOG` | `info` | The log level, such as `warn` or `nalufx_api=debug`. |
 | `NALUFX_AUDIT_LOG` | unset | A file to append the audit log to; unset, there is none. |
 
@@ -65,14 +66,14 @@ allowance.
 ## Read the logs
 
 Logs are written by RustLogs (`rlg`): one JSON object per event
-(`NALUFX_LOG_FORMAT=text` gives logfmt). On Linux they go to journald
-when the host has it (`journalctl`), and to standard output otherwise,
-as in most containers; set `RLG_FALLBACK_STDOUT=1` to force standard
-output.
+(`NALUFX_LOG_FORMAT=text` gives logfmt), on standard output. With
+`NALUFX_LOG_SINK=native` they go to the host's log instead: journald on
+Linux (`journalctl`), os_log on macOS.
 
 Each line has `Level`, `Timestamp`, `Component` and `Description` (the
-message), and under `Attributes` the fields of the request it belongs
-to: `request_id` (the `x-request-id` the client sent, or one the server
+message), and under `Attributes` the line of code that wrote it
+(`caller`, such as `nalufx-api/src/routes.rs:212`) and the fields of the
+request it belongs to: `request_id` (the `x-request-id` the client sent, or one the server
 made), `key_id`, `method`, `route`, `status`, `latency_ms`, plus
 `span_path` (such as `request/allocate`), `trace_id` and `span_id`.
 Every request ends with an `answered` line. A client quoting the
@@ -101,6 +102,11 @@ beside the server and let it handle TLS to the backend.
 | `OTEL_EXPORTER_OTLP_HEADERS` | `key=value` pairs, comma-separated, such as an auth header. |
 | `OTEL_SERVICE_NAME` | The service name; `nalufx-api` by default. |
 | `OTEL_SDK_DISABLED` | `true` turns export off. |
+
+A request that carries a W3C `traceparent` header joins the caller's
+trace: its spans and log lines take the caller's trace id, with the
+caller's span as parent. A malformed header is ignored and the request
+starts a new trace.
 
 Each request is a `request` span (kind server, status error on a 5xx)
 with child spans `forecast`, `allocate` or `report`, and `llm.attempt`

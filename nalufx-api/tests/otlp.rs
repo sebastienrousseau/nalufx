@@ -101,3 +101,52 @@ fn no_endpoint_means_no_exporter_and_https_is_refused() {
     };
     assert!(span_exporter(https).is_err(), "rlg-otlp sends plain http to a local collector");
 }
+
+/// Sends one allocation with these headers through a fresh collector and
+/// returns the exported `request` span.
+async fn request_span_with(headers: &[(&str, &str)]) -> Value {
+    let collector = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/traces"))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&collector)
+        .await;
+    let uri = collector.uri();
+    let exporter =
+        span_exporter(|name| (name == "OTEL_EXPORTER_OTLP_ENDPOINT").then(|| uri.clone()))
+            .unwrap()
+            .unwrap();
+    let subscriber =
+        tracing_subscriber::registry().with(layer(LogFormat::Json, Some(&exporter)).unwrap());
+    let _guard = tracing::subscriber::set_default(subscriber);
+    let rows: Vec<Vec<f64>> = (0..20).map(|i| vec![0.01 * f64::from(i).sin(), 0.02]).collect();
+    let body = json!({ "assets": ["A", "B"], "returns": rows, "method": "equal_weight" });
+    let mut request = Request::post("/v1/allocate")
+        .header(header::AUTHORIZATION, format!("Bearer {KEY}"))
+        .header(header::CONTENT_TYPE, "application/json");
+    for (name, value) in headers {
+        request = request.header(*name, *value);
+    }
+    let service = app(AppState::new(ApiConfig::with_keys(vec![hash_key(KEY)]), None));
+    let r = service.oneshot(request.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    assert_eq!(r.status(), StatusCode::OK);
+    // The request span closes when the response is dropped.
+    drop(r);
+    assert!(exporter.flush(Duration::from_secs(5)));
+    let (spans, _) = received_spans(&collector).await;
+    spans.into_iter().find(|s| s["name"] == "request").expect("a request span")
+}
+
+#[tokio::test]
+async fn a_traceparent_joins_the_callers_trace() {
+    const TRACE: &str = "4bf92f3577b34da6a3ce929d0e0e4736";
+    const PARENT: &str = "00f067aa0ba902b7";
+    let joined = request_span_with(&[("traceparent", &format!("00-{TRACE}-{PARENT}-01"))]).await;
+    assert_eq!(joined["traceId"], TRACE);
+    assert_eq!(joined["parentSpanId"], PARENT);
+    assert!(attribute(&joined, "traceparent").is_none(), "the header is not an attribute");
+
+    let fresh = request_span_with(&[("traceparent", "00-not-a-valid-header-01")]).await;
+    assert_ne!(fresh["traceId"], TRACE);
+    assert!(fresh["parentSpanId"].as_str().is_none_or(str::is_empty), "a new root span");
+}

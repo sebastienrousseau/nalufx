@@ -9,8 +9,8 @@
 //! with `NALUFX_LOG_FORMAT=text`, at `RUST_LOG`'s level (default
 //! `info`). Every line carries the fields of the spans it sits in, so
 //! each one has the request's id, key id and route, plus `trace_id` and
-//! `span_id`. rlg writes to journald when the host has it, and to
-//! standard output otherwise (or with `RLG_FALLBACK_STDOUT=1`). Before a
+//! `span_id`. They go to standard output, or with `NALUFX_LOG_SINK=native`
+//! to the host's log (journald on Linux, os_log on macOS). Before a
 //! line or a span leaves the process, rlg-redact scrubs card numbers,
 //! JWTs, bearer tokens, emails, IPv4 addresses, AWS key ids and
 //! language model provider keys from it, a second line of defence.
@@ -36,6 +36,29 @@ use tracing_subscriber::util::SubscriberInitExt;
 /// Language model provider keys (OpenAI-style `sk-`, Anthropic's
 /// `sk-ant-`), which rlg-redact's defaults do not cover.
 const PROVIDER_KEY: &str = r"\bsk-(?:ant-)?[A-Za-z0-9_-]{20,}\b";
+
+/// Where log lines go.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum LogSink {
+    /// Standard output, for a container or a log shipper.
+    #[default]
+    Stdout,
+    /// The host's log: journald on Linux (standard output if it has
+    /// none), os_log on macOS.
+    Native,
+}
+
+impl std::str::FromStr for LogSink {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "stdout" => Ok(Self::Stdout),
+            "native" => Ok(Self::Native),
+            other => Err(format!("NALUFX_LOG_SINK must be stdout or native, not `{other}`")),
+        }
+    }
+}
 
 /// How log lines are written.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -69,10 +92,16 @@ pub fn key_id(hash: &[u8; 32]) -> String {
 
 /// The span a request runs in. The key id, status and latency are filled
 /// in as they become known.
+///
+/// A W3C `traceparent` header joins the caller's trace: the span takes
+/// its trace id, with the caller's span as parent. A malformed one is
+/// ignored and the request starts a new trace.
 pub fn request_span<B>(request: &Request<B>) -> Span {
-    let id = request.headers().get(REQUEST_ID).and_then(|v| v.to_str().ok()).unwrap_or("");
+    let header = |name: &str| request.headers().get(name).and_then(|v| v.to_str().ok());
+    let id = header(REQUEST_ID).unwrap_or("");
     tracing::info_span!(
         "request",
+        traceparent = header("traceparent"),
         method = %request.method(),
         route = route(request.uri().path()),
         request_id = id,
@@ -148,14 +177,27 @@ pub fn span_exporter(get: impl Fn(&str) -> Option<String>) -> Result<Option<Span
         .transpose()
 }
 
-/// Installs the global subscriber: rlg lines in `format` at `RUST_LOG`'s
-/// level, and span export if the OpenTelemetry variables ask for it.
+/// Points rlg at `sink`. It must run before anything reaches rlg's
+/// engine, which picks its sink once; [`LogSink::Native`] is rlg's own
+/// choice, so nothing is set for it.
+fn choose_sink(sink: LogSink) -> Result<(), String> {
+    match sink {
+        LogSink::Native => Ok(()),
+        LogSink::Stdout => rlg::engine::set_sink(rlg::sink::PlatformSink::Stdout)
+            .map_err(|_| "logging could not start: rlg's sink was already chosen".to_string()),
+    }
+}
+
+/// Installs the global subscriber: rlg lines in `format`, to `sink`, at
+/// `RUST_LOG`'s level, and span export if the OpenTelemetry variables
+/// ask for it.
 ///
 /// # Errors
 ///
 /// If the exporter cannot be built, or a subscriber is already
 /// installed.
-pub fn init(format: LogFormat) -> Result<Telemetry, String> {
+pub fn init(format: LogFormat, sink: LogSink) -> Result<Telemetry, String> {
+    choose_sink(sink)?;
     let spans = span_exporter(|name| std::env::var(name).ok())?;
     let filter = tracing_subscriber::EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
@@ -185,6 +227,9 @@ mod tests {
         assert_eq!("json".parse::<LogFormat>(), Ok(LogFormat::Json));
         assert_eq!("text".parse::<LogFormat>(), Ok(LogFormat::Text));
         assert!("xml".parse::<LogFormat>().is_err());
+        assert_eq!("native".parse::<LogSink>(), Ok(LogSink::Native));
+        assert!("file".parse::<LogSink>().is_err());
+        assert_eq!(LogSink::default(), LogSink::Stdout);
         assert_eq!(LogFormat::default(), LogFormat::Json);
     }
 }

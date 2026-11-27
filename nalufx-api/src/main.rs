@@ -20,7 +20,7 @@ async fn main() -> ExitCode {
             return ExitCode::FAILURE;
         },
     };
-    let telemetry = match nalufx_api::telemetry::init(config.log_format) {
+    let telemetry = match nalufx_api::telemetry::init(config.log_format, config.log_sink) {
         Ok(telemetry) => telemetry,
         Err(e) => {
             eprintln!("nalufx-api: {e}");
