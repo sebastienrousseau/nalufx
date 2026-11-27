@@ -292,10 +292,33 @@ pub fn llm_problem(err: LlmError) -> Problem {
         | LlmError::ParseResponse { .. }
         | LlmError::Schema { .. } => (StatusCode::BAD_GATEWAY, None),
     };
-    let problem = Problem::new(status, err.to_string());
+    tracing::warn!(provider = err.provider(), status = status.as_u16(), "language model failed");
+    let problem = Problem::new(status, public_detail(&err));
     match retry {
         Some(seconds) => problem.retry_after(seconds),
         None => problem,
+    }
+}
+
+/// What a client may read about a provider error: the provider and the
+/// kind of failure, never the provider's body or message (they can name
+/// the operator's account or echo the prompt) nor the server's settings.
+/// An input error describes the caller's own request, so it stays whole.
+fn public_detail(err: &LlmError) -> String {
+    match err {
+        LlmError::Input(_) => err.to_string(),
+        LlmError::Status { provider, status, .. } => format!("{provider} returned HTTP {status}"),
+        LlmError::Transport { provider, timeout: true, .. } => format!("{provider} timed out"),
+        LlmError::Transport { provider, .. } => format!("{provider} could not be reached"),
+        LlmError::ParseResponse { provider, .. } => {
+            format!("{provider} replied in an unexpected format")
+        },
+        LlmError::Schema { provider, .. } => {
+            format!("{provider}'s reply did not match the report schema")
+        },
+        LlmError::MissingApiKey { .. } | LlmError::Config(_) => {
+            "the language model is not available".to_string()
+        },
     }
 }
 
@@ -327,6 +350,31 @@ mod tests {
         assert_eq!(llm_problem(schema).status, 502);
         assert_eq!(llm_problem(LlmError::Config(String::new())).status, 503);
         assert_eq!(llm_problem(LlmError::Input(String::new())).status, 400);
+    }
+
+    #[test]
+    fn a_problem_never_carries_what_the_provider_sent() {
+        let private = "org-7Hq2 quota exceeded; your prompt was: secret";
+        let errors = [
+            LlmError::Status {
+                provider: "p",
+                status: 500,
+                retry_after: None,
+                body: private.into(),
+            },
+            LlmError::Transport { provider: "p", message: private.into(), timeout: false },
+            LlmError::ParseResponse { provider: "p", message: private.into() },
+            LlmError::Schema { provider: "p", schema: "s", message: private.into() },
+            LlmError::Config(private.into()),
+            LlmError::MissingApiKey { provider: "p", variable: "P_SECRET_KEY_VAR" },
+        ];
+        for err in errors {
+            let detail = llm_problem(err).detail;
+            assert!(!detail.contains("org-7Hq2") && !detail.contains("secret"), "{detail}");
+            assert!(!detail.contains("P_SECRET_KEY_VAR"), "{detail}");
+        }
+        let input = llm_problem(LlmError::Input("context has 3000 characters".into()));
+        assert!(input.detail.contains("3000 characters"), "the caller's own input error stays");
     }
 
     #[test]
