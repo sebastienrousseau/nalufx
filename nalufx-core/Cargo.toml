@@ -24,8 +24,8 @@ homepage.workspace = true # The homepage URL is defined in the workspace.
 
 [dependencies]
 # Dependencies for the package.
-nalufx-engine = { path = "../nalufx-engine", version = "0.0.5" }
-nalufx-llms = { path = "../nalufx-llms" , version = "0.0.5" }
+nalufx-engine = { path = "../nalufx-engine", version = "0.0.6" }
+nalufx-llms = { path = "../nalufx-llms" , version = "0.0.6" }
 
 bytes = "1.12"
 http-body-util = "0.1"

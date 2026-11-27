@@ -1488,21 +1488,21 @@ dependencies = [
 
 [[package]]
 name = "nalufx-api"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "version_check",
 ]
 
 [[package]]
 name = "nalufx-cli"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "version_check",
 ]
 
 [[package]]
 name = "nalufx-core"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "async-trait",
  "bytes",
@@ -1534,7 +1534,7 @@ dependencies = [
 
 [[package]]
 name = "nalufx-engine"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "augurs-core",
  "augurs-ets",
@@ -1550,7 +1550,7 @@ dependencies = [
 
 [[package]]
 name = "nalufx-llms"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "async-trait",
  "criterion",

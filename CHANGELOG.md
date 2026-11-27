@@ -5,6 +5,87 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.6] - 2026-11-27
+
+The maths moves into a new pure crate, `nalufx-engine`, and the interim
+near-equal weights give way to constrained optimisers across assets,
+each tested against a walk-forward backtest baseline.
+
+### Added
+
+- **nalufx-engine**, with no I/O and no async runtime: forecasting,
+  covariance, allocation, backtesting, screening and clustering.
+- **Allocation methods** behind one `Allocator` trait, picked by name
+  (`by_name`), each long-only with a budget of 1, a per-asset cap and an
+  optional floor, and each `Allocation` recording its method,
+  parameters and diagnostics (solver status, iterations, condition
+  number, shrinkage, whether it was projected onto the bounds):
+  - `equal_weight`, the baseline.
+  - `min_variance` and `mean_variance` (risk aversion as a parameter),
+    quadratic programmes solved with clarabel 0.11.
+  - `risk_parity`, equal risk contribution by Newton's method on the
+    convex log-barrier formulation.
+  - `hrp`, hierarchical risk parity (single linkage on correlation
+    distance, recursive bisection), with no matrix inversion.
+  Risk parity and HRP have no native form for bounds, so their weights
+  are projected onto them (the nearest feasible weights) when they
+  break one, and the diagnostics say so.
+- **Covariance**: sample, or Ledoit-Wolf shrinkage towards a scaled
+  identity (the default), with the intensity scikit-learn computes.
+- **Backtests** (`backtest::run`): walk-forward on a trailing lookback,
+  rebalancing on a schedule, net of a cost in basis points, reporting
+  annualised return, volatility, Sharpe, maximum drawdown and turnover.
+- **Seasonal forecasts** (`forecast_seasonal`): MSTL with an AutoETS
+  trend, for cash flows with weekly, monthly or other cycles.
+- **Screening** (`screening::screen`) of assets by a caller-supplied
+  score, such as an ESG rating.
+- `POST /predict` takes `assets`, a `returns` matrix, `method`,
+  `risk_aversion`, `constraints`, `estimator` and `seasonal_periods`,
+  and answers with the forecast and an `allocation`.
+- Tests: property tests (10,000 cases) that every method's weights are
+  within the bounds and sum to 1 within 1e-9, and are bit-identical on
+  a second run; known answers (variances 1 and 4 give minimum-variance
+  weights 0.8 and 0.2; risk parity's contributions are equal within
+  1e-6); infeasible bounds give a typed error, never weights; a golden
+  backtest report per method on a 5-asset, 500-day synthetic fixture.
+- A CI performance budget: a 20-asset, 250-day allocation under 50 ms
+  at p95, for every method (measured: under 0.4 ms), and criterion
+  benchmarks.
+
+### Breaking
+
+- `/predict` allocates across assets instead of across the days of one
+  series: `daily_returns` is replaced by `assets` and `returns`, and the
+  response's `optimal_allocation` by `allocation`.
+- The 0.0.5 single-series allocator is `nalufx_engine::horizon::allocate_over_horizon`;
+  `nalufx::utils::calculations::calculate_optimal_allocation` still
+  names it, and the other moved items keep their `nalufx` paths, until
+  v0.1.0.
+
+### Changed
+
+- The mean-variance, risk parity and ESG examples call the library: the
+  mean-variance example used to return equal weights from a
+  placeholder, and the ESG example gave every fund a made-up rating of
+  4.5. The ESG example now takes your scores.
+- `fetch_data_svc::fetch_returns` and `processing_svc::align_returns`
+  build a returns matrix from several tickers.
+- The README's feature list and examples match the methods that exist;
+  its Rust examples run as doc tests.
+
+### Notes
+
+- On the fixture, mean-variance (risk aversion 10) has a lower Sharpe
+  ratio than equal weight (1.49 against 1.52): estimated means are
+  noisy. Minimum variance (2.63), risk parity (2.19) and HRP (2.07)
+  beat it.
+
+### Dependencies
+
+- clarabel 0.11.1 and augurs-mstl 0.10.3 (new); augurs-core and
+  augurs-ets 0.10.3; criterion 0.8.2 for benchmarks. ndarray-stats,
+  which nothing uses now, is removed.
+
 ## [0.0.5] - 2026-11-27
 
 Every number NaluFX returns is now computed or an explicit error: the
