@@ -250,11 +250,16 @@ jobs:
           echo "${PROMETHEUS_SHA256}  $RUNNER_TEMP/$archive" | sha256sum -c -
           tar xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" "prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool"
 
+      # --lint=duplicates: promtool still parses every line and rejects
+      # duplicate series, but skips its help-text lint, which expects the
+      # classic format. In OpenMetrics a counter's HELP names the family
+      # (http_requests) while its samples are http_requests_total, so
+      # that lint reports "no help text" for help that is there.
       - name: promtool check metrics
         run: |
           set -euo pipefail
           test -s "$RUNNER_TEMP/metrics.txt"
-          "$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check metrics < "$RUNNER_TEMP/metrics.txt"
+          "$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check metrics --lint=duplicates < "$RUNNER_TEMP/metrics.txt"
 
       - name: promtool check rules
         run: '"$RUNNER_TEMP/prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" check rules docs/alerts.yml'
