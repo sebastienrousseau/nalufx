@@ -1,0 +1,92 @@
+[package]
+# Not published to crates.io until every category of the 10/10 plan
+# meets its gate.
+publish = false
+name = "nalufx-engine"
+description = "Deterministic forecasting, covariance estimation, portfolio allocation and backtesting for NaluFX. Pure maths: no I/O, no async runtime."
+categories = ["finance", "mathematics"]
+include = ["src/**/*", "README.md"]
+authors.workspace = true
+edition.workspace = true
+exclude.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[lib]
+name = "nalufx_engine"
+path = "src/lib.rs"
+
+[dependencies]
+# Provides the `Fit` and `Predict` traits AutoETS and MSTL implement.
+augurs-core = "0.10.2"
+augurs-ets = { version = "0.10.2", features = ["mstl"] }
+augurs-mstl = "0.10.2"
+# Interior-point solver for the mean-variance quadratic programmes.
+# Default features are only serde; the sdp/BLAS ones stay off. (With
+# default features off, 0.11.1 does not build: it names serde_json
+# outside its serde feature.)
+clarabel = "0.11"
+ndarray = "0.17.2"
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.120"
+thiserror = "2.0.11"
+
+[dev-dependencies]
+criterion = { version = "0.8", default-features = false }
+proptest = { version = "1", default-features = false, features = ["std"] }
+
+[[bench]]
+name = "allocate"
+harness = false
+
+[lints.rust]
+# Linting configuration.
+## Warn
+missing_copy_implementations = "warn"
+missing_docs = "warn"
+unstable_features = "warn"
+unused_extern_crates = "warn"
+unused_results = "warn"
+
+## Allow
+bare_trait_objects = "allow"
+elided_lifetimes_in_paths = "allow"
+non_camel_case_types = "allow"
+non_upper_case_globals = "allow"
+trivial_bounds = "allow"
+unsafe_code = "allow"
+
+## Forbid
+missing_debug_implementations = "forbid"
+non_ascii_idents = "forbid"
+unreachable_pub = "forbid"
+
+## Deny
+dead_code = "deny"
+deprecated_in_future = "deny"
+ellipsis_inclusive_range_patterns = "deny"
+explicit_outlives_requirements = "deny"
+future_incompatible = { level = "deny", priority = -1 }
+keyword_idents = "deny"
+macro_use_extern_crate = "deny"
+meta_variable_misuse = "deny"
+# `missing_fragment_specifier` was removed as a lint — it is a hard
+# error now — so denying it only produces a `renamed_and_removed_lints`
+# warning on every build. The behaviour it asked for is unconditional.
+noop_method_call = "deny"
+rust_2018_idioms = { level = "deny", priority = -1 }
+rust_2021_compatibility = { level = "deny", priority = -1 }
+single_use_lifetimes = "deny"
+trivial_casts = "deny"
+trivial_numeric_casts = "deny"
+unused = { level = "deny", priority = -1 }
+unused_features = "deny"
+unused_import_braces = "deny"
+unused_labels = "deny"
+unused_lifetimes = "deny"
+unused_macro_rules = "deny"
+unused_qualifications = "deny"
+variant_size_differences = "deny"

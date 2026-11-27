@@ -45,8 +45,20 @@ mod tests {
         (0..n).map(|i| 1000.0 + 25.0 * (i as f64 * 0.7).sin() + i as f64).collect()
     }
 
-    fn returns(n: usize) -> Vec<f64> {
-        (0..n).map(|i| 0.01 * (i as f64 * 1.3).sin()).collect()
+    /// Three assets' returns over `n` days: a calm one, a volatile one and
+    /// one between.
+    fn returns(n: usize) -> Vec<Vec<f64>> {
+        (0..n)
+            .map(|i| {
+                let x = i as f64;
+                vec![0.001 * (x * 0.7).sin(), 0.02 * (x * 1.3).cos(), 0.008 * (x * 0.4).sin()]
+            })
+            .collect()
+    }
+
+    /// A request body with the three assets.
+    fn body(historical_data: Vec<f64>, returns: Vec<Vec<f64>>) -> serde_json::Value {
+        json!({ "historical_data": historical_data, "assets": ["BONDS", "STOCKS", "CREDIT"], "returns": returns })
     }
 
     async fn post_predict(body: serde_json::Value) -> reqwest::Response {
@@ -66,9 +78,7 @@ mod tests {
 
     #[tokio::test]
     async fn a_valid_request_gets_a_forecast_with_its_interval_and_an_allocation() {
-        let response =
-            post_predict(json!({ "historical_data": history(60), "daily_returns": returns(60) }))
-                .await;
+        let response = post_predict(body(history(60), returns(60))).await;
         assert_eq!(response.status(), 200);
         let body: CashFlowResponse = response.json().await.expect("should be a CashFlowResponse");
         assert_eq!(body.forecast.level, 0.95);
@@ -78,16 +88,21 @@ mod tests {
                 (body.forecast.lower[day], body.forecast.point[day], body.forecast.upper[day]);
             assert!(lo <= p && p <= hi, "day {day}: {lo} <= {p} <= {hi}");
         }
-        assert_eq!(body.optimal_allocation.len(), 6);
-        assert!(body.optimal_allocation.iter().all(|w| *w >= 0.0));
-        assert!((body.optimal_allocation.iter().sum::<f64>() - 1.0).abs() < 1e-9);
+        let a = &body.allocation;
+        assert_eq!(a.method, "min_variance");
+        assert_eq!(a.assets, vec!["BONDS", "STOCKS", "CREDIT"]);
+        assert!(a.weights.iter().all(|w| *w >= 0.0));
+        assert!((a.weights.iter().sum::<f64>() - 1.0).abs() < 1e-9);
+        // The calmest asset gets the most under minimum variance.
+        assert!(a.weights[0] > a.weights[1], "{:?}", a.weights);
+        assert_eq!(a.params["estimator"], "ledoit_wolf");
         // The old handler replaced a short forecast with six zeros.
         assert_ne!(body.forecast.point, vec![0.0; 6]);
     }
 
     #[tokio::test]
     async fn the_same_request_gets_the_same_bytes() {
-        let body = json!({ "historical_data": history(60), "daily_returns": returns(60) });
+        let body = body(history(60), returns(60));
         let first = post_predict(body.clone()).await.bytes().await.expect("body");
         let second = post_predict(body).await.bytes().await.expect("body");
         assert_eq!(first, second);
@@ -95,8 +110,7 @@ mod tests {
 
     #[tokio::test]
     async fn empty_historical_data_is_a_bad_request_problem() {
-        let response =
-            post_predict(json!({ "historical_data": [], "daily_returns": returns(60) })).await;
+        let response = post_predict(body(vec![], returns(60))).await;
         assert_eq!(response.status(), 400);
         let body = problem(response).await;
         assert_eq!(body.status, 400);
@@ -105,13 +119,38 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn a_series_that_cannot_be_weighted_is_unprocessable() {
-        let response = post_predict(
-            json!({ "historical_data": history(60), "daily_returns": vec![0.01; 60] }),
-        )
-        .await;
+    async fn bounds_no_weights_can_meet_are_unprocessable() {
+        let mut request = body(history(60), returns(60));
+        request["constraints"] = json!({ "max_weight": 0.3 });
+        let response = post_predict(request).await;
         assert_eq!(response.status(), 422);
-        assert_eq!(problem(response).await.status, 422);
+        assert!(problem(response).await.detail.starts_with("The constraints cannot be satisfied"));
+    }
+
+    #[tokio::test]
+    async fn every_method_answers_by_name() {
+        for method in ["equal_weight", "min_variance", "mean_variance", "risk_parity", "hrp"] {
+            let mut request = body(history(60), returns(60));
+            request["method"] = json!(method);
+            let response = post_predict(request).await;
+            assert_eq!(response.status(), 200, "{method}");
+            let body: CashFlowResponse = response.json().await.expect("a CashFlowResponse");
+            assert_eq!(body.allocation.method, method);
+        }
+    }
+
+    #[tokio::test]
+    async fn a_seasonal_request_is_forecast_with_mstl() {
+        let cycle = [0.0, 40.0, 10.0, -20.0, 60.0];
+        let history: Vec<f64> = (0..60).map(|i| 1000.0 + i as f64 + cycle[i % 5]).collect();
+        let mut request = body(history, returns(60));
+        request["seasonal_periods"] = json!([5]);
+        let response = post_predict(request).await;
+        assert_eq!(response.status(), 200);
+        let body: CashFlowResponse = response.json().await.expect("a CashFlowResponse");
+        // Day 61 is position 0 of the cycle; position 4 (day 65) is the peak.
+        let p = &body.forecast.point;
+        assert!(p[4] > p[3] && p[4] > p[0], "{p:?}");
     }
 
     #[tokio::test]

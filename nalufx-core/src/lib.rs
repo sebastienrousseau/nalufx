@@ -53,6 +53,13 @@ pub mod errors;
 /// This module contains the generators for ASCII art.
 pub mod macros;
 
+// The validation and feature macros moved to nalufx-engine in 0.0.6;
+// re-exported so `nalufx::check_empty_inputs!` and the rest still work.
+pub use nalufx_engine::{
+    check_empty_inputs, check_input_lengths, check_invalid_data, check_outliers, extract_features,
+    fill_feature_matrix, handle_result, normalize_features,
+};
+
 /// This module contains data models used throughout the application.
 pub mod models;
 

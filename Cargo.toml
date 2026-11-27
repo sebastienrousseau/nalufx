@@ -1,7 +1,7 @@
 [workspace]
 # Workspace configuration.
 resolver = "2"
-members = ["nalufx-api", "nalufx-cli", "nalufx-core", "nalufx-llms"]
+members = ["nalufx-api", "nalufx-cli", "nalufx-core", "nalufx-engine", "nalufx-llms"]
 
 # default-members = ["nalufx-core", "nalufx-llms"]
 
@@ -63,6 +63,12 @@ opt-level = 3
 opt-level = 3
 
 [profile.test.package.nalgebra]
+opt-level = 3
+
+[profile.test.package.augurs-mstl]
+opt-level = 3
+
+[profile.test.package.clarabel]
 opt-level = 3
 
 [profile.test]

@@ -1,0 +1,17 @@
+{
+  "method": "risk_parity",
+  "params": {},
+  "config": {
+    "lookback": 120,
+    "rebalance_every": 21,
+    "cost_bps": 10.0,
+    "periods_per_year": 252.0
+  },
+  "periods": 380,
+  "rebalances": 19,
+  "annualised_return": 0.11836097377546428,
+  "annualised_volatility": 0.05176822952393231,
+  "sharpe": 2.187158640362088,
+  "max_drawdown": 0.02525109704881401,
+  "annual_turnover": 1.0514151150576827
+}

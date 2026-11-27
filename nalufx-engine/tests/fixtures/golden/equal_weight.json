@@ -1,0 +1,17 @@
+{
+  "method": "equal_weight",
+  "params": {},
+  "config": {
+    "lookback": 120,
+    "rebalance_every": 21,
+    "cost_bps": 10.0,
+    "periods_per_year": 252.0
+  },
+  "periods": 380,
+  "rebalances": 19,
+  "annualised_return": 0.13991878929307866,
+  "annualised_volatility": 0.0885473823095657,
+  "sharpe": 1.523493806365159,
+  "max_drawdown": 0.04928639144658886,
+  "annual_turnover": 1.0260370888013572
+}

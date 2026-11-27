@@ -1,4 +1,6 @@
 use crate::models::forecast_dm::IntervalForecast;
+use nalufx_engine::allocate::{Allocation, Constraints};
+use nalufx_engine::covariance::CovarianceEstimator;
 use serde::{Deserialize, Serialize};
 
 /// Represents a request to predict cash flow based on historical data.
@@ -35,30 +37,14 @@ pub struct CashFlowRequest {
 /// # Fields
 ///
 /// * `forecast` - The cash flow forecast with its 95% prediction interval.
-/// * `optimal_allocation` - One weight per forecast day, each at least 0,
-///   summing to 1 (inverse volatility of the daily-return forecast).
-///
-/// # Examples
-///
-/// ```
-/// use nalufx::models::{cash_flow_dm::CashFlowResponse, forecast_dm::IntervalForecast};
-///
-/// let response = CashFlowResponse {
-///     forecast: IntervalForecast {
-///         level: 0.95,
-///         point: vec![1.0, 2.0],
-///         lower: vec![0.5, 1.2],
-///         upper: vec![1.5, 2.8],
-///     },
-///     optimal_allocation: vec![0.6, 0.4],
-/// };
-/// ```
+/// * `allocation` - The weights across the assets, with the method, its
+///   parameters and the solver's diagnostics.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CashFlowResponse {
     /// The cash flow forecast with its prediction interval.
     pub forecast: IntervalForecast,
-    /// One weight per forecast day, summing to 1.
-    pub optimal_allocation: Vec<f64>,
+    /// The allocation across the assets.
+    pub allocation: Allocation,
 }
 
 /// An error response body in the RFC 9457 problem details format,
@@ -102,12 +88,40 @@ pub struct ProblemDetails {
 /// # Fields
 ///
 /// * `historical_data` - The cash flow history to forecast, oldest first.
-/// * `daily_returns` - The daily returns the allocation is weighted by,
-///   oldest first.
+/// * `seasonal_periods` - Cycle lengths in the cash flows, such as `[5]`
+///   for a weekly business-day cycle; empty (the default) for none.
+/// * `assets` - The names of the assets to allocate across.
+/// * `returns` - One row per period, oldest first, with one return per asset.
+/// * `method` - The allocation method; `min_variance` by default.
+/// * `risk_aversion` - For `mean_variance` only.
+/// * `constraints` - The weight bounds; no cap and no floor by default.
+/// * `estimator` - The covariance estimator; `ledoit_wolf` by default.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PredictCashFlowRequest {
     /// The cash flow history to forecast, oldest first.
     pub historical_data: Vec<f64>,
-    /// The daily returns the allocation is weighted by, oldest first.
-    pub daily_returns: Vec<f64>,
+    /// Cycle lengths in the cash flows; empty for none.
+    #[serde(default)]
+    pub seasonal_periods: Vec<usize>,
+    /// The names of the assets to allocate across.
+    pub assets: Vec<String>,
+    /// One row per period, oldest first, with one return per asset.
+    pub returns: Vec<Vec<f64>>,
+    /// The allocation method.
+    #[serde(default = "default_method")]
+    pub method: String,
+    /// The risk aversion, for `mean_variance` only.
+    #[serde(default)]
+    pub risk_aversion: Option<f64>,
+    /// The weight bounds.
+    #[serde(default)]
+    pub constraints: Constraints,
+    /// The covariance estimator.
+    #[serde(default)]
+    pub estimator: CovarianceEstimator,
+}
+
+/// The method `/predict` uses when none is named.
+fn default_method() -> String {
+    "min_variance".to_string()
 }
