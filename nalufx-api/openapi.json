@@ -13,6 +13,27 @@
     "version": "0.0.8"
   },
   "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "routes"
+        ],
+        "summary": "Points at the contract and the health routes.",
+        "operationId": "index",
+        "responses": {
+          "200": {
+            "description": "Where the contract and the health routes are",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Index"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/healthz": {
       "get": {
         "tags": [
@@ -29,6 +50,23 @@
                   "$ref": "#/components/schemas/Health"
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "tags": [
+          "routes"
+        ],
+        "summary": "The OpenAPI 3.1 contract, as committed.",
+        "operationId": "openapi_json",
+        "responses": {
+          "200": {
+            "description": "The OpenAPI 3.1 document",
+            "content": {
+              "application/json": {}
             }
           }
         }
@@ -561,6 +599,39 @@
           "status": {
             "type": "string",
             "description": "`ok`."
+          }
+        }
+      },
+      "Index": {
+        "type": "object",
+        "description": "What `GET /` answers: where to find the contract and the health\nroutes.",
+        "required": [
+          "service",
+          "version",
+          "openapi",
+          "healthz",
+          "readyz"
+        ],
+        "properties": {
+          "healthz": {
+            "type": "string",
+            "description": "Answers while the process is up."
+          },
+          "openapi": {
+            "type": "string",
+            "description": "The OpenAPI 3.1 contract."
+          },
+          "readyz": {
+            "type": "string",
+            "description": "Answers when the server is ready to take requests."
+          },
+          "service": {
+            "type": "string",
+            "description": "`nalufx-api`."
+          },
+          "version": {
+            "type": "string",
+            "description": "The server's version."
           }
         }
       },

@@ -34,6 +34,9 @@ tested middleware instead of a hand-rolled hyper loop.
   `nalufx-api/openapi.json`; a test fails when they differ, and CI runs
   Schemathesis 4.33.4 against it on a release build (with a stub
   language model) and fails on any 5xx.
+- `GET /openapi.json` serves the committed contract, and `GET /` points
+  at it and at the health routes; both are open, like `/healthz` and
+  `/readyz`.
 - **Problem details**: every non-2xx body is `application/problem+json`
   with a stable `type` under `https://nalufx.com/problems/` and the
   `request_id`, including the responses middleware and axum's

@@ -374,3 +374,28 @@ async fn a_compressed_error_keeps_its_detail() {
     let p: Problem = serde_json::from_str(&text).unwrap();
     assert!(p.detail.contains("/v1/allocate"), "{}", p.detail);
 }
+
+#[tokio::test]
+async fn the_index_and_the_contract_need_no_key() {
+    let r = service(config(), None)
+        .oneshot(Request::get("/").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(r.status(), StatusCode::OK);
+    let index = body(r).await;
+    assert_eq!(
+        (index["openapi"].as_str(), index["healthz"].as_str(), index["readyz"].as_str()),
+        (Some("/openapi.json"), Some("/healthz"), Some("/readyz"))
+    );
+    assert_eq!(index["version"], env!("CARGO_PKG_VERSION"));
+
+    let r = service(config(), None)
+        .oneshot(Request::get("/openapi.json").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(r.status(), StatusCode::OK);
+    assert_eq!(r.headers()[header::CONTENT_TYPE], "application/json");
+    let served = to_bytes(r.into_body(), 4 << 20).await.unwrap();
+    let committed = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/openapi.json")).unwrap();
+    assert_eq!(served.as_ref(), committed.as_slice(), "the committed file, byte for byte");
+}

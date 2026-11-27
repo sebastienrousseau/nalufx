@@ -72,6 +72,44 @@ pub struct Health {
     pub status: String,
 }
 
+/// What `GET /` answers: where to find the contract and the health
+/// routes.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+pub struct Index {
+    /// `nalufx-api`.
+    pub service: String,
+    /// The server's version.
+    pub version: String,
+    /// The OpenAPI 3.1 contract.
+    pub openapi: String,
+    /// Answers while the process is up.
+    pub healthz: String,
+    /// Answers when the server is ready to take requests.
+    pub readyz: String,
+}
+
+/// The committed `openapi.json`, as served at `GET /openapi.json`. A test
+/// keeps it equal to the spec the code generates.
+pub const OPENAPI_JSON: &str = include_str!("../openapi.json");
+
+/// Points at the contract and the health routes.
+#[utoipa::path(get, path = "/", responses((status = 200, description = "Where the contract and the health routes are", body = Index)))]
+pub async fn index() -> Json<Index> {
+    Json(Index {
+        service: "nalufx-api".to_string(),
+        version: env!("CARGO_PKG_VERSION").to_string(),
+        openapi: "/openapi.json".to_string(),
+        healthz: "/healthz".to_string(),
+        readyz: "/readyz".to_string(),
+    })
+}
+
+/// The OpenAPI 3.1 contract, as committed.
+#[utoipa::path(get, path = "/openapi.json", responses((status = 200, description = "The OpenAPI 3.1 document", content_type = "application/json")))]
+pub async fn openapi_json() -> Response {
+    ([(header::CONTENT_TYPE, "application/json")], OPENAPI_JSON).into_response()
+}
+
 /// Forecasts a series with its 95% prediction interval.
 #[utoipa::path(post, path = "/v1/forecast", request_body = ForecastRequest, security(("api_key" = [])),
     responses(

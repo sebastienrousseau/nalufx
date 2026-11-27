@@ -5,7 +5,7 @@
 //! a reviewed change.
 
 use crate::problem::Problem;
-use crate::routes::{self, AllocateRequest, ForecastRequest, Health};
+use crate::routes::{self, AllocateRequest, ForecastRequest, Health, Index};
 use nalufx_engine::allocate::{Allocation, Constraints, Diagnostics};
 use nalufx_engine::covariance::CovarianceEstimator;
 use nalufx_engine::forecast::IntervalForecast;
@@ -19,9 +19,9 @@ use utoipa::{Modify, OpenApi};
 #[derive(Clone, Copy, Debug, OpenApi)]
 #[openapi(
     info(title = "NaluFX API", description = "Deterministic forecasting and allocation, and schema-checked narrative reports. Research and analysis only; not investment advice."),
-    paths(routes::forecast, routes::allocate, routes::report, routes::healthz, routes::readyz, routes::predict_gone),
+    paths(routes::index, routes::openapi_json, routes::forecast, routes::allocate, routes::report, routes::healthz, routes::readyz, routes::predict_gone),
     components(schemas(
-        ForecastRequest, AllocateRequest, Health, Problem, IntervalForecast, Allocation, Diagnostics,
+        Index, ForecastRequest, AllocateRequest, Health, Problem, IntervalForecast, Allocation, Diagnostics,
         Constraints, CovarianceEstimator, ReportInput, Report, AllocationReport, PromptId, TokenUsage
     )),
     modifiers(&BearerKey)

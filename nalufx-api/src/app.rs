@@ -49,8 +49,9 @@ impl AppState {
     }
 }
 
-/// The application: `/healthz` and `/readyz` open, everything else behind
-/// an API key, all of it behind the middleware stack.
+/// The application: `/`, `/openapi.json`, `/healthz` and `/readyz` open,
+/// everything else behind an API key, all of it behind the middleware
+/// stack.
 ///
 /// The stack, outermost first: request id (`x-request-id`, generated if
 /// absent), compression, problem details for every error, tracing,
@@ -64,6 +65,8 @@ pub fn app(state: AppState) -> Router {
         .route("/v1/report", post(routes::report))
         .route_layer(from_fn_with_state(state.clone(), authenticate));
     let open = Router::new()
+        .route("/", get(routes::index))
+        .route("/openapi.json", get(routes::openapi_json))
         .route("/healthz", get(routes::healthz))
         .route("/readyz", get(routes::readyz))
         .route("/predict", post(routes::predict_gone));
