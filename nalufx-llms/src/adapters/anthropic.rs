@@ -79,6 +79,10 @@ impl LlmProvider for Anthropic {
         &self.config.model
     }
 
+    fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
     async fn complete(&self, request: &ChatRequest) -> Result<ChatResponse, LlmError> {
         let url = format!("{}/v1/messages", self.base_url.trim_end_matches('/'));
         let headers = [("x-api-key", self.api_key.as_str()), ("anthropic-version", API_VERSION)];

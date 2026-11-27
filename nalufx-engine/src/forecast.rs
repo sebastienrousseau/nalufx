@@ -32,6 +32,7 @@ pub const FORECAST_LEVEL: f64 = 0.95;
 /// assert_eq!(forecast.widths(), vec![1.2 - 0.8, 1.35 - 0.85]);
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct IntervalForecast {
     /// The probability the interval covers, such as `0.95`.
     pub level: f64,

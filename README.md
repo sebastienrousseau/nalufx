@@ -25,7 +25,7 @@ A Rust library and HTTP service that forecasts fund cash flows and allocates cas
 - **Backtests:** walk-forward, rebalancing on a schedule, net of a cost in basis points, reporting annualised return, volatility, Sharpe, maximum drawdown and turnover.
 - **Cash flow forecasting:** AutoETS (via [augurs][10]) for a plain series, or MSTL for weekly, monthly or other cycles; every forecast carries its 95% prediction interval.
 - **Screening:** keep the assets whose score (an ESG rating you supply, for example) meets a threshold. NaluFX has no rating data of its own.
-- **HTTP API:** `POST /predict` returns the forecast and an allocation by the method you name; errors are RFC 9457 problem details (`application/problem+json`).
+- **HTTP API** (`nalufx-api`, on axum and tower): `POST /v1/forecast`, `POST /v1/allocate` and `POST /v1/report` behind bearer API keys (stored as SHA-256 hashes, compared in constant time) and per-key rate limits, with open `GET /`, `GET /openapi.json`, `GET /healthz` and `GET /readyz`. A 30 s timeout, a concurrency limit, a 1 MiB body limit, compression, CORS denied by default, graceful shutdown on SIGTERM, and RFC 9457 problem details with a stable type URI and the request id on every error. The contract is OpenAPI 3.1, generated from the code and committed as [`nalufx-api/openapi.json`](nalufx-api/openapi.json).
 - **Deterministic throughout:** the same input gives the same output, bit for bit, and anything that cannot be computed is an explicit error. A 20-asset, 250-day allocation takes well under a millisecond.
 - **Narrative reports** (`nalufx-llms`): one `LlmProvider` trait with native Anthropic (Messages API) and Gemini (`generateContent`) adapters and one OpenAI-compatible adapter for OpenAI, Mistral, Ollama, Agy and Llama servers. The model is always yours to name; there is no default. Requests share one client with 5 s connect and 60 s request timeouts, and a timeout, `429` or `5xx` is retried up to 3 times with exponential backoff and jitter, honouring `Retry-After`. The model is given the computed figures and a JSON Schema, writes words only, and a reply that does not match the schema is an error, never text. Prompts are versioned templates in `nalufx-llms/prompts/`, and every report records the prompt, provider and model that wrote it.
 
@@ -35,13 +35,13 @@ NaluFX is not on crates.io yet. Depend on it from Git:
 
 ```toml
 [dependencies]
-nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.7", package = "nalufx-core" }
+nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.8", package = "nalufx-core" }
 ```
 
-Or install the HTTP service:
+Or install the HTTP server:
 
 ```shell
-cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.7 nalufx-core
+cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.8 nalufx-api
 ```
 
 ### Requirements
@@ -113,9 +113,17 @@ println!("{} (prompt {} v{}, {})", report.report.summary, report.prompt.name, re
 
 ### The HTTP API
 
+Start the server with at least one API key, stored as its SHA-256 hash:
+
 ```shell
-curl -s localhost:8080/predict -H 'content-type: application/json' -d '{
-  "historical_data": [1000, 1012, 1009, 1021, 1030, 1026, 1041, 1038, 1050, 1047],
+export NALUFX_API_KEY_SHA256="$(printf %s "$MY_KEY" | sha256sum | cut -d' ' -f1)"
+nalufx-api   # listens on 127.0.0.1:8080; NALUFX_ADDR changes it
+```
+
+Then call it with the key:
+
+```shell
+curl -s localhost:8080/v1/allocate -H "authorization: Bearer $MY_KEY" -H 'content-type: application/json' -d '{
   "assets": ["BONDS", "STOCKS"],
   "returns": [[0.001, 0.012], [0.002, -0.010], [-0.001, 0.015], [0.001, -0.004], [0.000, 0.008], [0.001, -0.006]],
   "method": "risk_parity",
@@ -123,7 +131,18 @@ curl -s localhost:8080/predict -H 'content-type: application/json' -d '{
 }'
 ```
 
-A success is `200` with `{"forecast": {"level", "point", "lower", "upper"}, "allocation": {"assets", "weights", "method", "params", "diagnostics"}}`. `method` is one of `equal_weight`, `min_variance` (the default), `mean_variance` (with an optional `risk_aversion`), `risk_parity` and `hrp`; `estimator` is `ledoit_wolf` (the default) or `sample`; add `"seasonal_periods": [5]` to forecast a weekly cycle with MSTL. Input that cannot be used (empty, NaN, a ragged returns matrix, an unknown method) is `400`; valid input that cannot be forecast or solved (bounds no weights can meet, for example) is `422`.
+| Route | Key | Body | Answer |
+| --- | --- | --- | --- |
+| `POST /v1/forecast` | yes | `history`, optional `horizon_days` (1 to 366, default 6) and `seasonal_periods` | The point forecast with its 95% interval |
+| `POST /v1/allocate` | yes | `assets`, `returns` (one row per period), optional `method`, `risk_aversion`, `constraints`, `estimator` | The weights, method, parameters and diagnostics |
+| `POST /v1/report` | yes | `portfolio`, `facts` (the computed figures), `context` | A schema-checked narrative, with its prompt, provider and model |
+| `GET /` | no | | Where the contract and the health routes are |
+| `GET /openapi.json` | no | | The OpenAPI 3.1 contract (the committed `nalufx-api/openapi.json`) |
+| `GET /healthz` | no | | `200` while the process is up |
+| `GET /readyz` | no | | `200` when the configuration is loaded and the language model's endpoint answers |
+| `POST /predict` | no | | `410 Gone`, pointing at `/v1/allocate`; removed in 0.0.9 |
+
+`method` is `equal_weight`, `min_variance` (the default), `mean_variance`, `risk_parity` or `hrp`. Every error is `application/problem+json` with a `type` under `https://nalufx.com/problems/` and the `request_id`: `400` for unusable input, `401` without a valid key, `408` past the timeout, `413` over 1 MiB, `422` when the maths has no answer (bounds no weights can meet, for example), `429` over a key's rate with `Retry-After`, and `502`/`503`/`504` when the language model fails. `/v1/report` needs `NALUFX_LLM_PROVIDER` and `NALUFX_LLM_MODEL` (and the provider's key); without them it answers `503`. Every setting is listed in the `nalufx_api::config` documentation.
 
 ## Examples
 

@@ -8,8 +8,7 @@
 //!
 //! - Cash flow forecasts with a 95% prediction interval (AutoETS)
 //! - Inverse-volatility allocation across the forecast horizon
-//! - An HTTP API whose errors are RFC 9457 problem details
-//! - Configuration settings for customizing the behaviour of the library
+//! - The HTTP API is the `nalufx-api` crate
 //! - Error handling and custom error types
 //! - Data models for representing cash flow requests and responses
 //! - Service layer with business logic for fetching data and performing calculations
@@ -27,7 +26,6 @@
 //! Then, you can use the modules and functions provided by the library in your code:
 //!
 //! ```rust
-//! use nalufx::api::handlers::predict_cash_flow;
 //! use nalufx::services::fetch_data_svc::fetch_data;
 //! use nalufx::utils::calculations::calculate_optimal_allocation;
 //! ```
@@ -40,12 +38,6 @@
 )]
 #![crate_name = "nalufx"]
 #![crate_type = "lib"]
-
-/// This module contains the API handlers and related functionality.
-pub mod api;
-
-/// This module contains the configuration settings and related functionality.
-pub mod config;
 
 /// This module contains error definitions and handling functionality.
 pub mod errors;

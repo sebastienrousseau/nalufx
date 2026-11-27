@@ -82,6 +82,10 @@ impl LlmProvider for Gemini {
         &self.config.model
     }
 
+    fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
     async fn complete(&self, request: &ChatRequest) -> Result<ChatResponse, LlmError> {
         let url = format!(
             "{}/v1beta/models/{}:generateContent",

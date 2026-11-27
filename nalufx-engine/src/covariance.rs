@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 /// How the covariance matrix is estimated.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub enum CovarianceEstimator {
     /// The unbiased sample covariance, normalised by `T - 1`.
     Sample,

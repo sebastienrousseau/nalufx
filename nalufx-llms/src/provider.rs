@@ -14,6 +14,9 @@ pub trait LlmProvider: Send + Sync {
     /// The model the provider is configured with.
     fn model(&self) -> &str;
 
+    /// The endpoint requests go to; a readiness check probes it.
+    fn base_url(&self) -> &str;
+
     /// Sends one request and returns the model's reply.
     ///
     /// # Errors
@@ -69,6 +72,7 @@ impl ChatRequest {
 
 /// Tokens a request used, as the provider counted them.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct TokenUsage {
     /// Tokens in the request.
     pub input_tokens: u32,

@@ -21,6 +21,7 @@ const MAX_ITEMS: usize = 8;
 /// A narrative report about an allocation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct AllocationReport {
     /// Two to four sentences on what the allocation does.
     pub summary: String,
@@ -55,10 +56,12 @@ impl AllocationReport {
 
 /// What a report is written from.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct ReportInput {
     /// The portfolio's name.
     pub portfolio: String,
     /// The computed figures (weights, method, backtest statistics), as JSON.
+    #[cfg_attr(feature = "openapi", schema(value_type = Object))]
     pub facts: serde_json::Value,
     /// The investor's stated values and objectives, in their words.
     pub context: String,
@@ -66,6 +69,7 @@ pub struct ReportInput {
 
 /// A validated report and how it was produced.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct Report {
     /// The report.
     pub report: AllocationReport,
