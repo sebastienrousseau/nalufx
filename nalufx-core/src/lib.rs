@@ -68,3 +68,9 @@ pub mod services;
 
 /// This module contains utility functions and helpers.
 pub mod utils;
+
+/// The README's Rust examples, compiled and run as doc tests so they
+/// cannot drift from the code.
+#[cfg(doctest)]
+#[doc = include_str!("../../README.md")]
+struct ReadmeExamples;

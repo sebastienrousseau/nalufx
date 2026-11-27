@@ -26,10 +26,12 @@ use nalufx::{
         ticker::validate_ticker,
     },
 };
-use nalufx_llms::error::LlmError;
-use nalufx_llms::llms::openai::{get_openai_api_key, send_openai_request};
-use nalufx_llms::models::openai_dm::OpenAIResponse;
-use serde_json::json;
+use nalufx_llms::{
+    error::LlmError,
+    http::Http,
+    provider::{ChatRequest, ClientConfig, LlmConfig, LlmProvider},
+    registry::from_env,
+};
 
 /// Calculates the relative strength index (RSI) for the given data and window size.
 ///
@@ -203,6 +205,7 @@ struct TechnicalIndicators<'a> {
 }
 
 async fn generate_technical_analysis_report(
+    provider: &dyn LlmProvider,
     indicators: TechnicalIndicators<'_>,
 ) -> Result<String, LlmError> {
     let TechnicalIndicators {
@@ -216,25 +219,8 @@ async fn generate_technical_analysis_report(
         resistance_levels,
     } = indicators;
 
-    let client = reqwest::Client::new();
-    let api_key = match get_openai_api_key() {
-        Ok(key) => key,
-        Err(err) => {
-            eprintln!("{}", err);
-            return Err(err);
-        },
-    };
-
-    let request_body = json!({
-        "model": "gpt-3.5-turbo",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are a highly skilled financial analyst working for a reputable investment firm. Your task is to generate a comprehensive technical analysis report for a portfolio of stocks. The report should be written in a professional tone, similar to reports published by Bloomberg or other leading financial institutions. Provide detailed data-driven insights, quantitative analysis, and actionable recommendations. Please use the following structure:"
-            },
-            {
-                "role": "user",
-                "content": format!(
+    let system = "You are a highly skilled financial analyst working for a reputable investment firm. Your task is to generate a comprehensive technical analysis report for a portfolio of stocks. The report should be written in a professional tone, similar to reports published by Bloomberg or other leading financial institutions. Provide detailed data-driven insights, quantitative analysis, and actionable recommendations. Please use the following structure:";
+    let user = format!(
                     "
 1. **Executive Summary:** Provide a concise summary of the key findings and recommendations.
 
@@ -271,32 +257,9 @@ async fn generate_technical_analysis_report(
 
 Please ensure that the report is well-structured, easy to understand, and adheres to industry-standard formatting and terminology.
                 ", closing_prices, ema, rsi, macd, macd_signal, macd_histogram, support_levels, resistance_levels
-                )
-            }
-        ],
-        "max_tokens": 1500,
-    });
-
-    let openai_url = "https://api.openai.com/v1/chat/completions";
-    let response = match send_openai_request(&client, openai_url, &api_key, request_body).await {
-        Ok(response) => response,
-        Err(err) => return Err(err),
-    };
-
-    let openai_response: OpenAIResponse = serde_json::from_str(&response).map_err(|err| {
-        eprintln!("Error parsing response JSON: {:?}", err);
-        LlmError::parse("openai", err)
-    })?;
-
-    let generated_text = openai_response
-        .choices
-        .first()
-        .map(|choice| choice.message.content.clone())
-        // A 200 with no choices is transient rather than malformed, so it
-        // maps to a retryable request error rather than a parse error.
-        .ok_or_else(|| LlmError::request("openai", "response contained no choices"))?;
-
-    Ok(generated_text)
+                );
+    let request = ChatRequest::user(Some(system), user);
+    Ok(provider.complete(&request).await?.text)
 }
 
 /// The main function that drives the execution of the technical analysis report generation.
@@ -320,6 +283,15 @@ Please ensure that the report is well-structured, easy to understand, and adhere
 /// A `Result` indicating whether the execution was successful or not. If successful, returns `Ok(())`, otherwise returns an error wrapped in a `Box<dyn std::error::Error>`.
 #[tokio::main]
 pub(crate) async fn main() -> Result<(), NaluFxError> {
+    let provider_name = get_input(
+        "Enter the provider (anthropic, gemini, openai, mistral, ollama, agy, openai_compatible):",
+    )?;
+    let model = get_input("Enter the model name at that provider:")?;
+    let provider = from_env(
+        &provider_name,
+        LlmConfig::new(model, 2048)?,
+        Http::new(ClientConfig::default())?,
+    )?;
     // Get user input for ticker, initial investment amount, start date, and end date
     let ticker_input = get_input("Enter the ticker symbol for a bellwether stock:")?;
     let ticker = match validate_ticker(&ticker_input) {
@@ -375,16 +347,19 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
         identify_support_resistance(&closing_prices, support_resistance_window);
 
     // Generate the professional technical analysis report
-    let report = match generate_technical_analysis_report(TechnicalIndicators {
-        closing_prices: &closing_prices,
-        ema: &ema,
-        rsi: &rsi,
-        macd: &macd,
-        macd_signal: &macd_signal,
-        macd_histogram: &macd_histogram,
-        support_levels: &support_levels,
-        resistance_levels: &resistance_levels,
-    })
+    let report = match generate_technical_analysis_report(
+        provider.as_ref(),
+        TechnicalIndicators {
+            closing_prices: &closing_prices,
+            ema: &ema,
+            rsi: &rsi,
+            macd: &macd,
+            macd_signal: &macd_signal,
+            macd_histogram: &macd_histogram,
+            support_levels: &support_levels,
+            resistance_levels: &resistance_levels,
+        },
+    )
     .await
     {
         Ok(report) => report,

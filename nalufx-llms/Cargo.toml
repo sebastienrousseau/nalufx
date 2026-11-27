@@ -5,10 +5,10 @@ publish = false
 # Metadata about the package.
 name = "nalufx-llms" # The name of the package.
 categories = ["web-programming"] # Categories for the package.
-description = "" # A short description of the package.
+description = "One provider trait, native Anthropic and Gemini adapters and an OpenAI-compatible one, with retries and schema-checked reports, for NaluFX." # A short description of the package.
 edition = "2021" # The edition of the Rust language to use.
 keywords=["llms","claude","gemini","agy","llama","mistral","ollama","openai"]
-include = ["src/**/*", "README.md"] # Files to include when publishing the package.
+include = ["src/**/*", "prompts/**/*", "README.md"] # Files to include when publishing the package.
 
 # The following metadata is inherited from the workspace.
 authors.workspace = true # Authors are defined in the workspace.
@@ -30,29 +30,24 @@ path = "src/lib.rs" # The path to the library file.
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-thiserror = "2.0"
-# Dependencies for the package.
 async-trait = "0.1.80"
 dotenvy = "0.15.7"
 log = "0.4.21"
 reqwest = { version = "0.13.4", features = ["json"] }
+# Generates the JSON Schema a structured reply is asked to match.
+schemars = "1.2"
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
+thiserror = "2.0"
+# The wait between retries.
+tokio = { version = "1.44", features = ["time"] }
 
 [build-dependencies]
-# Dependencies for build scripts.
 version_check = "0.9.4"
 
 [dev-dependencies]
-# Dependencies for development and testing.
-lazy_static = "1.4.0"
+tokio = { version = "1.44", features = ["macros", "rt-multi-thread", "sync", "time"] }
 wiremock = "0.6.0"
-tokio = { version = "1.44", features = ["macros", "rt-multi-thread"] }
-criterion = { version = "0.8", features = ["html_reports"] }
-
-[[bench]]
-name = "agy"
-harness = false
 
 [features]
 # Optional features for the package.

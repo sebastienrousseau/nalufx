@@ -5,6 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.7] - 2026-11-27
+
+nalufx-llms is rebuilt around one provider trait: seven copy-pasted
+OpenAI-shaped modules give way to native Anthropic and Gemini adapters
+and one OpenAI-compatible adapter, with timeouts, retries and
+schema-checked reports. Language models write words only.
+
+### Added
+
+- `LlmProvider::complete(&ChatRequest) -> Result<ChatResponse, LlmError>`,
+  with `ChatResponse { text, usage, model, provider }`.
+- Adapters: `Anthropic` (Messages API: `x-api-key`, `anthropic-version`,
+  `content[].text`), `Gemini` (`generateContent`: `x-goog-api-key`,
+  `candidates[].content.parts[].text`), and `OpenAiCompatible` with
+  presets for OpenAI, Mistral, Ollama and Agy, or any base URL (vLLM,
+  llama.cpp).
+- `LlmConfig`: the model, token limit and temperature are the caller's.
+  There is no default model in the library.
+- One shared client (`http::Http`) with 5 s connect and 60 s request
+  timeouts; a timeout, transport failure, `429` or `5xx` is retried up
+  to 3 attempts with exponential backoff and jitter, honouring
+  `Retry-After`. A `4xx` or a malformed body is not retried.
+- `registry::from_env(name, config, http)`, which builds a provider by
+  name with its key from the environment or `.env`, and an optional
+  `NALUFX_LLM_BASE_URL` override.
+- Prompts as versioned templates in `nalufx-llms/prompts/`; every
+  report records its prompt's name and version.
+- `report::generate`: the model gets the computed figures and a JSON
+  Schema generated with schemars from `AllocationReport`, and its reply
+  must deserialise into that type exactly (no missing or unknown
+  fields) and pass its checks, or it is an `LlmError::Schema`.
+- Tests: a contract suite per adapter against recorded replies served by
+  wiremock (request headers and body, success, a 429 with Retry-After,
+  a 500 retried three times, a 400 not retried, a timeout, a malformed
+  body, a reply with no text); the M3 exit gate, a valid report through
+  each adapter kind and a schema error for an off-schema reply; and a
+  nightly, opt-in `llm-live` workflow that calls the real providers
+  when their keys and models are set as repository secrets. No other
+  test reaches a provider.
+- CI coverage gate for nalufx-llms at 90% of lines (measured: 98%).
+
+### Breaking
+
+- The `LLM` trait (returning `serde_json::Value` and `reqwest::Error`),
+  the `send_*_request`, `parse_*_response` and `get_*_api_key`
+  functions and the `models` module are removed; use `LlmProvider`,
+  an adapter or `registry::from_env`.
+- `automated_cash_allocation_svc::generate_analysis` and
+  `bellwether_stock_analysis_svc::generate_analysis` take
+  `&dyn LlmProvider` and return `NaluFxError` (now with `Llm` and
+  `Allocation` variants) instead of `Box<dyn Error>`; the first returns
+  a validated `Report`.
+- `LlmError` has new variants (`Transport`, `Status`, `Schema`,
+  `Config`) and `Request` is gone.
+
+### Fixed
+
+- The "claude" and "gemini" adapters sent OpenAI-shaped requests with a
+  bearer token and read `choices[0]`, which neither API returns.
+- Reports read `["choices"][0]["message"]["content"]` and became an
+  empty string when it was missing.
+- The prompt and the model (`gpt-3.5-turbo`, `max_tokens: 100`) were
+  hard-coded.
+
 ## [0.0.6] - 2026-11-27
 
 The maths moves into a new pure crate, `nalufx-engine`, and the interim

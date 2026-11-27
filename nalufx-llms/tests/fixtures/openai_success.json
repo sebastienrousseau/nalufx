@@ -1,0 +1,14 @@
+{
+  "id": "chatcmpl-B9MBs8CjcvOU2jLn4n570S5qMJKcT",
+  "object": "chat.completion",
+  "created": 1795737600,
+  "model": "gpt-5.1",
+  "choices": [
+    {
+      "index": 0,
+      "message": { "role": "assistant", "content": "The allocation leans on bonds." },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": { "prompt_tokens": 412, "completion_tokens": 37, "total_tokens": 449 }
+}

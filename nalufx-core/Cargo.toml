@@ -24,8 +24,8 @@ homepage.workspace = true # The homepage URL is defined in the workspace.
 
 [dependencies]
 # Dependencies for the package.
-nalufx-engine = { path = "../nalufx-engine", version = "0.0.6" }
-nalufx-llms = { path = "../nalufx-llms" , version = "0.0.6" }
+nalufx-engine = { path = "../nalufx-engine", version = "0.0.7" }
+nalufx-llms = { path = "../nalufx-llms" , version = "0.0.7" }
 
 bytes = "1.12"
 http-body-util = "0.1"
@@ -56,11 +56,9 @@ version_check = "0.9.4"
 
 [dev-dependencies]
 # Dependencies for development and testing.
-lazy_static = "1.4.0"
 # Property tests for the allocation invariants (determinism, long-only,
 # weights summing to 1).
 proptest = { version = "1", default-features = false, features = ["std"] }
-wiremock = "0.6.0"
 # Uncomment if you use Criterion for benchmarking.
 # criterion = "0.5.1"
 

@@ -1,105 +1,167 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Errors produced by the LLM adapters.
+//! Errors produced by the LLM providers.
 //!
-//! These are deliberately transport-agnostic. The adapters previously
-//! returned `actix_web::HttpResponse`, which meant a library crate
-//! decided the HTTP status of a failure and could not be used outside
-//! an actix application at all. Mapping a domain error to a response is
-//! the caller's job, and lives in `nalufx-core`.
+//! They are transport-agnostic: mapping one to an HTTP status is the
+//! caller's job, and lives in `nalufx-core`. Every variant is `Send` and
+//! `Sync`, so an error can cross an `await` or a thread.
 
+use std::time::Duration;
 use thiserror::Error;
 
-/// A failure while talking to, or interpreting a response from, an LLM.
-#[derive(Debug, Error)]
+/// Why a completion could not be produced.
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum LlmError {
-    /// The response body was not valid JSON, or did not match the shape
-    /// this provider is documented to return.
-    #[error("could not parse the {provider} response: {source}")]
-    ParseResponse {
-        /// Provider whose response failed to parse.
+    /// The provider's API key is not set.
+    #[error("missing API key for {provider}: set {variable}")]
+    MissingApiKey {
+        /// The provider.
         provider: &'static str,
-        /// The underlying `serde_json` failure.
-        #[source]
-        source: serde_json::Error,
+        /// The environment variable that holds it.
+        variable: &'static str,
     },
 
-    /// The request never reached the provider, or the transport failed.
+    /// The request never got an HTTP response: a connection failure or a
+    /// timeout.
     #[error("request to {provider} failed: {message}")]
-    Request {
-        /// Provider the request was addressed to.
+    Transport {
+        /// The provider.
         provider: &'static str,
         /// What went wrong.
         message: String,
+        /// Whether it was a timeout.
+        timeout: bool,
     },
 
-    /// A required credential was absent or empty.
-    #[error("missing API key for {provider}")]
-    MissingApiKey {
-        /// Provider whose key is required.
+    /// The provider answered with an error status.
+    #[error("{provider} returned HTTP {status}: {body}")]
+    Status {
+        /// The provider.
         provider: &'static str,
+        /// The HTTP status code.
+        status: u16,
+        /// How long the provider asked the caller to wait (`Retry-After`).
+        retry_after: Option<Duration>,
+        /// The start of the response body, for diagnosis.
+        body: String,
     },
+
+    /// The provider's response is not the shape its API documents.
+    #[error("could not parse the {provider} response: {message}")]
+    ParseResponse {
+        /// The provider.
+        provider: &'static str,
+        /// What did not parse.
+        message: String,
+    },
+
+    /// A structured reply did not match its schema.
+    #[error("the {provider} reply does not match the {schema} schema: {message}")]
+    Schema {
+        /// The provider.
+        provider: &'static str,
+        /// The schema's name.
+        schema: &'static str,
+        /// What did not match.
+        message: String,
+    },
+
+    /// The configuration is not usable (an empty model name, a bad URL).
+    #[error("invalid LLM configuration: {0}")]
+    Config(String),
 }
 
 impl LlmError {
-    /// Builds a [`LlmError::ParseResponse`] for `provider`.
-    pub const fn parse(provider: &'static str, source: serde_json::Error) -> Self {
-        Self::ParseResponse { provider, source }
-    }
-
-    /// Builds a [`LlmError::Request`] for `provider`.
-    pub fn request(provider: &'static str, message: impl Into<String>) -> Self {
-        Self::Request { provider, message: message.into() }
-    }
-
-    /// The provider this error came from.
+    /// The provider the error came from, or `"config"` for a configuration
+    /// error.
     #[must_use]
     pub const fn provider(&self) -> &'static str {
         match self {
-            Self::ParseResponse { provider, .. }
-            | Self::Request { provider, .. }
-            | Self::MissingApiKey { provider } => provider,
+            Self::MissingApiKey { provider, .. }
+            | Self::Transport { provider, .. }
+            | Self::Status { provider, .. }
+            | Self::ParseResponse { provider, .. }
+            | Self::Schema { provider, .. } => provider,
+            Self::Config(_) => "config",
         }
     }
 
-    /// Whether retrying the same call could plausibly succeed.
-    ///
-    /// A transport failure may be transient. A malformed response or a
-    /// missing key will not fix itself.
+    /// Whether trying again may succeed: a transport failure or timeout,
+    /// `429 Too Many Requests`, or a `5xx`. A `4xx`, a parse or schema
+    /// failure, or a missing key will fail the same way again.
     #[must_use]
     pub const fn is_retryable(&self) -> bool {
-        matches!(self, Self::Request { .. })
+        match self {
+            Self::Transport { .. } => true,
+            Self::Status { status, .. } => *status == 429 || *status >= 500,
+            _ => false,
+        }
+    }
+
+    /// How long the provider asked the caller to wait, if it said.
+    #[must_use]
+    pub const fn retry_after(&self) -> Option<Duration> {
+        match self {
+            Self::Status { retry_after, .. } => *retry_after,
+            _ => None,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::LlmError;
+    use super::*;
 
-    fn json_error() -> serde_json::Error {
-        serde_json::from_str::<serde_json::Value>("{").unwrap_err()
+    fn status(status: u16) -> LlmError {
+        LlmError::Status { provider: "anthropic", status, retry_after: None, body: String::new() }
     }
 
     #[test]
-    fn parse_error_names_the_provider() {
-        let e = LlmError::parse("openai", json_error());
-        assert_eq!(e.provider(), "openai");
-        assert!(e.to_string().contains("openai"));
-        assert!(!e.is_retryable());
+    fn rate_limits_server_errors_and_transport_failures_are_retryable() {
+        assert!(status(429).is_retryable());
+        assert!(status(500).is_retryable());
+        assert!(status(503).is_retryable());
+        let transport =
+            LlmError::Transport { provider: "gemini", message: "reset".into(), timeout: false };
+        assert!(transport.is_retryable());
     }
 
     #[test]
-    fn request_error_is_retryable() {
-        let e = LlmError::request("claude", "connection reset");
-        assert_eq!(e.provider(), "claude");
-        assert!(e.is_retryable());
-        assert!(e.to_string().contains("connection reset"));
+    fn client_errors_and_bad_replies_are_not_retryable() {
+        assert!(!status(400).is_retryable());
+        assert!(!status(401).is_retryable());
+        let parse = LlmError::ParseResponse { provider: "openai", message: "eof".into() };
+        let schema = LlmError::Schema { provider: "openai", schema: "report", message: "x".into() };
+        let key = LlmError::MissingApiKey { provider: "openai", variable: "OPENAI_API_KEY" };
+        for e in [parse, schema, key, LlmError::Config("no model".into())] {
+            assert!(!e.is_retryable(), "{e}");
+        }
     }
 
     #[test]
-    fn missing_key_is_not_retryable() {
-        let e = LlmError::MissingApiKey { provider: "gemini" };
-        assert_eq!(e.provider(), "gemini");
-        assert!(!e.is_retryable());
+    fn every_error_names_its_provider() {
+        assert_eq!(status(500).provider(), "anthropic");
+        assert_eq!(LlmError::Config(String::new()).provider(), "config");
+        let key = LlmError::MissingApiKey { provider: "gemini", variable: "GEMINI_API_KEY" };
+        assert_eq!(key.provider(), "gemini");
+        assert!(key.to_string().contains("GEMINI_API_KEY"));
+    }
+
+    #[test]
+    fn retry_after_is_only_on_a_status() {
+        let limited = LlmError::Status {
+            provider: "openai",
+            status: 429,
+            retry_after: Some(Duration::from_secs(2)),
+            body: String::new(),
+        };
+        assert_eq!(limited.retry_after(), Some(Duration::from_secs(2)));
+        assert_eq!(LlmError::Config(String::new()).retry_after(), None);
+    }
+
+    #[test]
+    fn errors_are_send_and_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+        assert_send_sync::<LlmError>();
     }
 }

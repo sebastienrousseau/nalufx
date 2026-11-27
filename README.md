@@ -27,7 +27,7 @@ A Rust library and HTTP service that forecasts fund cash flows and allocates cas
 - **Screening:** keep the assets whose score (an ESG rating you supply, for example) meets a threshold. NaluFX has no rating data of its own.
 - **HTTP API:** `POST /predict` returns the forecast and an allocation by the method you name; errors are RFC 9457 problem details (`application/problem+json`).
 - **Deterministic throughout:** the same input gives the same output, bit for bit, and anything that cannot be computed is an explicit error. A 20-asset, 250-day allocation takes well under a millisecond.
-- **Reports:** example reports that put the computed numbers in front of a language model for commentary. The model writes words only; it never produces a figure NaluFX reports.
+- **Narrative reports** (`nalufx-llms`): one `LlmProvider` trait with native Anthropic (Messages API) and Gemini (`generateContent`) adapters and one OpenAI-compatible adapter for OpenAI, Mistral, Ollama, Agy and Llama servers. The model is always yours to name; there is no default. Requests share one client with 5 s connect and 60 s request timeouts, and a timeout, `429` or `5xx` is retried up to 3 times with exponential backoff and jitter, honouring `Retry-After`. The model is given the computed figures and a JSON Schema, writes words only, and a reply that does not match the schema is an error, never text. Prompts are versioned templates in `nalufx-llms/prompts/`, and every report records the prompt, provider and model that wrote it.
 
 ## Installation
 
@@ -35,13 +35,13 @@ NaluFX is not on crates.io yet. Depend on it from Git:
 
 ```toml
 [dependencies]
-nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.6", package = "nalufx-core" }
+nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.7", package = "nalufx-core" }
 ```
 
 Or install the HTTP service:
 
 ```shell
-cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.6 nalufx-core
+cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.7 nalufx-core
 ```
 
 ### Requirements
@@ -89,6 +89,26 @@ let config = BacktestConfig { lookback: 120, rebalance_every: 21, cost_bps: 10.0
 let report = run(&Hrp, &assets, &returns, Constraints::default(), CovarianceEstimator::LedoitWolf, config)?;
 println!("Sharpe {:.2}, max drawdown {:.1}%", report.sharpe, report.max_drawdown * 100.0);
 # Ok::<(), nalufx_engine::AllocationError>(())
+```
+
+### Writing a report
+
+```rust,no_run
+use nalufx_llms::{http::Http, provider::{ClientConfig, LlmConfig}, registry::from_env};
+use nalufx_llms::report::{generate, ReportInput};
+use serde_json::json;
+
+# async fn run() -> Result<(), nalufx_llms::error::LlmError> {
+// ANTHROPIC_API_KEY comes from the environment or a .env file.
+let provider = from_env("anthropic", LlmConfig::new("claude-sonnet-5-5", 2048)?, Http::new(ClientConfig::default())?)?;
+let report = generate(provider.as_ref(), &ReportInput {
+    portfolio: "Treasury reserve".into(),
+    facts: json!({ "method": "min_variance", "assets": ["BONDS", "STOCKS"], "weights": [0.82, 0.18] }),
+    context: "Preserve capital; spend in six months.".into(),
+}).await?;
+println!("{} (prompt {} v{}, {})", report.report.summary, report.prompt.name, report.prompt.version, report.model);
+# Ok(())
+# }
 ```
 
 ### The HTTP API

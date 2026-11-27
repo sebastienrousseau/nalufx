@@ -1,8 +1,8 @@
-use crate::errors::AllocationError;
+use crate::errors::{AllocationError, NaluFxError};
 use crate::models::allocation_dm::AllocationOrder;
-use crate::utils::currency::format_currency;
-use nalufx_llms::llms::LLM;
-use reqwest::Client;
+use nalufx_llms::provider::LlmProvider;
+use nalufx_llms::report::{self, Report, ReportInput};
+use serde_json::json;
 use std::collections::HashMap;
 
 /// The portfolio and investor inputs a report is generated from.
@@ -31,77 +31,61 @@ pub struct AnalysisRequest<'a> {
     pub real_time_prices: &'a HashMap<String, (f64, f64)>,
 }
 
-/// This function generates a comprehensive analysis report for a given portfolio.
+/// Asks a language model for a narrative report on a portfolio.
+///
+/// The figures (allocations, each asset's start and end price and return,
+/// the dates) are computed here and handed to the model as JSON; the
+/// model writes the narrative only, and its reply must match the
+/// [`AllocationReport`](nalufx_llms::report::AllocationReport) schema.
 ///
 /// # Arguments
 ///
-/// * `llm` - A boxed trait object implementing the LLM trait.
-/// * `client` - A reference to a reqwest::Client instance.
-/// * `api_key` - A reference to a string representing the API key for the LLM service.
+/// * `provider` - The language model that writes the narrative.
 /// * `request` - The portfolio and investor inputs, see [`AnalysisRequest`].
-///
-/// # Returns
-///
-/// * `Result<String, Box<dyn std::error::Error>>` - A Result containing the generated report as a string on success, or an error on failure.
 ///
 /// # Errors
 ///
-/// [`AllocationError::InvalidPrice`] if a start price is zero, negative or
-/// not finite, so its return cannot be computed; or any error from the
-/// model provider.
+/// - [`NaluFxError::Allocation`] wrapping [`AllocationError::InvalidPrice`]
+///   if a start price is zero, negative or not finite.
+/// - [`NaluFxError::Llm`] if the provider fails or its reply does not
+///   match the schema.
 pub async fn generate_analysis(
-    llm: Box<dyn LLM>,
-    client: &Client,
-    api_key: &str,
+    provider: &dyn LlmProvider,
     request: AnalysisRequest<'_>,
-) -> Result<String, Box<dyn std::error::Error>> {
-    let AnalysisRequest {
-        portfolio_name,
-        etf_allocation,
-        mutual_fund_allocation,
-        values_input,
-        financial_objectives_input,
-        start_date,
-        end_date,
-        real_time_prices,
-    } = request;
+) -> Result<Report, NaluFxError> {
+    let input = ReportInput {
+        portfolio: request.portfolio_name.to_string(),
+        facts: facts(&request)?,
+        context: format!(
+            "Values: {}. Objectives: {}.",
+            request.values_input, request.financial_objectives_input
+        ),
+    };
+    Ok(report::generate(provider, &input).await?)
+}
 
-    let allocations_str = etf_allocation
+/// The computed figures the model is given, in a stable order.
+fn facts(request: &AnalysisRequest<'_>) -> Result<serde_json::Value, AllocationError> {
+    let orders = |orders: &[AllocationOrder]| -> Vec<serde_json::Value> {
+        orders
+            .iter()
+            .map(|o| json!({ "symbol": o.symbol, "name": o.name, "amount": o.amount }))
+            .collect()
+    };
+    let mut performance = request
+        .real_time_prices
         .iter()
-        .map(|order| {
-            format!("{}: {} ({})", order.name, format_currency(order.amount), order.symbol)
+        .map(|(symbol, &(start, end))| {
+            Ok(json!({ "symbol": symbol, "start_price": start, "end_price": end, "return_percent": percent_return(start, end)? }))
         })
-        .chain(mutual_fund_allocation.iter().map(|order| {
-            format!("{}: {} ({})", order.name, format_currency(order.amount), order.symbol)
-        }))
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    let performance_str = real_time_prices
-        .iter()
-        .map(|(symbol, &(start_price, end_price))| {
-            Ok(format!(
-                "{}: Start Price: {}, End Price: {}, Return: {:.2}%",
-                symbol,
-                format_currency(start_price),
-                format_currency(end_price),
-                percent_return(start_price, end_price)?
-            ))
-        })
-        .collect::<Result<Vec<_>, AllocationError>>()?
-        .join("\n");
-
-    let prompt = format!(
-        "Portfolio Name: {}\n\nPortfolio Allocations:\n{}\n\nInvestor Values: {}\nFinancial Objectives: {}\nStart Date: {}\nEnd Date: {}\n\nPerformance:\n{}",
-        portfolio_name, allocations_str, values_input, financial_objectives_input, start_date, end_date, performance_str
-    );
-
-    let response = llm.send_request(client, api_key, &prompt, 1500).await?;
-
-    let generated_report =
-        response["choices"][0]["message"]["content"].as_str().unwrap_or("").to_string();
-
-    Ok(generated_report)
+        .collect::<Result<Vec<_>, AllocationError>>()?;
+    performance.sort_by(|a, b| a["symbol"].as_str().cmp(&b["symbol"].as_str()));
+    Ok(json!({
+        "period": { "start": request.start_date, "end": request.end_date },
+        "etf_allocation": orders(request.etf_allocation),
+        "mutual_fund_allocation": orders(request.mutual_fund_allocation),
+        "performance": performance,
+    }))
 }
 
 /// The return from `start` to `end`, in percent.
@@ -124,6 +108,32 @@ mod tests {
     #[test]
     fn percent_return_is_the_change_over_the_start_price() {
         assert_eq!(percent_return(100.0, 110.0), Ok(10.0));
+    }
+
+    #[test]
+    fn the_facts_are_computed_and_sorted_by_symbol() {
+        let prices: HashMap<String, (f64, f64)> =
+            [("VTI".to_string(), (200.0, 210.0)), ("AGG".to_string(), (100.0, 99.0))]
+                .into_iter()
+                .collect();
+        let etfs =
+            [AllocationOrder { symbol: "VTI".into(), name: "Total Market".into(), amount: 600.0 }];
+        let request = AnalysisRequest {
+            portfolio_name: "P",
+            etf_allocation: &etfs,
+            mutual_fund_allocation: &[],
+            values_input: "v",
+            financial_objectives_input: "o",
+            start_date: "2026-01-02",
+            end_date: "2026-06-30",
+            real_time_prices: &prices,
+        };
+        let f = facts(&request).unwrap();
+        assert_eq!(f["performance"][0]["symbol"], "AGG");
+        assert_eq!(f["performance"][0]["return_percent"], -1.0);
+        assert_eq!(f["performance"][1]["return_percent"], 5.0);
+        assert_eq!(f["etf_allocation"][0]["amount"], 600.0);
+        assert_eq!(f["period"]["end"], "2026-06-30");
     }
 
     #[test]

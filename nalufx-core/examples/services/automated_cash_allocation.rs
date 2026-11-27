@@ -21,7 +21,11 @@ use nalufx::{
     services::automated_cash_allocation_svc::{generate_analysis, AnalysisRequest},
     utils::{currency::format_currency, date::validate_date, input::get_input},
 };
-use nalufx_llms::llms::{openai, openai::OpenAI, LLM};
+use nalufx_llms::{
+    http::Http,
+    provider::{ClientConfig, LlmConfig},
+    registry::from_env,
+};
 use reqwest::{header, Client};
 use serde::Serialize;
 use std::{collections::HashMap, io::BufReader};
@@ -35,32 +39,22 @@ struct Report {
     etf_orders: Vec<AllocationOrder>,
     mutual_fund_orders: Vec<AllocationOrder>,
     total_allocation: f64,
-    analysis: String,
+    /// The validated narrative, with the prompt, provider and model that wrote it.
+    analysis: nalufx_llms::report::Report,
 }
 
 /// The main function for the automated cash allocation example.
 #[tokio::main]
 pub(crate) async fn main() -> Result<(), NaluFxError> {
-    // Get user input for LLM choice
-    let llm_choice =
-        get_input("Enter the LLM to use (e.g., openai, claude, gemini, llama, mistral, ollama):")?;
-    let (llm, api_key): (Box<dyn LLM>, String) = match llm_choice.as_str() {
-        "openai" => {
-            let api_key = match openai::get_openai_api_key() {
-                Ok(key) => key,
-                Err(e) => {
-                    eprintln!("Error: {}", e);
-                    return Err(NaluFxError::InvalidData);
-                },
-            };
-            (Box::new(OpenAI), api_key)
-        },
-        // Add other cases for different LLMs with their respective API key functions
-        _ => {
-            eprintln!("Unsupported LLM choice");
-            return Err(NaluFxError::InvalidOption);
-        },
-    };
+    let provider_name = get_input(
+        "Enter the provider (anthropic, gemini, openai, mistral, ollama, agy, openai_compatible):",
+    )?;
+    let model = get_input("Enter the model name at that provider:")?;
+    let provider = from_env(
+        &provider_name,
+        LlmConfig::new(model, 2048)?,
+        Http::new(ClientConfig::default())?,
+    )?;
 
     // Get user input for portfolio name, investor's values, and financial objectives
     let portfolio_name = get_input("Enter the name of the portfolio - (e.g., Growth Portfolio, Balanced Portfolio, Sustainable Future Portfolio):")?;
@@ -108,11 +102,8 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
     update_prices_in_allocations(&mut mutual_fund_allocation, &real_time_prices);
 
     // Step 4: Generate detailed analysis
-    let client = Client::new();
     let analysis = generate_analysis(
-        llm, // Pass the boxed trait object here
-        &client,
-        &api_key,
+        provider.as_ref(),
         AnalysisRequest {
             portfolio_name: &portfolio_name,
             etf_allocation: &etf_allocation,
@@ -124,11 +115,7 @@ pub(crate) async fn main() -> Result<(), NaluFxError> {
             real_time_prices: &real_time_prices,
         },
     )
-    .await
-    .map_err(|e| {
-        eprintln!("Error generating analysis: {}", e);
-        NaluFxError::InvalidData
-    })?;
+    .await?;
 
     // Step 5: Generate report
     let report = generate_allocation_report(&etf_allocation, &mutual_fund_allocation, analysis);
@@ -227,7 +214,7 @@ fn update_prices_in_allocations(
 fn generate_allocation_report(
     etf_allocation: &[AllocationOrder],
     mutual_fund_allocation: &[AllocationOrder],
-    analysis: String,
+    analysis: nalufx_llms::report::Report,
 ) -> Report {
     let total_allocation: f64 =
         etf_allocation.iter().chain(mutual_fund_allocation.iter()).map(|order| order.amount).sum();
@@ -261,7 +248,20 @@ fn print_results(report: &Report) {
             format_currency(order.amount)
         );
     }
-    println!("\n--- Automated Cash Allocation Analysis ---\n\n{}", report.analysis);
+    let a = &report.analysis;
+    println!(
+        "\n--- Automated Cash Allocation Analysis ({} {}, prompt {} v{}) ---\n",
+        a.provider, a.model, a.prompt.name, a.prompt.version
+    );
+    println!("{}\n", a.report.summary);
+    for point in &a.report.rationale {
+        println!("- {point}");
+    }
+    println!("\nRisks:");
+    for risk in &a.report.risks {
+        println!("- {risk}");
+    }
+    println!("\n{}", a.report.disclaimer);
 }
 
 /// Saves the allocation report to a JSON file.

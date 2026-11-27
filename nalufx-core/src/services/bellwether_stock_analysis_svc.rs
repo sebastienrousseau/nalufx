@@ -13,17 +13,15 @@ use crate::{
         date::validate_date,
     },
 };
-use nalufx_llms::llms::LLM;
-use reqwest::Client;
-use time::OffsetDateTime;
+use nalufx_llms::provider::LlmProvider;
+use nalufx_llms::report::{self, AllocationReport, ReportInput};
+use serde_json::json;
 
 /// Generates a report on one stock from its price history.
 ///
 /// # Arguments
 ///
-/// * `llm` - The language model that writes the commentary.
-/// * `client` - The HTTP client used to reach the model provider.
-/// * `api_key` - The API key for the model provider.
+/// * `provider` - The language model that writes the commentary.
 /// * `ticker` - The ticker symbol of the stock to analyse.
 /// * `initial_investment` - The amount the allocation is applied to.
 /// * `start_date` - The start of the price history, "YYYY-MM-DD".
@@ -33,11 +31,10 @@ use time::OffsetDateTime;
 ///
 /// - [`NaluFxError::InvalidOption`] if a date is invalid or no history is available.
 /// - [`NaluFxError::PortfolioOptimizationError`] if the prices or the allocation fail.
-/// - Any error from the model provider.
+/// - [`NaluFxError::Llm`] if the provider fails or its reply does not match
+///   the report schema.
 pub async fn generate_analysis(
-    llm: Box<dyn LLM>,
-    client: &Client,
-    api_key: &str,
+    provider: &dyn LlmProvider,
     ticker: &str,
     initial_investment: f64,
     start_date: &str,
@@ -56,24 +53,26 @@ pub async fn generate_analysis(
     }
 
     let allocation = allocate(&closes)?;
-    let prompt = format!(
-        "Analyze the following stock data for {ticker}:\n\n\
-         - Allocation over the next {DEFAULT_HORIZON_DAYS} trading days (fractions of the \
-         investment, by inverse forecast volatility): {allocation:?}\n\n\
-         Provide an investment commentary on this data, and the current market context for \
-         {ticker} in {year}.",
-        year = OffsetDateTime::now_utc().year(),
-    );
-    let response = llm.send_request(client, api_key, &prompt, 1500).await?;
-    let commentary = response["choices"][0]["message"]["content"].as_str().unwrap_or("");
-
+    let input = ReportInput {
+        portfolio: format!("{ticker}, {start_date} to {end_date}"),
+        facts: json!({
+            "ticker": ticker,
+            "period": { "start": start_date, "end": end_date },
+            "initial_investment": initial_investment,
+            "method": "inverse forecast volatility over the next trading days (AutoETS, 95% intervals)",
+            "horizon_days": DEFAULT_HORIZON_DAYS,
+            "daily_weights": allocation,
+        }),
+        context: format!("A single-stock allocation of {initial_investment:.2} to {ticker} over the next {DEFAULT_HORIZON_DAYS} trading days."),
+    };
+    let commentary = report::generate(provider, &input).await?;
     let dates = (start_date, end_date);
     print_report(&Report {
         ticker,
         dates,
         initial_investment,
         allocation: &allocation,
-        commentary,
+        commentary: &commentary.report,
     });
     Ok(())
 }
@@ -98,7 +97,7 @@ struct Report<'a> {
     dates: (&'a str, &'a str),
     initial_investment: f64,
     allocation: &'a [f64],
-    commentary: &'a str,
+    commentary: &'a AllocationReport,
 }
 
 /// Prints the report.
@@ -120,7 +119,15 @@ fn print_report(r: &Report<'_>) {
     println!("\nDaily weights range from {:.2}% to {:.2}%.\n", low * 100.0, high * 100.0);
 
     println!("--- Commentary (written by the language model) ---\n");
-    println!("{}\n", r.commentary);
+    println!("{}\n", r.commentary.summary);
+    for point in &r.commentary.rationale {
+        println!("- {point}");
+    }
+    println!("\nRisks:");
+    for risk in &r.commentary.risks {
+        println!("- {risk}");
+    }
+    println!("\n{}\n", r.commentary.disclaimer);
 
     println!("--- Risks ---\n");
     println!("Investing in {ticker} carries market, economic and company-specific risks. A forecast from past prices does not anticipate news, and its interval is only as good as the model's fit.");

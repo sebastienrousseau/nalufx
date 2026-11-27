@@ -1,0 +1,35 @@
+# Nightly, opt-in: the nalufx-llms live tests against the real providers.
+# Nothing else calls a provider. A provider runs only when its key and
+# model are set as repository secrets; otherwise its test skips.
+name: LLM live
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: Live provider reports
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      NALUFX_LIVE_ANTHROPIC_MODEL: ${{ secrets.NALUFX_LIVE_ANTHROPIC_MODEL }}
+      NALUFX_LIVE_GEMINI_MODEL: ${{ secrets.NALUFX_LIVE_GEMINI_MODEL }}
+      NALUFX_LIVE_OPENAI_MODEL: ${{ secrets.NALUFX_LIVE_OPENAI_MODEL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Live tests
+        run: cargo test -p nalufx-llms --test live -- --ignored --nocapture
