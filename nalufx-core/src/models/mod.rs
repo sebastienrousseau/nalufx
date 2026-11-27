@@ -1,9 +1,6 @@
 /// Data models for the allocation calculations.
 pub mod allocation_dm;
 
-/// Data models for the `/predict` API.
-pub mod cash_flow_dm;
-
 /// Data models for the financial calculations.
 pub mod financial_dm;
 

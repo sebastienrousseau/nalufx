@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 /// A prompt's identity, recorded with every reply produced from it.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct PromptId {
     /// The prompt's name.
     pub name: String,

@@ -30,6 +30,9 @@ path = "src/lib.rs" # The path to the library file.
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# OpenAPI schemas for the types the HTTP API exchanges (the `openapi`
+# feature); off by default, so the library has no HTTP-facing dependency.
+utoipa = { version = "6", optional = true }
 async-trait = "0.1.80"
 dotenvy = "0.15.7"
 log = "0.4.21"
@@ -52,3 +55,4 @@ wiremock = "0.6.0"
 [features]
 # Optional features for the package.
 default = []
+openapi = ["dep:utoipa"]

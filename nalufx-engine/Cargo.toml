@@ -20,6 +20,9 @@ name = "nalufx_engine"
 path = "src/lib.rs"
 
 [dependencies]
+# OpenAPI schemas for the types the HTTP API exchanges (the `openapi`
+# feature); off by default, so the library has no HTTP-facing dependency.
+utoipa = { version = "6", optional = true }
 # Provides the `Fit` and `Predict` traits AutoETS and MSTL implement.
 augurs-core = "0.10.2"
 augurs-ets = { version = "0.10.2", features = ["mstl"] }
@@ -33,6 +36,10 @@ ndarray = "0.17.2"
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 thiserror = "2.0.11"
+
+[features]
+default = []
+openapi = ["dep:utoipa"]
 
 [dev-dependencies]
 criterion = { version = "0.8", default-features = false }

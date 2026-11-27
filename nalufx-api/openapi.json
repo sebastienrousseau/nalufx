@@ -1,0 +1,761 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NaluFX API",
+    "description": "Deterministic forecasting and allocation, and schema-checked narrative reports. Research and analysis only; not investment advice.",
+    "contact": {
+      "name": "NaluFX Contributors"
+    },
+    "license": {
+      "name": "MIT OR Apache-2.0",
+      "identifier": "MIT OR Apache-2.0"
+    },
+    "version": "0.0.7"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "routes"
+        ],
+        "summary": "Answers while the process is up.",
+        "operationId": "healthz",
+        "responses": {
+          "200": {
+            "description": "The process is up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/predict": {
+      "post": {
+        "tags": [
+          "routes"
+        ],
+        "summary": "The 0.0.6 endpoint, gone: it points at its replacement.",
+        "operationId": "predict_gone",
+        "responses": {
+          "410": {
+            "description": "Removed; use POST /v1/forecast and POST /v1/allocate",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "tags": [
+          "routes"
+        ],
+        "summary": "Answers when the configuration is loaded and the language model's\nendpoint, if one is configured, answers.",
+        "operationId": "readyz",
+        "responses": {
+          "200": {
+            "description": "Ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The language model's endpoint does not answer",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/allocate": {
+      "post": {
+        "tags": [
+          "routes"
+        ],
+        "summary": "Allocates across assets by the named method, within the bounds.",
+        "operationId": "allocate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The allocation, with its method, parameters and diagnostics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Allocation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unusable input or an unknown method",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid API key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "No weights meet the bounds, or the solver failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Over the key's rate limit",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/v1/forecast": {
+      "post": {
+        "tags": [
+          "routes"
+        ],
+        "summary": "Forecasts a series with its 95% prediction interval.",
+        "operationId": "forecast",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The forecast",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntervalForecast"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unusable input",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid API key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The series cannot be forecast",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Over the key's rate limit",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/v1/report": {
+      "post": {
+        "tags": [
+          "routes"
+        ],
+        "summary": "Has the configured language model write a schema-checked report on\ncomputed figures. It writes words only.",
+        "operationId": "report",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The validated report, with the prompt, provider and model that wrote it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid API key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Over the key's report rate limit",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The provider failed or replied off the schema",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No language model is configured, or the provider is rate limiting",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "The provider timed out",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AllocateRequest": {
+        "type": "object",
+        "description": "The body of `POST /v1/allocate`.",
+        "required": [
+          "assets",
+          "returns"
+        ],
+        "properties": {
+          "assets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The asset names."
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/Constraints",
+            "description": "The weight bounds; no cap and no floor by default."
+          },
+          "estimator": {
+            "$ref": "#/components/schemas/CovarianceEstimator",
+            "description": "The covariance estimator; `ledoit_wolf` by default."
+          },
+          "method": {
+            "type": "string",
+            "description": "`equal_weight`, `min_variance` (the default), `mean_variance`,\n`risk_parity` or `hrp`."
+          },
+          "returns": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "description": "One row per period, oldest first, with one return per asset."
+          },
+          "risk_aversion": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "The risk aversion, for `mean_variance` only."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Allocation": {
+        "type": "object",
+        "description": "An allocation and everything needed to reproduce it.",
+        "required": [
+          "assets",
+          "weights",
+          "method",
+          "params",
+          "diagnostics"
+        ],
+        "properties": {
+          "assets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The asset names, in the order of `weights`."
+          },
+          "diagnostics": {
+            "$ref": "#/components/schemas/Diagnostics",
+            "description": "How the weights were found."
+          },
+          "method": {
+            "type": "string",
+            "description": "The method's name, as [`by_name`] takes it."
+          },
+          "params": {
+            "type": "object",
+            "description": "The method's parameters, the bounds and the estimator."
+          },
+          "weights": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "description": "One weight per asset: each within the bounds, summing to 1."
+          }
+        }
+      },
+      "AllocationReport": {
+        "type": "object",
+        "description": "A narrative report about an allocation.",
+        "required": [
+          "summary",
+          "rationale",
+          "risks",
+          "disclaimer"
+        ],
+        "properties": {
+          "disclaimer": {
+            "type": "string",
+            "description": "That the report is for research and analysis, not advice."
+          },
+          "rationale": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Why the allocation looks the way it does, one point per item (1 to 8)."
+          },
+          "risks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What could go wrong, one risk per item (1 to 8)."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Two to four sentences on what the allocation does."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Constraints": {
+        "type": "object",
+        "description": "Bounds on each weight. Every allocation is also long-only and sums to 1.\nA bound left out when deserialising takes its default (no cap, no floor).",
+        "properties": {
+          "max_weight": {
+            "type": "number",
+            "format": "double",
+            "description": "The largest weight any one asset may have, in `(0, 1]`.",
+            "default": 1.0
+          },
+          "min_weight": {
+            "type": "number",
+            "format": "double",
+            "description": "The smallest weight every asset must have, in `[0, max_weight]`.",
+            "default": 0.0
+          }
+        }
+      },
+      "CovarianceEstimator": {
+        "type": "string",
+        "description": "How the covariance matrix is estimated.",
+        "enum": [
+          "sample",
+          "ledoit_wolf"
+        ]
+      },
+      "Diagnostics": {
+        "type": "object",
+        "description": "How the weights were found.",
+        "required": [
+          "solver_status",
+          "iterations",
+          "condition_number",
+          "projected"
+        ],
+        "properties": {
+          "condition_number": {
+            "type": "number",
+            "format": "double",
+            "description": "The 2-norm condition number of the covariance used."
+          },
+          "iterations": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Solver iterations; 0 for a closed form.",
+            "minimum": 0
+          },
+          "projected": {
+            "type": "boolean",
+            "description": "Whether the method's weights were projected onto the bounds\nafterwards, which moves them off the method's own optimum."
+          },
+          "shrinkage": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "The Ledoit-Wolf shrinkage intensity, if that estimator was used."
+          },
+          "solver_status": {
+            "type": "string",
+            "description": "The solver's final status, such as `\"solved\"` or `\"closed_form\"`."
+          }
+        }
+      },
+      "ForecastRequest": {
+        "type": "object",
+        "description": "The body of `POST /v1/forecast`.",
+        "required": [
+          "history"
+        ],
+        "properties": {
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "description": "The history to forecast, oldest first."
+          },
+          "horizon_days": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Days to forecast, 1 to 366; 6 by default.",
+            "maximum": 366,
+            "minimum": 1
+          },
+          "seasonal_periods": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Cycle lengths in the history, such as `[5]` for a weekly business\ncycle; empty for none."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Health": {
+        "type": "object",
+        "description": "The body of a health or readiness answer.",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "`ok`."
+          }
+        }
+      },
+      "IntervalForecast": {
+        "type": "object",
+        "description": "A point forecast with its prediction interval, one value per day.\n\n`lower[i] <= point[i] <= upper[i]` for every day `i`; the interval\nholds the true value with probability `level` under the fitted model.\n\n# Examples\n\n```\nuse nalufx_engine::forecast::IntervalForecast;\n\nlet forecast = IntervalForecast {\n    level: 0.95,\n    point: vec![1.0, 1.1],\n    lower: vec![0.8, 0.85],\n    upper: vec![1.2, 1.35],\n};\nassert_eq!(forecast.widths(), vec![1.2 - 0.8, 1.35 - 0.85]);\n```",
+        "required": [
+          "level",
+          "point",
+          "lower",
+          "upper"
+        ],
+        "properties": {
+          "level": {
+            "type": "number",
+            "format": "double",
+            "description": "The probability the interval covers, such as `0.95`."
+          },
+          "lower": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "description": "The lower bound of the interval for each day."
+          },
+          "point": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "description": "The forecast value for each day."
+          },
+          "upper": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "description": "The upper bound of the interval for each day."
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "description": "An RFC 9457 problem details body.",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail"
+        ],
+        "properties": {
+          "detail": {
+            "type": "string",
+            "description": "What went wrong with this request."
+          },
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The request's `x-request-id`, for tracing it through the logs."
+          },
+          "retry_after": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Seconds to wait before retrying, for 429 and 503.",
+            "minimum": 0
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The HTTP status code.",
+            "minimum": 0
+          },
+          "title": {
+            "type": "string",
+            "description": "The status code's reason phrase."
+          },
+          "type": {
+            "type": "string",
+            "description": "A stable URI naming the problem type, under `https://nalufx.com/problems/`."
+          }
+        }
+      },
+      "PromptId": {
+        "type": "object",
+        "description": "A prompt's identity, recorded with every reply produced from it.",
+        "required": [
+          "name",
+          "version"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The prompt's name."
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The prompt's version; it changes whenever the text does.",
+            "minimum": 0
+          }
+        }
+      },
+      "Report": {
+        "type": "object",
+        "description": "A validated report and how it was produced.",
+        "required": [
+          "report",
+          "prompt",
+          "provider",
+          "model",
+          "usage"
+        ],
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "The model that wrote it."
+          },
+          "prompt": {
+            "$ref": "#/components/schemas/PromptId",
+            "description": "The prompt that asked for it."
+          },
+          "provider": {
+            "type": "string",
+            "description": "The provider that wrote it."
+          },
+          "report": {
+            "$ref": "#/components/schemas/AllocationReport",
+            "description": "The report."
+          },
+          "usage": {
+            "$ref": "#/components/schemas/TokenUsage",
+            "description": "Tokens used."
+          }
+        }
+      },
+      "ReportInput": {
+        "type": "object",
+        "description": "What a report is written from.",
+        "required": [
+          "portfolio",
+          "facts",
+          "context"
+        ],
+        "properties": {
+          "context": {
+            "type": "string",
+            "description": "The investor's stated values and objectives, in their words."
+          },
+          "facts": {
+            "type": "object",
+            "description": "The computed figures (weights, method, backtest statistics), as JSON."
+          },
+          "portfolio": {
+            "type": "string",
+            "description": "The portfolio's name."
+          }
+        }
+      },
+      "TokenUsage": {
+        "type": "object",
+        "description": "Tokens a request used, as the provider counted them.",
+        "required": [
+          "input_tokens",
+          "output_tokens"
+        ],
+        "properties": {
+          "input_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Tokens in the request.",
+            "minimum": 0
+          },
+          "output_tokens": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Tokens in the reply.",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "api_key": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "An API key, sent as `Authorization: Bearer <key>`."
+      }
+    }
+  }
+}

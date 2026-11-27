@@ -1,28 +1,101 @@
 [package]
-# Not published to crates.io: nalufx is an application, not a
-# library. See issue #40.
+# Not published to crates.io until every category of the 10/10 plan
+# meets its gate.
 publish = false
-# Metadata about the package.
-name = "nalufx-api" # The name of the package.
-description = "A Rust library providing easy access to NaluFX services." # A short description of the package.
-include = ["src/**/*", "README.md"] # Files to include when publishing the package.
+name = "nalufx-api"
+description = "The NaluFX HTTP API: forecasting, allocation and reports behind API keys, rate limits and an OpenAPI 3.1 contract."
+include = ["src/**/*", "openapi.json", "README.md"]
+authors.workspace = true
+categories.workspace = true
+edition.workspace = true
+exclude.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
 
-# The following metadata is inherited from the workspace.
-authors.workspace = true # Authors are defined in the workspace.
-build = "build.rs" # The build script is defined in the workspace.
-categories.workspace = true # Categories are defined in the workspace.
-edition.workspace = true # The edition is defined in the workspace.
-exclude.workspace = true # Files to exclude are defined in the workspace.
-homepage.workspace = true # The homepage URL is defined in the workspace.
-license.workspace = true # The license is defined in the workspace.
-repository.workspace = true # The repository URL is defined in the workspace.
-rust-version.workspace = true # The Rust version is defined in the workspace.
-version.workspace = true # The version is defined in the workspace.
+[lib]
+name = "nalufx_api"
+path = "src/lib.rs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "nalufx-api"
+path = "src/main.rs"
 
 [dependencies]
+nalufx-engine = { path = "../nalufx-engine", version = "0.0.7", features = ["openapi"] }
+nalufx-llms = { path = "../nalufx-llms", version = "0.0.7", features = ["openapi"] }
+axum = "0.8"
+# Per-key token buckets.
+governor = "0.10"
+hex = "0.4"
+ndarray = "0.17.2"
+reqwest = { version = "0.13.4", default-features = false }
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.120"
+sha2 = "0.10"
+# Constant-time comparison of API key hashes.
+subtle = "2.6"
+tokio = { version = "1.44", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tower = { version = "0.5", features = ["limit"] }
+tower-http = { version = "0.7", features = ["compression-gzip", "cors", "limit", "request-id", "timeout", "trace", "util"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+utoipa = { version = "6", features = ["axum_extras"] }
 
-[build-dependencies]
-# Dependencies for build scripts.
-version_check = "0.9.4" # Check the Rust version used to compile the package.
+[dev-dependencies]
+async-trait = "0.1.80"
+# Decompresses gzip responses in the tests.
+flate2 = "1"
+http-body-util = "0.1"
+tower = { version = "0.5", features = ["util"] }
+
+[lints.rust]
+# Linting configuration.
+## Warn
+missing_copy_implementations = "warn"
+missing_docs = "warn"
+unstable_features = "warn"
+unused_extern_crates = "warn"
+unused_results = "warn"
+
+## Allow
+bare_trait_objects = "allow"
+elided_lifetimes_in_paths = "allow"
+non_camel_case_types = "allow"
+non_upper_case_globals = "allow"
+trivial_bounds = "allow"
+unsafe_code = "allow"
+
+## Forbid
+missing_debug_implementations = "forbid"
+non_ascii_idents = "forbid"
+unreachable_pub = "forbid"
+
+## Deny
+dead_code = "deny"
+deprecated_in_future = "deny"
+ellipsis_inclusive_range_patterns = "deny"
+explicit_outlives_requirements = "deny"
+future_incompatible = { level = "deny", priority = -1 }
+keyword_idents = "deny"
+macro_use_extern_crate = "deny"
+meta_variable_misuse = "deny"
+# `missing_fragment_specifier` was removed as a lint — it is a hard
+# error now — so denying it only produces a `renamed_and_removed_lints`
+# warning on every build. The behaviour it asked for is unconditional.
+noop_method_call = "deny"
+rust_2018_idioms = { level = "deny", priority = -1 }
+rust_2021_compatibility = { level = "deny", priority = -1 }
+single_use_lifetimes = "deny"
+trivial_casts = "deny"
+trivial_numeric_casts = "deny"
+unused = { level = "deny", priority = -1 }
+unused_features = "deny"
+unused_import_braces = "deny"
+unused_labels = "deny"
+unused_lifetimes = "deny"
+unused_macro_rules = "deny"
+unused_qualifications = "deny"
+variant_size_differences = "deny"

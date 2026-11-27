@@ -117,13 +117,40 @@ jobs:
           tool: cargo-llvm-cov@0.9.1
 
       - name: nalufx-engine at least 90% of lines
-        run: cargo llvm-cov -p nalufx-engine --all-features --summary-only --fail-under-lines 90
+        # Each step starts from an empty coverage build: llvm-cov reports every
+        # instrumented binary it finds, so objects from an earlier step (or a
+        # restored cache) with other features add counters that never ran.
+        run: rm -rf target/llvm-cov-target && cargo llvm-cov -p nalufx-engine --all-features --summary-only --fail-under-lines 90
 
       - name: nalufx-llms at least 90% of lines
-        run: cargo llvm-cov -p nalufx-llms --all-features --summary-only --fail-under-lines 90
+        run: rm -rf target/llvm-cov-target && cargo llvm-cov -p nalufx-llms --all-features --summary-only --fail-under-lines 90
+
+      - name: nalufx-api at least 85% of lines
+        run: rm -rf target/llvm-cov-target && cargo llvm-cov -p nalufx-api --all-features --summary-only --fail-under-lines 85
 
       - name: Workspace at least 80% of lines
-        run: cargo llvm-cov --workspace --all-features --summary-only --fail-under-lines 80
+        run: rm -rf target/llvm-cov-target && cargo llvm-cov --workspace --all-features --summary-only --fail-under-lines 80
+
+  # The API contract: the committed openapi.json is exercised by
+  # Schemathesis against a release build (backed by a stub language
+  # model), and no generated request may get a 5xx. The drift check that
+  # openapi.json matches the code is a test in the Rust CI job.
+  schemathesis:
+    name: API contract (Schemathesis)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: No 5xx on any generated request
+        run: scripts/schemathesis.sh
 
   audit:
     name: Audit

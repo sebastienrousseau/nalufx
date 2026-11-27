@@ -36,6 +36,7 @@ use serde::{Deserialize, Serialize};
 /// A bound left out when deserialising takes its default (no cap, no floor).
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct Constraints {
     /// The largest weight any one asset may have, in `(0, 1]`.
     pub max_weight: f64,
@@ -108,6 +109,7 @@ pub struct AllocationInput {
 
 /// How the weights were found.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct Diagnostics {
     /// The solver's final status, such as `"solved"` or `"closed_form"`.
     pub solver_status: String,
@@ -124,6 +126,7 @@ pub struct Diagnostics {
 
 /// An allocation and everything needed to reproduce it.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct Allocation {
     /// The asset names, in the order of `weights`.
     pub assets: Vec<String>,
@@ -132,6 +135,7 @@ pub struct Allocation {
     /// The method's name, as [`by_name`] takes it.
     pub method: String,
     /// The method's parameters, the bounds and the estimator.
+    #[cfg_attr(feature = "openapi", schema(value_type = Object))]
     pub params: serde_json::Value,
     /// How the weights were found.
     pub diagnostics: Diagnostics,

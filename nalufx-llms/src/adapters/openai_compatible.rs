@@ -106,6 +106,10 @@ impl LlmProvider for OpenAiCompatible {
         &self.config.model
     }
 
+    fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
     async fn complete(&self, request: &ChatRequest) -> Result<ChatResponse, LlmError> {
         let url = format!("{}/chat/completions", self.base_url.trim_end_matches('/'));
         let bearer = self.api_key.as_ref().map(|k| format!("Bearer {k}"));

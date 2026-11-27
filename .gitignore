@@ -15,3 +15,6 @@ tarpaulin-report.html
 # let CI re-resolve on every run.
 .env
 nalufx.csv
+
+# Schemathesis run cache (scripts/schemathesis.sh)
+.schemathesis/

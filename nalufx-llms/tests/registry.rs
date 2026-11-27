@@ -55,7 +55,10 @@ async fn anthropic_reads_its_key_and_the_base_url_override() {
     let s = server("/v1/messages", ("x-api-key", "env-key"), reply).await;
     with_env(&[("ANTHROPIC_API_KEY", "env-key"), (BASE_URL_VAR, &s.uri())], || async {
         let p = from_env("anthropic", config(), http()).unwrap();
-        assert_eq!((p.name(), p.model()), ("anthropic", "test-model"));
+        assert_eq!(
+            (p.name(), p.model(), p.base_url()),
+            ("anthropic", "test-model", s.uri().as_str())
+        );
         assert_eq!(p.complete(&ChatRequest::user(None, "x")).await.unwrap().text, "hi");
     })
     .await;
