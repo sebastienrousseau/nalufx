@@ -11,10 +11,12 @@
 //! | `NALUFX_CONCURRENCY` | `64` | Requests handled at once; the rest wait. |
 //! | `NALUFX_LLM_PROVIDER`, `NALUFX_LLM_MODEL` | unset | The provider and model for `/v1/report`; without them it answers 503. |
 //! | `NALUFX_LLM_MAX_TOKENS` | `2048` | The report's token limit. |
+//! | `NALUFX_LOG_FORMAT` | `json` | `json` lines or `text`; the level comes from `RUST_LOG`. |
 //!
 //! Keys are stored only as hashes. Hash one with
 //! `printf %s "$KEY" | sha256sum`.
 
+use crate::telemetry::LogFormat;
 use std::net::SocketAddr;
 use std::time::Duration;
 
@@ -54,6 +56,8 @@ pub struct ApiConfig {
     pub concurrency: usize,
     /// The provider for `/v1/report`, if any.
     pub llm: Option<LlmSettings>,
+    /// How log lines are written.
+    pub log_format: LogFormat,
 }
 
 impl ApiConfig {
@@ -70,6 +74,7 @@ impl ApiConfig {
             timeout: Duration::from_secs(30),
             concurrency: 64,
             llm: None,
+            log_format: LogFormat::Json,
         }
     }
 
@@ -97,6 +102,7 @@ impl ApiConfig {
         config.read_network(&get)?;
         config.read_limits(&get)?;
         config.llm = llm(&get)?;
+        config.read_operations(&get)?;
         Ok(config)
     }
 
@@ -106,6 +112,14 @@ impl ApiConfig {
             self.addr = addr.parse().map_err(|e| format!("NALUFX_ADDR `{addr}`: {e}"))?;
         }
         self.cors_origins = get("NALUFX_CORS_ORIGINS").map(|o| list(&o)).unwrap_or_default();
+        Ok(())
+    }
+
+    /// The log format.
+    fn read_operations(&mut self, get: &impl Fn(&str) -> Option<String>) -> Result<(), String> {
+        if let Some(format) = get("NALUFX_LOG_FORMAT") {
+            self.log_format = format.parse()?;
+        }
         Ok(())
     }
 
@@ -210,6 +224,7 @@ mod tests {
             ("NALUFX_LLM_PROVIDER", "anthropic"),
             ("NALUFX_LLM_MODEL", "claude-sonnet-5-5"),
             ("NALUFX_LLM_MAX_TOKENS", "512"),
+            ("NALUFX_LOG_FORMAT", "text"),
         ])
         .unwrap();
         assert_eq!(c.key_hashes.len(), 2);
@@ -217,6 +232,7 @@ mod tests {
         assert_eq!(c.cors_origins.len(), 2);
         assert_eq!((c.rate_per_minute, c.report_rate_per_minute, c.concurrency), (100, 5, 8));
         assert_eq!(c.llm.unwrap().max_tokens, 512);
+        assert_eq!(c.log_format, LogFormat::Text);
     }
 
     #[test]
@@ -228,6 +244,7 @@ mod tests {
             ("NALUFX_RATE_PER_MINUTE", "0"),
             ("NALUFX_CONCURRENCY", "-1"),
             ("NALUFX_LLM_PROVIDER", "anthropic"),
+            ("NALUFX_LOG_FORMAT", "xml"),
         ] {
             let mut vars = vec![("NALUFX_API_KEY_SHA256", HASH)];
             vars.retain(|(k, _)| *k != name);

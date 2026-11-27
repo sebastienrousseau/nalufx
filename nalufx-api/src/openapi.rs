@@ -19,7 +19,7 @@ use utoipa::{Modify, OpenApi};
 #[derive(Clone, Copy, Debug, OpenApi)]
 #[openapi(
     info(title = "NaluFX API", description = "Deterministic forecasting and allocation, and schema-checked narrative reports. Research and analysis only; not investment advice."),
-    paths(routes::index, routes::openapi_json, routes::forecast, routes::allocate, routes::report, routes::healthz, routes::readyz),
+    paths(routes::index, routes::openapi_json, routes::forecast, routes::allocate, routes::report, routes::healthz, routes::readyz, crate::metrics::serve),
     components(schemas(
         Index, ForecastRequest, AllocateRequest, Health, Problem, IntervalForecast, Allocation, Diagnostics,
         Constraints, CovarianceEstimator, ReportInput, Report, AllocationReport, PromptId, TokenUsage

@@ -128,6 +128,9 @@ async fn readiness_fails_when_the_provider_does_not_answer() {
         .await
         .unwrap();
     assert_eq!(r.status(), StatusCode::SERVICE_UNAVAILABLE);
+    // An open route: the provider's address stays in the server's log.
+    let detail = problem(r).await.detail;
+    assert!(!detail.contains("127.0.0.1"), "{detail}");
 }
 
 #[tokio::test]

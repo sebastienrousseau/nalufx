@@ -41,14 +41,16 @@ tokio = { version = "1.44", features = ["macros", "net", "rt-multi-thread", "sig
 tower = { version = "0.5", features = ["limit"] }
 tower-http = { version = "0.7", features = ["compression-gzip", "cors", "limit", "request-id", "timeout", "trace", "util"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
 utoipa = { version = "6", features = ["axum_extras"] }
+prometheus-client = "0.26.0"
 
 [dev-dependencies]
 async-trait = "0.1.80"
 # Decompresses gzip responses in the tests.
 flate2 = "1"
 http-body-util = "0.1"
+prometheus-parse = "0.2.5"
 tower = { version = "0.5", features = ["util"] }
 
 [lints.rust]

@@ -2,8 +2,10 @@
 
 use crate::auth::{authenticate, Limits};
 use crate::config::{ApiConfig, MAX_BODY_BYTES};
+use crate::metrics::{self, Metrics};
 use crate::problem::{normalise, Problem, REQUEST_ID};
 use crate::routes;
+use crate::telemetry;
 use axum::http::{HeaderName, HeaderValue, Method, StatusCode};
 use axum::middleware::{from_fn, from_fn_with_state};
 use axum::routing::{get, post};
@@ -29,6 +31,8 @@ pub struct AppState {
     pub provider: Option<Arc<dyn LlmProvider>>,
     /// The client `/readyz` probes the provider's endpoint with.
     pub probe: reqwest::Client,
+    /// The Prometheus metrics.
+    pub metrics: Metrics,
 }
 
 impl std::fmt::Debug for AppState {
@@ -45,16 +49,16 @@ impl AppState {
     #[must_use]
     pub fn new(config: ApiConfig, provider: Option<Arc<dyn LlmProvider>>) -> Self {
         let limits = Limits::per_minute(config.rate_per_minute, config.report_rate_per_minute);
-        Self { config, limits, provider, probe: reqwest::Client::new() }
+        Self { config, limits, provider, probe: reqwest::Client::new(), metrics: Metrics::new() }
     }
 }
 
 /// The application: `/`, `/openapi.json`, `/healthz` and `/readyz` open,
-/// everything else behind an API key, all of it behind the middleware
+/// everything else (`/metrics` included) behind an API key, all of it behind the middleware
 /// stack.
 ///
 /// The stack, outermost first: request id (`x-request-id`, generated if
-/// absent), compression, problem details for every error, tracing,
+/// absent), metrics, compression, problem details for every error, tracing,
 /// timeout (408), concurrency limit (excess requests wait), request body
 /// limit (413), CORS (denied unless origins are configured).
 pub fn app(state: AppState) -> Router {
@@ -63,6 +67,7 @@ pub fn app(state: AppState) -> Router {
         .route("/v1/forecast", post(routes::forecast))
         .route("/v1/allocate", post(routes::allocate))
         .route("/v1/report", post(routes::report))
+        .route("/metrics", get(metrics::serve))
         .route_layer(from_fn_with_state(state.clone(), authenticate));
     let open = Router::new()
         .route("/", get(routes::index))
@@ -73,11 +78,16 @@ pub fn app(state: AppState) -> Router {
     let middleware = ServiceBuilder::new()
         .layer(SetRequestIdLayer::new(request_id.clone(), MakeRequestUuid))
         .layer(PropagateRequestIdLayer::new(request_id))
+        .layer(from_fn_with_state(state.clone(), metrics::track))
         // Outside the problem layer, so that layer reads bodies before
         // they are compressed.
         .layer(CompressionLayer::new())
         .layer(from_fn(normalise))
-        .layer(TraceLayer::new_for_http())
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(telemetry::request_span)
+                .on_response(telemetry::on_response),
+        )
         .layer(TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, state.config.timeout))
         .layer(GlobalConcurrencyLimitLayer::new(state.config.concurrency))
         .layer(RequestBodyLimitLayer::new(MAX_BODY_BYTES))

@@ -82,6 +82,7 @@ pub async fn authenticate(
     if !matches(&state.config.key_hashes, &hash) {
         return unauthorized("the API key is not valid");
     }
+    let _ = tracing::Span::current().record("key_id", crate::telemetry::key_id(&hash));
     if let Some(seconds) = state.limits.check(&hash, request.uri().path() == REPORT_PATH) {
         let detail = format!("this key is over its rate limit; retry in {seconds} s");
         return Problem::new(StatusCode::TOO_MANY_REQUESTS, detail)

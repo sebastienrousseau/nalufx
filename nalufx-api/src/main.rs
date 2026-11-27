@@ -12,12 +12,18 @@ use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
-        )
-        .init();
-    match run().await {
+    let config = match ApiConfig::from_env() {
+        Ok(config) => config,
+        Err(e) => {
+            eprintln!("nalufx-api: {e}");
+            return ExitCode::FAILURE;
+        },
+    };
+    if let Err(e) = nalufx_api::telemetry::init(config.log_format) {
+        eprintln!("nalufx-api: {e}");
+        return ExitCode::FAILURE;
+    }
+    match run(config).await {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             tracing::error!("{e}");
@@ -28,8 +34,7 @@ async fn main() -> ExitCode {
 
 /// Loads the configuration, builds the provider if one is set, and serves
 /// until SIGTERM or Ctrl-C.
-async fn run() -> Result<(), String> {
-    let config = ApiConfig::from_env()?;
+async fn run(config: ApiConfig) -> Result<(), String> {
     let provider = provider(&config)?;
     let listener = TcpListener::bind(config.addr)
         .await
