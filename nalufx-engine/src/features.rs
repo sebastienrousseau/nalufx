@@ -67,3 +67,48 @@ pub fn extract_features(
     normalize_features!(features);
     Ok(features)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn each_column_is_standardised() {
+        let f = extract_features(
+            &[0.01, 0.02, 0.03],
+            &[100.0, 200.0, 300.0],
+            &[1.0, 1.0, 1.0],
+            &[0.5, 0.6, 0.7],
+        )
+        .unwrap();
+        assert_eq!(f.shape(), &[3, 4]);
+        for col in [0, 1, 3] {
+            let c = f.column(col);
+            assert!(c.sum().abs() < 1e-12, "column {col} mean");
+            assert!((c.mapv(|x| x * x).sum() / 3.0 - 1.0).abs() < 1e-12, "column {col} variance");
+        }
+        // A constant column is centred, not divided into NaN.
+        assert!(f.column(2).iter().all(|x| *x == 0.0));
+    }
+
+    #[test]
+    fn unusable_input_is_a_typed_error() {
+        assert_eq!(
+            extract_features(&[0.01], &[1.0, 2.0], &[1.0], &[1.0]),
+            Err(AllocationError::InputMismatch)
+        );
+        assert_eq!(extract_features(&[], &[], &[], &[]), Err(AllocationError::EmptyInput));
+        assert_eq!(
+            extract_features(&[f64::NAN], &[1.0], &[1.0], &[1.0]),
+            Err(AllocationError::InvalidData)
+        );
+        assert_eq!(
+            extract_features(&[2.0], &[1.0], &[1.0], &[1.0]),
+            Err(AllocationError::OutlierData)
+        );
+        assert_eq!(
+            extract_features(&[0.1], &[2e6], &[1.0], &[1.0]),
+            Err(AllocationError::OutlierData)
+        );
+    }
+}

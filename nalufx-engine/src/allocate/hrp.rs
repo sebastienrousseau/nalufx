@@ -186,6 +186,15 @@ mod tests {
     }
 
     #[test]
+    fn a_binding_cap_is_projected_and_says_so() {
+        let m = moments(array![[1.0, 0.0], [0.0, 4.0]]);
+        let capped = Hrp.solve(&m, &Constraints { max_weight: 0.6, min_weight: 0.0 }).unwrap();
+        assert!(capped.projected);
+        assert!((capped.weights[0] - 0.6).abs() < 1e-12, "{:?}", capped.weights);
+        assert!(!Hrp.solve(&m, &Constraints::default()).unwrap().projected);
+    }
+
+    #[test]
     fn a_zero_variance_asset_is_an_error() {
         let s = array![[1.0, 0.0], [0.0, 0.0]];
         assert_eq!(

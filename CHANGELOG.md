@@ -49,8 +49,13 @@ each tested against a walk-forward backtest baseline.
   1e-6); infeasible bounds give a typed error, never weights; a golden
   backtest report per method on a 5-asset, 500-day synthetic fixture.
 - A CI performance budget: a 20-asset, 250-day allocation under 50 ms
-  at p95, for every method (measured: under 0.4 ms), and criterion
-  benchmarks.
+  at p95, for every method (measured on the CI runner: at most 0.5 ms),
+  and criterion benchmarks.
+- A CI coverage gate (cargo-llvm-cov): at least 90% of nalufx-engine's
+  lines and 80% of the workspace's (measured: 96% and 82%).
+- Ledoit-Wolf is cross-checked against scikit-learn 1.7.2 on a 50 x 5
+  matrix (shrinkage, diagonal and first row within 1e-12); the
+  reference script is `nalufx-engine/tests/fixtures/ledoit_wolf_reference.py`.
 
 ### Breaking
 
@@ -61,6 +66,16 @@ each tested against a walk-forward backtest baseline.
   `nalufx::utils::calculations::calculate_optimal_allocation` still
   names it, and the other moved items keep their `nalufx` paths, until
   v0.1.0.
+
+### Fixed
+
+- `validate_positive_float` had its two error messages swapped: a
+  negative number said "not a valid float", and text said "not
+  positive".
+- `format_currency` printed `-$0.00` for a negative value that rounds to
+  zero; the sign now follows the rounded cents.
+- `tests/utils/test_input.rs` tested copies of the input functions;
+  they now call `read_line_from`, which `get_input` reads through.
 
 ### Changed
 
@@ -77,8 +92,10 @@ each tested against a walk-forward backtest baseline.
 
 - On the fixture, mean-variance (risk aversion 10) has a lower Sharpe
   ratio than equal weight (1.49 against 1.52): estimated means are
-  noisy. Minimum variance (2.63), risk parity (2.19) and HRP (2.07)
-  beat it.
+  noisy, and plain mean-variance often trails equal weight out of
+  sample (DeMiguel, Garlappi and Uppal, 2009). Minimum variance (2.63),
+  risk parity (2.19) and HRP (2.07) beat it. The README and the
+  `MeanVariance` docs say so.
 
 ### Dependencies
 

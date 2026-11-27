@@ -91,6 +91,37 @@ jobs:
       - name: Benchmarks compile
         run: cargo bench -p nalufx-engine --no-run
 
+  # Line coverage gates from the 10/10 plan: nalufx-engine at least 90%,
+  # the workspace at least 80%. Property tests run fewer cases here; the
+  # Rust CI job runs them in full.
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PROPTEST_CASES: "200"
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        with:
+          tool: cargo-llvm-cov@0.9.1
+
+      - name: nalufx-engine at least 90% of lines
+        run: cargo llvm-cov -p nalufx-engine --all-features --summary-only --fail-under-lines 90
+
+      - name: Workspace at least 80% of lines
+        run: cargo llvm-cov --workspace --all-features --summary-only --fail-under-lines 80
+
   audit:
     name: Audit
     runs-on: ubuntu-latest

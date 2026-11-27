@@ -380,6 +380,36 @@ mod tests {
     }
 
     #[test]
+    fn an_allocation_prints_its_weights_and_diagnostics() {
+        let a = Allocation {
+            assets: vec!["BONDS".into(), "STOCKS".into()],
+            weights: vec![0.75, 0.25],
+            method: "risk_parity".into(),
+            params: serde_json::json!({}),
+            diagnostics: Diagnostics {
+                solver_status: "converged".into(),
+                iterations: 4,
+                condition_number: 12.0,
+                shrinkage: Some(0.1),
+                projected: true,
+            },
+        };
+        assert_eq!(
+            a.to_string(),
+            "risk_parity allocation\n  BONDS: 75.00%\n  STOCKS: 25.00%\n\
+             solver converged after 4 iterations; condition number 12.0; shrinkage 0.100; projected onto the bounds"
+        );
+    }
+
+    #[test]
+    fn projection_rejects_a_non_finite_weight() {
+        assert_eq!(
+            project(&[f64::NAN, 1.0], &Constraints::default()),
+            Err(AllocationError::InvalidData)
+        );
+    }
+
+    #[test]
     fn every_method_name_resolves() {
         for name in METHODS {
             assert_eq!(by_name(name, None).unwrap().name(), name);

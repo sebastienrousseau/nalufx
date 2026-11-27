@@ -41,11 +41,11 @@ pub fn validate_positive_float(input: &str) -> Result<f64, &str> {
         Ok(value) if value > 0.0 => Ok(value),
         Ok(_) => {
             error!("Validation failed: The number is not positive. Found: {}", input);
-            Err("The input is not a valid float.")
+            Err("The number is not positive.")
         },
         Err(_) => {
             error!("Validation failed: The input is not a valid float. Found: {}", input);
-            Err("The number is not positive.")
+            Err("The input is not a valid float.")
         },
     }
 }
@@ -78,5 +78,34 @@ pub fn get_float_validation_error_message(input: &str) -> &'static str {
         Ok(value) if value > 0.0 => "No validation error.",
         Ok(_) => "The number is not positive.",
         Err(_) => "The input is not a valid float.",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_positive_number_is_accepted() {
+        assert_eq!(validate_positive_float("2.5"), Ok(2.5));
+        assert_eq!(get_float_validation_error_message("2.5"), "No validation error.");
+    }
+
+    #[test]
+    fn a_number_that_is_not_positive_says_so() {
+        for input in ["0", "-3"] {
+            assert_eq!(
+                validate_positive_float(input),
+                Err("The number is not positive."),
+                "{input}"
+            );
+            assert_eq!(get_float_validation_error_message(input), "The number is not positive.");
+        }
+    }
+
+    #[test]
+    fn text_that_is_not_a_number_says_so() {
+        assert_eq!(validate_positive_float("abc"), Err("The input is not a valid float."));
+        assert_eq!(get_float_validation_error_message("abc"), "The input is not a valid float.");
     }
 }

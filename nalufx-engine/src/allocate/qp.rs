@@ -36,6 +36,15 @@ impl Allocator for MinVariance {
 /// subject to the bounds and a budget of 1. A larger risk aversion
 /// `lambda` moves it towards minimum variance; a smaller one towards the
 /// highest-mean asset.
+///
+/// It depends on the estimated mean returns, which are far noisier than
+/// the covariance; out of sample, plain mean-variance often trails equal
+/// weight for that reason (DeMiguel, Garlappi and Uppal, 2009, "Optimal
+/// versus naive diversification"). NaluFX's own backtest fixture shows
+/// it: mean-variance with `lambda = 10` has a Sharpe ratio of 1.49,
+/// against 1.52 for equal weight. That is the method working as
+/// specified, not a solver fault; a cap, a higher risk aversion or
+/// minimum variance (which ignores the means) are the usual remedies.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct MeanVariance {
     risk_aversion: f64,

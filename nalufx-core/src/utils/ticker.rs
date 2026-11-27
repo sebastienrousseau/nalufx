@@ -80,3 +80,29 @@ pub fn get_validation_error_message(input: &str) -> &'static str {
         "Unknown validation error."
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_alphanumeric_ticker_is_accepted() {
+        assert_eq!(validate_ticker("BRK1"), Ok("BRK1"));
+        assert_eq!(get_validation_error_message("BRK1"), "Unknown validation error.");
+    }
+
+    #[test]
+    fn an_empty_ticker_is_rejected() {
+        assert_eq!(validate_ticker(""), Err("The ticker symbol cannot be empty."));
+        assert_eq!(get_validation_error_message(""), "The ticker symbol cannot be empty.");
+    }
+
+    #[test]
+    fn punctuation_is_rejected() {
+        assert_eq!(validate_ticker("BRK.B"), Err("The ticker symbol must be alphanumeric."));
+        assert_eq!(
+            get_validation_error_message("BRK.B"),
+            "The ticker symbol must be alphanumeric."
+        );
+    }
+}

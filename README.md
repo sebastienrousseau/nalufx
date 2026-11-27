@@ -18,7 +18,7 @@ A Rust library and HTTP service that forecasts fund cash flows and allocates cas
 - **Allocation across assets** (`nalufx-engine`), each method long-only with a budget of 1, a per-asset cap and an optional floor, and each result recording its method, parameters and solver diagnostics:
   - `equal_weight`: the baseline every other method must beat.
   - `min_variance`: the least-variance portfolio, a quadratic programme solved with [clarabel][11].
-  - `mean_variance`: Markowitz, `mu' w - (lambda / 2) w' S w`, with the risk aversion as a parameter.
+  - `mean_variance`: Markowitz, `mu' w - (lambda / 2) w' S w`, with the risk aversion as a parameter. It leans on estimated mean returns, which are noisy, so out of sample it often trails equal weight (DeMiguel, Garlappi and Uppal, 2009); on NaluFX's backtest fixture its Sharpe ratio is 1.49 against equal weight's 1.52, and the report shows that rather than tuning it away.
   - `risk_parity`: equal risk contribution, by Newton's method on the convex log-barrier formulation.
   - `hrp`: hierarchical risk parity, with no matrix inversion, for near-singular covariances.
 - **Covariance:** sample, or Ledoit-Wolf shrinkage towards a scaled identity (the default).

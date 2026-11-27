@@ -189,6 +189,63 @@ mod tests {
         assert!(m.covariance[[0, 1]].abs() < 1e-12);
     }
 
+    /// The 50 x 5 matrix scikit-learn's reference was computed on: a
+    /// one-factor model from a fixed 64-bit LCG, whose values are exact
+    /// dyadic fractions, so Python and Rust build it bit for bit alike.
+    fn reference_returns() -> Array2<f64> {
+        let mut state: u64 = 20_261_127;
+        let mut uniform = move || {
+            state = state
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            (state >> 11) as f64 / (1u64 << 53) as f64 - 0.5
+        };
+        let mut x = Array2::<f64>::zeros((50, 5));
+        for mut row in x.rows_mut() {
+            let market = uniform();
+            for (j, v) in row.iter_mut().enumerate() {
+                *v = 0.02 * (0.3 + 0.3 * j as f64) * market + 0.01 * uniform();
+            }
+        }
+        x
+    }
+
+    /// Cross-checked against scikit-learn 1.7.2 (numpy 2.5.5),
+    /// `sklearn.covariance.LedoitWolf().fit(x)`, on 2026-11-27, by
+    /// `tests/fixtures/ledoit_wolf_reference.py`.
+    #[test]
+    fn ledoit_wolf_matches_scikit_learn() {
+        let x = reference_returns();
+        // The input is the one the reference saw.
+        assert_eq!(x[[0, 0]], -0.000_927_025_412_227_032_3);
+        assert_eq!(x[[49, 4]], -0.000_972_235_623_649_887_6);
+        let m = CovarianceEstimator::LedoitWolf.estimate(&x).unwrap();
+        let close = |a: f64, b: f64| (a - b).abs() <= 1e-12 * b.abs();
+        assert!(
+            close(m.shrinkage.unwrap(), 0.035_341_795_542_963_51),
+            "shrinkage {:?}",
+            m.shrinkage
+        );
+        let diag = [
+            1.053_190_767_757_308_2e-5,
+            1.969_495_337_546_77e-5,
+            3.206_517_902_630_184e-5,
+            5.301_510_592_125_957e-5,
+            7.679_834_348_744_638e-5,
+        ];
+        let row0 = [
+            1.053_190_767_757_308_2e-5,
+            4.364_671_597_949_014e-6,
+            8.224_737_778_053_033e-6,
+            8.757_317_243_056_375e-6,
+            1.114_479_995_381_295_6e-5,
+        ];
+        for j in 0..5 {
+            assert!(close(m.covariance[[j, j]], diag[j]), "diag {j}: {}", m.covariance[[j, j]]);
+            assert!(close(m.covariance[[0, j]], row0[j]), "row0 {j}: {}", m.covariance[[0, j]]);
+        }
+    }
+
     #[test]
     fn rejects_unusable_input() {
         assert_eq!(

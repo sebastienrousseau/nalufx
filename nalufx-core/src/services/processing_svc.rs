@@ -102,6 +102,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn cash_flows_scale_the_returns_by_the_investment() {
+        assert_eq!(calculate_cash_flows(&[0.01, -0.02], 1000.0), vec![10.0, -20.0]);
+    }
+
+    #[test]
+    fn a_bad_close_is_named_in_the_error() {
+        for bad in [0.0, -5.0, f64::INFINITY] {
+            assert_eq!(
+                calculate_daily_returns(&[100.0, bad]),
+                Err(AllocationError::InvalidPrice(bad))
+            );
+        }
+    }
+
+    #[test]
     fn align_returns_rejects_no_series_and_a_short_one() {
         assert_eq!(align_returns(&[]), Err(AllocationError::EmptyInput));
         assert!(matches!(

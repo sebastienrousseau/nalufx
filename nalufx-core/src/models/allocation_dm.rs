@@ -91,3 +91,38 @@ impl FundData for MutualFund {
         self.price * self.net_assets
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_etf_is_valued_at_price_times_shares() {
+        let etf: Etf = serde_json::from_str(
+            r#"{"symbol":"SPY","name":"S&P 500","price":500.0,"shares_outstanding":2000.0}"#,
+        )
+        .unwrap();
+        assert_eq!((etf.symbol(), etf.name(), etf.value()), ("SPY", "S&P 500", 1_000_000.0));
+    }
+
+    #[test]
+    fn a_mutual_fund_is_valued_at_price_times_net_assets() {
+        let fund: MutualFund = serde_json::from_str(
+            r#"{"symbol":"VFIAX","name":"Admiral","price":2.0,"net_assets":300.0}"#,
+        )
+        .unwrap();
+        assert_eq!((fund.symbol(), fund.name(), fund.value()), ("VFIAX", "Admiral", 600.0));
+    }
+
+    #[test]
+    fn orders_and_rules_round_trip_through_json() {
+        let order = AllocationOrder { symbol: "SPY".into(), name: "S&P 500".into(), amount: 12.5 };
+        let back: AllocationOrder =
+            serde_json::from_str(&serde_json::to_string(&order).unwrap()).unwrap();
+        assert_eq!((back.symbol, back.amount), ("SPY".to_string(), 12.5));
+        let rules = AllocationRules { etf_percentage: 0.6, mutual_fund_percentage: 0.4 };
+        let back: AllocationRules =
+            serde_json::from_str(&serde_json::to_string(&rules).unwrap()).unwrap();
+        assert_eq!(back.etf_percentage + back.mutual_fund_percentage, 1.0);
+    }
+}

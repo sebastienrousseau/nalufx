@@ -27,8 +27,18 @@ use std::io::{stdin, stdout, Write};
 /// }
 /// ```
 pub fn read_user_input() -> Result<String, NaluFxError> {
+    read_line_from(stdin().lock())
+}
+
+/// Reads one line from any reader, line ending included. [`read_user_input`]
+/// and [`get_input`] read standard input through it.
+///
+/// # Errors
+///
+/// [`NaluFxError::InputError`] if reading fails.
+pub fn read_line_from<R: BufRead>(mut reader: R) -> Result<String, NaluFxError> {
     let mut input = String::new();
-    let _ = stdin().lock().read_line(&mut input).map_err(NaluFxError::InputError)?;
+    let _ = reader.read_line(&mut input).map_err(NaluFxError::InputError)?;
     Ok(input)
 }
 
@@ -50,7 +60,5 @@ pub fn get_input(prompt: &str) -> Result<String, NaluFxError> {
     print!("{}", prompt);
     stdout().flush().map_err(NaluFxError::InputError)?;
 
-    let mut input = String::new();
-    let _ = stdin().lock().read_line(&mut input).map_err(NaluFxError::InputError)?;
-    Ok(input.trim().to_string())
+    Ok(read_line_from(stdin().lock())?.trim().to_string())
 }
