@@ -1,0 +1,65 @@
+# Nightly fuzzing: each target in fuzz/ runs for 30 minutes, and for one
+# minute on every pull request so the targets keep building. A crash
+# fails the job and keeps the input that caused it as an artefact; the
+# fix then adds that input as a regression test.
+name: Fuzz
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "feat/**"
+  schedule:
+    # Every night at 02:43 UTC.
+    - cron: "43 2 * * *"
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: "Seconds per target"
+        type: number
+        default: 1800
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  fuzz:
+    name: Fuzz ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [csv_returns, api_requests, allocate, report_text]
+    env:
+      SECONDS_PER_TARGET: ${{ inputs.seconds || (github.event_name == 'pull_request' && 60 || 1800) }}
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install nightly toolchain
+        uses: dtolnay/rust-toolchain@6a52aad76a94a5fbc50d567bb5be24419801c1fb # nightly
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --version 0.13.2 --locked
+
+      - name: Fuzz
+        working-directory: fuzz
+        run: |
+          set -euo pipefail
+          cargo fuzz run "$TARGET" -- \
+            -max_total_time="$SECONDS_PER_TARGET" -max_len=4096 -print_final_stats=1
+
+      - name: Keep the crashing input
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-crash-${{ matrix.target }}
+          path: fuzz/artifacts/${{ matrix.target }}/
+          retention-days: 30
