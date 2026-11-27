@@ -115,6 +115,7 @@ impl From<LlmError> for CliError {
                 message,
                 hint: Some(format!("export {variable}=<your key>, or put it in a .env file")),
             },
+            LlmError::Input(_) => Self::Input { message, hint: None },
             LlmError::Config(_) => Self::Input {
                 message,
                 hint: Some("run `nalufx providers` to see the providers".into()),
@@ -142,6 +143,7 @@ mod tests {
         assert_eq!(CliError::from(AllocationError::Infeasible("x".into())).exit_code(), 4);
         let timeout = LlmError::Transport { provider: "p", message: String::new(), timeout: true };
         assert_eq!(CliError::from(timeout).exit_code(), 5);
+        assert_eq!(CliError::from(LlmError::Input(String::new())).exit_code(), 3);
     }
 
     #[test]

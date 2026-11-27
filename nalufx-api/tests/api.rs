@@ -291,6 +291,42 @@ async fn reports_need_a_provider_and_a_reply_in_schema() {
 }
 
 #[tokio::test]
+async fn an_overlong_context_is_400_and_never_reaches_the_model() {
+    let stub = Stub::answering(REPORT);
+    let entered = Arc::clone(&stub.entered);
+    let input = json!({ "portfolio": "P", "facts": {}, "context": "a".repeat(2_001) });
+    let r = service(config(), Some(stub)).oneshot(post("/v1/report", &input)).await.unwrap();
+    assert_eq!(r.status(), StatusCode::BAD_REQUEST);
+    assert!(problem(r).await.detail.contains("2001 characters"));
+    assert_eq!(entered.load(Ordering::SeqCst), 0);
+}
+
+#[tokio::test]
+async fn oversized_inputs_are_400_naming_the_limit() {
+    let svc = service(config(), None);
+    let history: Vec<f64> = (0..10_001).map(f64::from).collect();
+    let r =
+        svc.clone().oneshot(post("/v1/forecast", &json!({ "history": history }))).await.unwrap();
+    assert_eq!(r.status(), StatusCode::BAD_REQUEST);
+    assert!(problem(r).await.detail.contains("10000"));
+
+    let periods = json!({ "history": (0..100).map(f64::from).collect::<Vec<_>>(), "seasonal_periods": [2, 3, 4, 5, 6] });
+    let r = svc.clone().oneshot(post("/v1/forecast", &periods)).await.unwrap();
+    assert_eq!(r.status(), StatusCode::BAD_REQUEST);
+
+    let assets: Vec<String> = (0..501).map(|i| format!("A{i}")).collect();
+    let wide = json!({ "assets": assets, "returns": [vec![0.01; 501], vec![0.02; 501]] });
+    let r = svc.clone().oneshot(post("/v1/allocate", &wide)).await.unwrap();
+    assert_eq!(r.status(), StatusCode::BAD_REQUEST);
+    assert!(problem(r).await.detail.contains("500"));
+
+    let long = json!({ "assets": ["A"], "returns": vec![vec![0.01]; 10_001] });
+    let r = svc.oneshot(post("/v1/allocate", &long)).await.unwrap();
+    assert_eq!(r.status(), StatusCode::BAD_REQUEST);
+    assert!(problem(r).await.detail.contains("10000"));
+}
+
+#[tokio::test]
 async fn the_removed_endpoint_is_not_found() {
     let r = service(config(), None)
         .oneshot(Request::post("/predict").body(Body::from("{}")).unwrap())

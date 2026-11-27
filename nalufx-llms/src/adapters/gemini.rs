@@ -3,6 +3,7 @@
 use crate::error::LlmError;
 use crate::http::Http;
 use crate::provider::{ChatRequest, ChatResponse, LlmConfig, LlmProvider, Role, TokenUsage};
+use crate::secret::ApiKey;
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::json;
@@ -21,7 +22,7 @@ pub const BASE_URL: &str = "https://generativelanguage.googleapis.com";
 pub struct Gemini {
     http: Http,
     base_url: String,
-    api_key: String,
+    api_key: ApiKey,
     config: LlmConfig,
 }
 
@@ -33,7 +34,7 @@ impl Gemini {
     /// [`LlmError::Config`] if the configuration fails [`LlmConfig::check`].
     pub fn new(
         http: Http,
-        api_key: impl Into<String>,
+        api_key: impl Into<ApiKey>,
         config: LlmConfig,
     ) -> Result<Self, LlmError> {
         config.check()?;
@@ -92,7 +93,7 @@ impl LlmProvider for Gemini {
             self.base_url.trim_end_matches('/'),
             self.config.model
         );
-        let headers = [("x-goog-api-key", self.api_key.as_str())];
+        let headers = [("x-goog-api-key", self.api_key.expose())];
         let reply: Reply =
             self.http.post_json(PROVIDER, &url, &headers, &self.body(request)).await?;
         reply.into_response(&self.config.model)

@@ -21,6 +21,11 @@ concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
+# Read-only by default; only the release job writes, and it also signs
+# the build provenance.
+permissions:
+  contents: read
+
 jobs:
   # Resolve the workspace version and check it against the tag. Unlike
   # the single-crate repositories there is no root package here, so the
@@ -32,7 +37,9 @@ jobs:
       version: ${{ steps.resolve.outputs.version }}
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Resolve version and check against tag
         id: resolve
@@ -62,7 +69,6 @@ jobs:
     needs: guard
     env:
       BUILD_ID: ${{ github.run_id }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       OS: ${{ matrix.platform.os }}
       TARGET: ${{ matrix.platform.target }}
     strategy:
@@ -83,15 +89,17 @@ jobs:
     steps:
       - name: Checkout sources
         id: checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install stable toolchain
         id: install-toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
 
       - name: Cache dependencies
         id: cache-dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
@@ -99,7 +107,7 @@ jobs:
 
       - name: Install target
         id: install-target
-        run: rustup target add ${{ env.TARGET }}
+        run: rustup target add "$TARGET"
 
       - name: Build targets
         id: build-targets
@@ -110,12 +118,12 @@ jobs:
         id: package-binary
         run: |
           mkdir -p target/package
-          tar czf target/package/${{ env.TARGET }}.tar.gz -C target/${{ env.TARGET }}/release .
-          echo "${{ env.TARGET }}.tar.gz=target/package/${{ env.TARGET }}.tar.gz" >> "$GITHUB_ENV"
+          tar czf "target/package/${TARGET}.tar.gz" -C "target/${TARGET}/release" .
+          echo "${TARGET}.tar.gz=target/package/${TARGET}.tar.gz" >> "$GITHUB_ENV"
 
       - name: Upload the binary
         id: upload-binary
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.TARGET }}.tar.gz
           path: target/package/${{ env.TARGET }}.tar.gz
@@ -125,12 +133,20 @@ jobs:
     if: github.event_name == 'push' || inputs.publish
     needs: [guard, build]
     runs-on: ubuntu-latest
+    permissions:
+      # Creates the draft release.
+      contents: write
+      # Signs and stores the build provenance (Sigstore through GitHub).
+      id-token: write
+      attestations: write
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install stable toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
 
       - name: Update version number
         run: |
@@ -139,7 +155,7 @@ jobs:
         shell: /bin/bash -e {0}
 
       - name: Cache dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
@@ -155,16 +171,49 @@ jobs:
       # an empty list and, when it did run, wrote an unauthenticated API
       # error body into a .tar.gz. No release ever carried real binaries.
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: dist
           merge-multiple: true
 
+      # A CycloneDX SBOM for each binary: every crate it is built from,
+      # with its version, package URL and licence.
+      - name: Install cargo-cyclonedx
+        uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        with:
+          tool: cargo-cyclonedx@0.5.9
+
+      - name: Generate SBOMs
+        run: |
+          set -euo pipefail
+          cargo cyclonedx --format json --spec-version 1.5 --describe binaries
+          mv nalufx-cli/nalufx_bin.cdx.json dist/nalufx.cdx.json
+          mv nalufx-api/nalufx-api_bin.cdx.json dist/nalufx-api.cdx.json
+
       - name: Generate checksums
         run: |
           cd dist
-          sha256sum ./*.tar.gz > SHA256SUMS
+          sha256sum ./*.tar.gz ./*.cdx.json > SHA256SUMS
           cat SHA256SUMS
+
+      # SLSA build provenance for every archive and SBOM: a signed
+      # statement of the workflow, commit and runner that produced each
+      # one. Anyone can check it with `gh attestation verify`.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/*.tar.gz
+            dist/*.cdx.json
+
+      - name: Verify the provenance
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          for f in dist/*.tar.gz dist/*.cdx.json; do
+            gh attestation verify "$f" --repo "$GITHUB_REPOSITORY"
+          done
 
       # gh is preinstalled on the runner, so this replaces the archived
       # actions/create-release@v1 without adding a third-party dependency.
@@ -181,4 +230,4 @@ jobs:
             --title "NaluFX 🦀 v${VERSION}" \
             --generate-notes \
             --draft \
-            dist/*.tar.gz dist/SHA256SUMS
+            dist/*.tar.gz dist/*.cdx.json dist/SHA256SUMS

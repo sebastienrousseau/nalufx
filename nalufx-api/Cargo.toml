@@ -24,8 +24,8 @@ name = "nalufx-api"
 path = "src/main.rs"
 
 [dependencies]
-nalufx-engine = { path = "../nalufx-engine", version = "0.0.9", features = ["openapi"] }
-nalufx-llms = { path = "../nalufx-llms", version = "0.0.9", features = ["openapi"] }
+nalufx-engine = { path = "../nalufx-engine", version = "0.0.10", features = ["openapi"] }
+nalufx-llms = { path = "../nalufx-llms", version = "0.0.10", features = ["openapi"] }
 axum = "0.8"
 # Per-key token buckets.
 governor = "0.10"
@@ -53,6 +53,8 @@ tower = { version = "0.5", features = ["util"] }
 
 [lints.rust]
 # Linting configuration.
+## Forbid: no crate in nalufx needs unsafe code.
+unsafe_code = "forbid"
 ## Warn
 missing_copy_implementations = "warn"
 missing_docs = "warn"
@@ -66,7 +68,6 @@ elided_lifetimes_in_paths = "allow"
 non_camel_case_types = "allow"
 non_upper_case_globals = "allow"
 trivial_bounds = "allow"
-unsafe_code = "allow"
 
 ## Forbid
 missing_debug_implementations = "forbid"

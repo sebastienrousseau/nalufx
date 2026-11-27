@@ -12,6 +12,10 @@ use thiserror::Error;
 /// Why a completion could not be produced.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum LlmError {
+    /// The caller's input cannot be sent: too long, for instance.
+    #[error("unusable input: {0}")]
+    Input(String),
+
     /// The provider's API key is not set.
     #[error("missing API key for {provider}: set {variable}")]
     MissingApiKey {
@@ -72,8 +76,8 @@ pub enum LlmError {
 }
 
 impl LlmError {
-    /// The provider the error came from, or `"config"` for a configuration
-    /// error.
+    /// The provider the error came from; `"config"` for a configuration
+    /// error and `"input"` for unusable input.
     #[must_use]
     pub const fn provider(&self) -> &'static str {
         match self {
@@ -83,6 +87,7 @@ impl LlmError {
             | Self::ParseResponse { provider, .. }
             | Self::Schema { provider, .. } => provider,
             Self::Config(_) => "config",
+            Self::Input(_) => "input",
         }
     }
 

@@ -8,7 +8,7 @@
 use crate::allocate::{AllocationInput, Allocator, Constraints};
 use crate::covariance::CovarianceEstimator;
 use crate::AllocationError;
-use ndarray::{s, Array2, ArrayView1};
+use ndarray::{Array2, ArrayView1, Axis, Slice};
 use serde::{Deserialize, Serialize};
 
 /// How a backtest runs.
@@ -90,7 +90,9 @@ pub fn run(
         let charge = if (t - config.lookback).is_multiple_of(config.rebalance_every) {
             let input = AllocationInput {
                 assets: assets.to_vec(),
-                returns: returns.slice(s![t - config.lookback..t, ..]).to_owned(),
+                returns: returns
+                    .slice_axis(Axis(0), Slice::from(t - config.lookback..t))
+                    .to_owned(),
                 constraints,
                 estimator,
             };
