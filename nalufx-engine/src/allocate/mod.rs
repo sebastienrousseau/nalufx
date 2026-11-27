@@ -199,6 +199,11 @@ pub trait Allocator {
     /// # Errors
     ///
     /// - [`AllocationError::InputMismatch`] if the names do not match the columns.
+    /// - [`AllocationError::ZeroVolatility`] if an asset's variance is
+    ///   subnormal (a standard deviation below about 1e-154, whose inverse
+    ///   overflows), negative or not finite.
+    /// - [`AllocationError::SolverFailed`] if a method produced a weight that
+    ///   is not finite.
     /// - Any error from [`CovarianceEstimator::estimate`], [`Constraints::check`]
     ///   or the method's solver.
     fn allocate(&self, input: &AllocationInput) -> Result<Allocation, AllocationError> {
@@ -206,8 +211,10 @@ pub trait Allocator {
             return Err(AllocationError::InputMismatch);
         }
         let moments = input.estimator.estimate(&input.returns)?;
+        usable_variances(&moments)?;
         input.constraints.check(input.assets.len())?;
         let solution = self.solve(&moments, &input.constraints)?;
+        finite_weights(self.name(), &solution.weights)?;
         let diagnostics = Diagnostics {
             solver_status: solution.solver_status,
             iterations: solution.iterations,
@@ -226,6 +233,27 @@ pub trait Allocator {
             }),
             diagnostics,
         })
+    }
+}
+
+/// Each variance is 0 or a normal positive number. A subnormal one is
+/// not 0, but its inverse overflows, which turned inverse-variance
+/// weights into NaN.
+fn usable_variances(moments: &Moments) -> Result<(), AllocationError> {
+    let usable = |v: &f64| v.is_finite() && *v >= 0.0 && !v.is_subnormal();
+    if moments.covariance.diag().iter().all(usable) {
+        Ok(())
+    } else {
+        Err(AllocationError::ZeroVolatility)
+    }
+}
+
+/// Every weight is finite: what any method returns as `Ok`.
+fn finite_weights(method: &str, weights: &[f64]) -> Result<(), AllocationError> {
+    if weights.iter().all(|w| w.is_finite()) {
+        Ok(())
+    } else {
+        Err(AllocationError::SolverFailed(format!("{method} produced non-finite weights")))
     }
 }
 
@@ -328,6 +356,42 @@ fn budget_shift(weights: &[f64], (lo, hi): (f64, f64)) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Found by the `allocate` fuzz target: two returns of about 3e-161
+    /// and the rest 0 give subnormal variances, whose inverses overflow.
+    /// HRP answered Ok with NaN weights.
+    #[test]
+    fn non_finite_weights_are_never_ok() {
+        assert!(finite_weights("m", &[0.5, 0.5]).is_ok());
+        for bad in [f64::NAN, f64::INFINITY] {
+            assert!(matches!(
+                finite_weights("m", &[bad, 0.5]),
+                Err(AllocationError::SolverFailed(_))
+            ));
+        }
+    }
+
+    #[test]
+    fn subnormal_variances_are_an_error_for_every_method() {
+        let mut returns = Array2::<f64>::zeros((21, 2));
+        returns[[0, 0]] = -3.445_147_178_595_586e-161;
+        returns[[0, 1]] = -3.403_000_061_956_761_5e-161;
+        for estimator in [CovarianceEstimator::LedoitWolf, CovarianceEstimator::Sample] {
+            let input = AllocationInput {
+                assets: vec!["A".into(), "B".into()],
+                returns: returns.clone(),
+                constraints: Constraints::default(),
+                estimator,
+            };
+            for name in METHODS {
+                let result = by_name(name, None).unwrap().allocate(&input);
+                assert!(
+                    matches!(result, Err(AllocationError::ZeroVolatility)),
+                    "{name} with {estimator:?}: {result:?}"
+                );
+            }
+        }
+    }
 
     #[test]
     fn constraints_reject_bad_bounds() {
