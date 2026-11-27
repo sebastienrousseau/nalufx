@@ -211,19 +211,36 @@ jobs:
       # statement of the workflow, commit and runner that produced each
       # one. Anyone can check it with `gh attestation verify`.
       - name: Attest build provenance
+        id: attest
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: |
             dist/*.tar.gz
             dist/*.cdx.json
 
+      # The signed attestation is also attached to the release, so it can
+      # be checked offline and OpenSSF Scorecard finds it: the Sigstore
+      # bundle (an in-toto SLSA statement in a DSSE envelope), compacted
+      # to one JSON line.
+      - name: Attach the provenance bundle
+        env:
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          set -euo pipefail
+          jq -c . "$BUNDLE" > "dist/nalufx-v${VERSION}.intoto.jsonl"
+          test "$(wc -l < "dist/nalufx-v${VERSION}.intoto.jsonl")" -eq 1
+
       - name: Verify the provenance
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.guard.outputs.version }}
         run: |
           set -euo pipefail
           for f in dist/*.tar.gz dist/*.cdx.json; do
             gh attestation verify "$f" --repo "$GITHUB_REPOSITORY"
+            gh attestation verify "$f" --repo "$GITHUB_REPOSITORY" \
+              --bundle "dist/nalufx-v${VERSION}.intoto.jsonl"
           done
 
       # gh is preinstalled on the runner, so this replaces the archived
@@ -241,4 +258,4 @@ jobs:
             --title "NaluFX 🦀 v${VERSION}" \
             --generate-notes \
             --draft \
-            dist/*.tar.gz dist/*.cdx.json dist/SHA256SUMS
+            dist/*.tar.gz dist/*.cdx.json dist/*.intoto.jsonl dist/SHA256SUMS
