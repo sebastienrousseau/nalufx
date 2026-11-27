@@ -22,19 +22,30 @@ use utoipa::ToSchema;
 /// The longest forecast horizon accepted, in days.
 pub const MAX_HORIZON_DAYS: usize = 366;
 
+/// The most history points, or rows of returns, a request may carry.
+pub const MAX_POINTS: usize = 10_000;
+
+/// The most assets an allocation may have.
+pub const MAX_ASSETS: usize = 500;
+
+/// The most seasonal periods a forecast may have.
+pub const MAX_PERIODS: usize = 4;
+
 /// The body of `POST /v1/forecast`.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ForecastRequest {
-    /// The history to forecast, oldest first.
+    /// The history to forecast, oldest first; at most 10,000 points.
+    #[schema(max_items = 10000)]
     pub history: Vec<f64>,
     /// Days to forecast, 1 to 366; 6 by default.
     #[serde(default)]
     #[schema(minimum = 1, maximum = 366)]
     pub horizon_days: Option<usize>,
     /// Cycle lengths in the history, such as `[5]` for a weekly business
-    /// cycle; empty for none.
+    /// cycle; empty for none, at most 4.
     #[serde(default)]
+    #[schema(max_items = 4)]
     pub seasonal_periods: Vec<usize>,
 }
 
@@ -42,9 +53,12 @@ pub struct ForecastRequest {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AllocateRequest {
-    /// The asset names.
+    /// The asset names; at most 500.
+    #[schema(max_items = 500)]
     pub assets: Vec<String>,
-    /// One row per period, oldest first, with one return per asset.
+    /// One row per period, oldest first, with one return per asset; at
+    /// most 10,000 rows.
+    #[schema(max_items = 10000)]
     pub returns: Vec<Vec<f64>>,
     /// `equal_weight`, `min_variance` (the default), `mean_variance`,
     /// `risk_parity` or `hrp`.
@@ -122,6 +136,8 @@ pub async fn openapi_json() -> Response {
 pub async fn forecast(
     Json(request): Json<ForecastRequest>,
 ) -> Result<Json<IntervalForecast>, Problem> {
+    within("history", request.history.len(), MAX_POINTS)?;
+    within("seasonal_periods", request.seasonal_periods.len(), MAX_PERIODS)?;
     let days = request.horizon_days.unwrap_or(DEFAULT_HORIZON_DAYS);
     if !(1..=MAX_HORIZON_DAYS).contains(&days) {
         return Err(Problem::new(
@@ -147,6 +163,8 @@ pub async fn forecast(
         (status = 429, description = "Over the key's rate limit", body = Problem, content_type = "application/problem+json"),
     ))]
 pub async fn allocate(Json(request): Json<AllocateRequest>) -> Result<Json<Allocation>, Problem> {
+    within("assets", request.assets.len(), MAX_ASSETS)?;
+    within("returns", request.returns.len(), MAX_POINTS)?;
     let input = AllocationInput {
         returns: returns_matrix(&request.returns, request.assets.len())
             .map_err(allocation_problem)?,
@@ -242,6 +260,17 @@ pub fn allocation_problem(err: AllocationError) -> Problem {
         | AllocationError::SolverFailed(_) => StatusCode::UNPROCESSABLE_ENTITY,
     };
     Problem::new(status, err.to_string())
+}
+
+/// A 400 if a list is longer than its limit.
+fn within(field: &str, len: usize, max: usize) -> Result<(), Problem> {
+    if len > max {
+        return Err(Problem::new(
+            StatusCode::BAD_REQUEST,
+            format!("{field} has {len} items; the most is {max}"),
+        ));
+    }
+    Ok(())
 }
 
 /// A provider error as a problem. The caller's request was fine, so
