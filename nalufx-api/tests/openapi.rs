@@ -24,16 +24,9 @@ fn the_committed_spec_matches_the_code() {
 fn the_spec_is_openapi_3_1_with_every_route_and_the_key_scheme() {
     let spec: Value = serde_json::from_str(&spec_json()).unwrap();
     assert!(spec["openapi"].as_str().unwrap().starts_with("3.1"));
-    for path in [
-        "/",
-        "/openapi.json",
-        "/v1/forecast",
-        "/v1/allocate",
-        "/v1/report",
-        "/healthz",
-        "/readyz",
-        "/predict",
-    ] {
+    for path in
+        ["/", "/openapi.json", "/v1/forecast", "/v1/allocate", "/v1/report", "/healthz", "/readyz"]
+    {
         assert!(spec["paths"].get(path).is_some(), "{path}");
     }
     assert_eq!(spec["components"]["securitySchemes"]["api_key"]["scheme"], "bearer");

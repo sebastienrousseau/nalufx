@@ -291,14 +291,12 @@ async fn reports_need_a_provider_and_a_reply_in_schema() {
 }
 
 #[tokio::test]
-async fn the_old_endpoint_is_gone_and_points_at_its_successor() {
+async fn the_removed_endpoint_is_not_found() {
     let r = service(config(), None)
         .oneshot(Request::post("/predict").body(Body::from("{}")).unwrap())
         .await
         .unwrap();
-    assert_eq!(r.status(), StatusCode::GONE);
-    assert!(r.headers()[header::LINK].to_str().unwrap().contains("/v1/allocate"));
-    assert!(problem(r).await.detail.contains("/v1/allocate"));
+    assert_eq!(r.status(), StatusCode::NOT_FOUND);
 }
 
 #[tokio::test]
@@ -357,12 +355,12 @@ async fn large_responses_are_compressed_on_request() {
 #[tokio::test]
 async fn a_compressed_error_keeps_its_detail() {
     use std::io::Read;
-    let request = Request::post("/predict")
+    let request = Request::post("/v1/forecast")
         .header(header::ACCEPT_ENCODING, "gzip")
         .body(Body::from("{}"))
         .unwrap();
     let r = service(config(), None).oneshot(request).await.unwrap();
-    assert_eq!(r.status(), StatusCode::GONE);
+    assert_eq!(r.status(), StatusCode::UNAUTHORIZED);
     let gzipped = r.headers().get(header::CONTENT_ENCODING).is_some_and(|v| v == "gzip");
     let bytes = to_bytes(r.into_body(), 1 << 20).await.unwrap();
     let mut text = String::new();
@@ -372,7 +370,7 @@ async fn a_compressed_error_keeps_its_detail() {
         text = String::from_utf8(bytes.to_vec()).unwrap();
     }
     let p: Problem = serde_json::from_str(&text).unwrap();
-    assert!(p.detail.contains("/v1/allocate"), "{}", p.detail);
+    assert!(p.detail.contains("Bearer"), "{}", p.detail);
 }
 
 #[tokio::test]

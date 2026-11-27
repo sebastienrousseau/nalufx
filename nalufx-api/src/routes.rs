@@ -208,22 +208,6 @@ pub async fn readyz(State(state): State<Arc<AppState>>) -> Result<Json<Health>, 
     Ok(Json(Health { status: "ok".to_string() }))
 }
 
-/// The 0.0.6 endpoint, gone: it points at its replacement.
-#[utoipa::path(post, path = "/predict", responses(
-    (status = 410, description = "Removed; use POST /v1/forecast and POST /v1/allocate", body = Problem, content_type = "application/problem+json"),
-))]
-pub async fn predict_gone() -> Response {
-    let mut response = Problem::new(
-        StatusCode::GONE,
-        "POST /predict was removed in 0.0.8; use POST /v1/allocate (and POST /v1/forecast for the cash flow forecast)",
-    )
-    .into_response();
-    if let Ok(link) = "</v1/allocate>; rel=\"successor-version\"".parse() {
-        let _ = response.headers_mut().insert(header::LINK, link);
-    }
-    response
-}
-
 /// The rows of returns as a matrix with one column per asset.
 fn returns_matrix(rows: &[Vec<f64>], assets: usize) -> Result<Array2<f64>, AllocationError> {
     if assets == 0 || rows.is_empty() {

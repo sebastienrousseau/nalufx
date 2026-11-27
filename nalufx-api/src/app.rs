@@ -68,8 +68,7 @@ pub fn app(state: AppState) -> Router {
         .route("/", get(routes::index))
         .route("/openapi.json", get(routes::openapi_json))
         .route("/healthz", get(routes::healthz))
-        .route("/readyz", get(routes::readyz))
-        .route("/predict", post(routes::predict_gone));
+        .route("/readyz", get(routes::readyz));
     let request_id = HeaderName::from_static(REQUEST_ID);
     let middleware = ServiceBuilder::new()
         .layer(SetRequestIdLayer::new(request_id.clone(), MakeRequestUuid))

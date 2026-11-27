@@ -35,13 +35,14 @@ NaluFX is not on crates.io yet. Depend on it from Git:
 
 ```toml
 [dependencies]
-nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.8", package = "nalufx-core" }
+nalufx = { git = "https://github.com/sebastienrousseau/nalufx", tag = "v0.0.9", package = "nalufx-core" }
 ```
 
-Or install the HTTP server:
+Or install the command line and the HTTP server:
 
 ```shell
-cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.8 nalufx-api
+cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.9 nalufx-cli   # the `nalufx` command
+cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.9 nalufx-api   # the HTTP server
 ```
 
 ### Requirements
@@ -53,6 +54,28 @@ cargo install --git https://github.com/sebastienrousseau/nalufx --tag v0.0.8 nal
 Build the API documentation locally with `cargo doc --open -p nalufx-core`. More is on the [website][00].
 
 ## Usage
+
+### The command line
+
+`nalufx` runs every part of the engine from a terminal, from live prices or CSV files, with a table for people and `--json` for scripts. `nalufx --help`, and `--help` on any command, lists every option. These work offline, on the synthetic data in `nalufx-cli/data`:
+
+```shell
+nalufx allocate --file nalufx-cli/data/sample-returns.csv --method risk-parity --max-weight 0.4
+nalufx backtest --file nalufx-cli/data/sample-returns.csv              # every method side by side
+nalufx forecast --file nalufx-cli/data/sample-cash.csv --column net_cash_flow --seasonal 5
+nalufx methods                                                         # what each method does
+nalufx providers                                                       # which LLM keys are set
+```
+
+With a network connection, `--assets SPY,TLT,GLD` fetches daily prices instead of `--file`. A report pipes an allocation to a language model, which writes the narrative:
+
+```shell
+nalufx allocate --assets SPY,TLT,GLD --json \
+  | nalufx report --provider anthropic --model claude-sonnet-5-5 --from -
+```
+
+Bad input is caught before anything slow happens: bounds no weights can meet before prices are fetched, a missing API key before the input is read. Every error says what to do about it. The exit codes are `0` success, `2` usage, `3` unusable input, `4` no answer (such as bounds no weights can meet), `5` a network, price feed or language model failure, and `1` anything else.
+
 
 ### Allocating across assets
 
@@ -140,25 +163,18 @@ curl -s localhost:8080/v1/allocate -H "authorization: Bearer $MY_KEY" -H 'conten
 | `GET /openapi.json` | no | | The OpenAPI 3.1 contract (the committed `nalufx-api/openapi.json`) |
 | `GET /healthz` | no | | `200` while the process is up |
 | `GET /readyz` | no | | `200` when the configuration is loaded and the language model's endpoint answers |
-| `POST /predict` | no | | `410 Gone`, pointing at `/v1/allocate`; removed in 0.0.9 |
 
 `method` is `equal_weight`, `min_variance` (the default), `mean_variance`, `risk_parity` or `hrp`. Every error is `application/problem+json` with a `type` under `https://nalufx.com/problems/` and the `request_id`: `400` for unusable input, `401` without a valid key, `408` past the timeout, `413` over 1 MiB, `422` when the maths has no answer (bounds no weights can meet, for example), `429` over a key's rate with `Retry-After`, and `502`/`503`/`504` when the language model fails. `/v1/report` needs `NALUFX_LLM_PROVIDER` and `NALUFX_LLM_MODEL` (and the provider's key); without them it answers `503`. Every setting is listed in the `nalufx_api::config` documentation.
 
 ## Examples
 
-NaluFX comes with a set of examples that you can use to get started. The examples are located in the `examples` directory of the project.
-
-To run the examples, clone the repository and run the following command in your terminal from the project root directory:
+The `nalufx-core/examples/services` directory has small programs that call the library directly, each prompting for its inputs. Run one with:
 
 ```shell
-cargo run --example nalufx
+cargo run -p nalufx-core --example <example_name>
 ```
 
-You can also run the examples directly from the repository by using the following commands:
-
-```shell
-cargo run --example <example_name>
-```
+For day-to-day use, the `nalufx` command above is the interface; these show the library calls behind it.
 
 ### Bellwether Stock Analysis
 
