@@ -3,6 +3,7 @@
 use crate::error::LlmError;
 use crate::http::Http;
 use crate::provider::{ChatRequest, ChatResponse, LlmConfig, LlmProvider, TokenUsage};
+use crate::secret::ApiKey;
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::json;
@@ -24,7 +25,7 @@ pub const API_VERSION: &str = "2023-06-01";
 pub struct Anthropic {
     http: Http,
     base_url: String,
-    api_key: String,
+    api_key: ApiKey,
     config: LlmConfig,
 }
 
@@ -36,7 +37,7 @@ impl Anthropic {
     /// [`LlmError::Config`] if the configuration fails [`LlmConfig::check`].
     pub fn new(
         http: Http,
-        api_key: impl Into<String>,
+        api_key: impl Into<ApiKey>,
         config: LlmConfig,
     ) -> Result<Self, LlmError> {
         config.check()?;
@@ -85,7 +86,7 @@ impl LlmProvider for Anthropic {
 
     async fn complete(&self, request: &ChatRequest) -> Result<ChatResponse, LlmError> {
         let url = format!("{}/v1/messages", self.base_url.trim_end_matches('/'));
-        let headers = [("x-api-key", self.api_key.as_str()), ("anthropic-version", API_VERSION)];
+        let headers = [("x-api-key", self.api_key.expose()), ("anthropic-version", API_VERSION)];
         let reply: Reply =
             self.http.post_json(PROVIDER, &url, &headers, &self.body(request)).await?;
         reply.into_response()

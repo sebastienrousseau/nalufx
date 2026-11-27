@@ -5,6 +5,7 @@
 use crate::error::LlmError;
 use crate::http::Http;
 use crate::provider::{ChatRequest, ChatResponse, LlmConfig, LlmProvider, TokenUsage};
+use crate::secret::ApiKey;
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::json;
@@ -50,7 +51,7 @@ pub struct OpenAiCompatible {
     http: Http,
     provider: &'static str,
     base_url: String,
-    api_key: Option<String>,
+    api_key: Option<ApiKey>,
     config: LlmConfig,
 }
 
@@ -66,7 +67,7 @@ impl OpenAiCompatible {
         http: Http,
         endpoint: Endpoint,
         base_url: impl Into<String>,
-        api_key: Option<String>,
+        api_key: Option<ApiKey>,
         config: LlmConfig,
     ) -> Result<Self, LlmError> {
         config.check()?;
@@ -112,7 +113,7 @@ impl LlmProvider for OpenAiCompatible {
 
     async fn complete(&self, request: &ChatRequest) -> Result<ChatResponse, LlmError> {
         let url = format!("{}/chat/completions", self.base_url.trim_end_matches('/'));
-        let bearer = self.api_key.as_ref().map(|k| format!("Bearer {k}"));
+        let bearer = self.api_key.as_ref().map(|k| format!("Bearer {}", k.expose()));
         let headers: Vec<(&str, &str)> =
             bearer.iter().map(|b| ("authorization", b.as_str())).collect();
         let reply: Reply =

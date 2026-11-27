@@ -8,6 +8,7 @@ use crate::adapters::openai_compatible::{
 use crate::error::LlmError;
 use crate::http::Http;
 use crate::provider::{LlmConfig, LlmProvider};
+use crate::secret::ApiKey;
 
 /// The provider names [`from_env`] accepts.
 pub const PROVIDERS: [&str; 7] =
@@ -97,8 +98,8 @@ fn endpoint(name: &str) -> Result<Endpoint, LlmError> {
 /// # Errors
 ///
 /// [`LlmError::MissingApiKey`] naming the variable if it is unset or empty.
-pub fn api_key(provider: &'static str, variable: &'static str) -> Result<String, LlmError> {
-    env_var(variable).ok_or(LlmError::MissingApiKey { provider, variable })
+pub fn api_key(provider: &'static str, variable: &'static str) -> Result<ApiKey, LlmError> {
+    env_var(variable).map(ApiKey::new).ok_or(LlmError::MissingApiKey { provider, variable })
 }
 
 /// A non-empty environment variable, loading `.env` if it is not set.

@@ -31,3 +31,4 @@ pub mod prompt;
 pub mod provider;
 pub mod registry;
 pub mod report;
+pub mod secret;
