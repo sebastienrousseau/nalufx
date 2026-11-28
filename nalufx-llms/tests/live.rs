@@ -13,8 +13,15 @@ use nalufx_llms::registry::from_env;
 use nalufx_llms::report::{generate, ReportInput};
 use serde_json::json;
 
+/// The variable's value, or `None` when it is unset or empty. GitHub
+/// Actions expands a missing secret to an empty string, so empty means
+/// "not configured" here.
+fn set_var(name: &str) -> Option<String> {
+    std::env::var(name).ok().filter(|v| !v.is_empty())
+}
+
 async fn live_report(provider: &str, key_var: &str, model_var: &str) {
-    let (Ok(_), Ok(model)) = (std::env::var(key_var), std::env::var(model_var)) else {
+    let (Some(_), Some(model)) = (set_var(key_var), set_var(model_var)) else {
         eprintln!("skipped {provider}: set {key_var} and {model_var}");
         return;
     };
