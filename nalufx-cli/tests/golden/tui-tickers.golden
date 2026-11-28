@@ -1,0 +1,28 @@
+size 80x24, alternate screen
+cursor 67,22 hidden, style 0
+modes 1049 2004
+keyboard flags 1, modifyOtherKeys 2
+--------------------------------------------------------------------------------
+   Tickers
+
+  5 tickers
+
+│ [x] BOND
+  [x] CREDIT
+  [x] EQUITY
+  [x] SMALL
+  [x] GOLD
+
+
+
+
+
+
+
+
+
+
+
+
+
+  ↑/k up • ↓/j down • / filter • space choose • enter next • ? more

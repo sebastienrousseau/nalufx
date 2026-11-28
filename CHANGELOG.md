@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   provider's key is set, and never prints a key.
 - `nalufx report` takes `llm.provider`, `llm.model` and
   `llm.max_tokens` from the file when no flag or variable sets them.
+- **`nalufx tui`**, an interactive allocate and forecast: choose
+  tickers from a file's columns or `--assets` (fuzzy filter with `/`),
+  choose a method or forecast, and read the result in a table, with
+  a spinner while it runs and a help bar. It calls the same functions
+  as `nalufx allocate` and `nalufx forecast` (the weights match to the
+  last bit, which a test checks). Errors show in the view with their
+  hint. q and Ctrl-C quit and restore the terminal; `ACCESSIBLE=1`
+  prints plain lines. Built on petitcarnets 0.0.7; its screens have
+  golden tests in petitcarnets' `TestProgram`, with no network.
 
 ### Changed
 
@@ -41,6 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `toml` 1.2.3 (std, parse, serde) for `nalufx.toml`, with
   `toml_parser`, `toml_datetime`, `toml_writer`, `serde_spanned` and
   `winnow`; see `docs/dependencies.md`.
+- `petitcarnets` 0.0.7 for `nalufx tui`, with no dependencies of its
+  own.
 
 ## [0.0.12] - 2026-11-27
 

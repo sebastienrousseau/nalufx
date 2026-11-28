@@ -1,0 +1,27 @@
+size 80x24, alternate screen
+cursor 37,21 hidden, style 0
+modes 1049 2004
+keyboard flags 1, modifyOtherKeys 2
+--------------------------------------------------------------------------------
+min-variance allocation
+
+ Asset         Weight
+ BOND            75.91%
+ CREDIT          17.76%
+ EQUITY           0.08%
+ SMALL            0.10%
+ GOLD             6.15%
+
+
+
+
+
+
+
+
+
+
+
+solver Solved in 8 iterations, condition number 66.1, shrinkage 0.010
+
+↑/k up • ↓/j down • esc back • q quit

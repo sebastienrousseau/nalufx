@@ -9,3 +9,4 @@ pub mod commands;
 pub mod error;
 pub mod input;
 pub mod settings;
+pub mod tui;

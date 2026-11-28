@@ -1,0 +1,10 @@
+size 80x24, alternate screen
+cursor 0,22 hidden, style 0
+modes 1049 2004
+keyboard flags 1, modifyOtherKeys 2
+--------------------------------------------------------------------------------
+Forecast BOND, CREDIT, EQUITY, SMALL, GOLD
+
+Days to forecast: 6
+
+enter run • esc back • ctrl+c quit

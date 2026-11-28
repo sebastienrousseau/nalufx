@@ -1,0 +1,27 @@
+size 80x24, alternate screen
+cursor 28,21 hidden, style 0
+modes 1049 2004
+keyboard flags 1, modifyOtherKeys 2
+--------------------------------------------------------------------------------
+   Method
+
+  6 methods
+
+  equal-weight
+  1/n to every asset; the baseline every other method must beat
+
+│ min-variance
+│ the least-variance portfolio; ignores expected returns (the default)
+
+  mean-variance
+  Markowitz: return against variance, --risk-aversion (default 10)
+
+
+  ••
+
+  ↑/k up • ↓/j down • / filter • enter run • esc back • ? more
+
+error: The constraints cannot be satisfied: 5 assets capped at 0.1 cannot reach
+a budget of 1
+  hint: raise --max-weight or lower --min-weight: n assets need n x max-weight
+>= 1 and n x min-weight <= 1

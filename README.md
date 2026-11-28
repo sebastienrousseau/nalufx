@@ -76,6 +76,17 @@ nalufx allocate --assets SPY,TLT,GLD --json \
 
 Bad input is caught before anything slow happens: bounds no weights can meet before prices are fetched, a missing API key before the input is read. Every error says what to do about it. The exit codes are `0` success, `2` usage, `3` unusable input, `4` no answer (such as bounds no weights can meet), `5` a network, price feed or language model failure, and `1` anything else.
 
+### The terminal interface
+
+`nalufx tui` does the same allocations and forecasts interactively: choose tickers (space; `/` filters them), choose a method or forecast, and read the weights or the forecasts in a table. It runs the same code as `nalufx allocate` and `nalufx forecast`, so the weights match to the last bit, and it takes the same `--file`, `--assets`, bounds and estimator. Errors show on the screen with their hint. q or Ctrl-C quits and gives the terminal back as it was; `ACCESSIBLE=1` prints plain lines for a screen reader.
+
+```shell
+nalufx tui --file nalufx-cli/data/sample-returns.csv
+nalufx tui --assets SPY,TLT,GLD --max-weight 0.6
+```
+
+It is built on [petitcarnets](https://crates.io/crates/petitcarnets), a dependency-free Rust port of Bubble Tea.
+
 
 ### Allocating across assets
 

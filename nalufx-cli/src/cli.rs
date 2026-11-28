@@ -42,6 +42,27 @@ pub enum Command {
     Serve(ServeArgs),
     /// The configuration: `nalufx config check`.
     Config(ConfigArgs),
+    /// An interactive allocate and forecast: choose tickers and a method,
+    /// read the result in a table. `ACCESSIBLE=1` prints plain lines.
+    Tui(TuiArgs),
+}
+
+/// `nalufx tui`.
+#[derive(Debug, Args)]
+#[command(
+    after_help = "Try it offline:\n  nalufx tui --file nalufx-cli/data/sample-returns.csv\n  nalufx tui --assets SPY,TLT,GLD --max-weight 0.6"
+)]
+pub struct TuiArgs {
+    /// Where the returns come from; the tickers to choose from are the
+    /// file's columns or the tickers given.
+    #[command(flatten)]
+    pub source: ReturnsSource,
+    /// Risk aversion, for mean-variance only.
+    #[arg(long, value_parser = positive)]
+    pub risk_aversion: Option<f64>,
+    /// The bounds and estimator.
+    #[command(flatten)]
+    pub bounds: Bounds,
 }
 
 /// `nalufx serve`.

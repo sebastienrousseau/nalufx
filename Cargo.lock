@@ -1835,6 +1835,7 @@ dependencies = [
  "nalufx-engine",
  "nalufx-llms",
  "ndarray",
+ "petitcarnets",
  "serde",
  "serde_json",
  "tempfile",
@@ -2053,6 +2054,12 @@ name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
+
+[[package]]
+name = "petitcarnets"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c80d7e0e5909be45190e55a85260374f54c95daa7189d6e46a78da15fe258bd"
 
 [[package]]
 name = "pin-project-lite"

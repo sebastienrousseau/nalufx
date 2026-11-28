@@ -4,7 +4,7 @@
 
 use crate::cli::{
     AllocateArgs, BacktestArgs, Bounds, Cli, Command, ConfigArgs, ConfigCommand, Estimator,
-    ForecastArgs, Method, ReportArgs, ServeArgs,
+    ForecastArgs, Method, ReportArgs, ServeArgs, TuiArgs,
 };
 use crate::error::CliError;
 use crate::input;
@@ -48,36 +48,68 @@ async fn dispatch(command: Command, config: Option<&Path>) -> Result<String, Cli
         Command::Providers => Ok(providers()),
         Command::Serve(args) => serve(&args, config).await,
         Command::Config(args) => config_command(args, config),
+        Command::Tui(args) => tui(&args),
     }
 }
 
 /// `nalufx allocate`.
 async fn allocate(args: &AllocateArgs) -> Result<String, CliError> {
-    let method = by_name(args.method.engine_name(), args.risk_aversion)?;
-    check_bounds(&args.bounds, args.source.assets.len())?;
+    check_allocation(args.method, args.risk_aversion, &args.bounds, args.source.assets.len())?;
     let (assets, returns) = input::returns(&args.source).await?;
-    let constraints = constraints(&args.bounds);
+    let allocation = allocation(args.method, args.risk_aversion, &args.bounds, assets, returns)?;
+    Ok(if args.json { json(&allocation)? } else { allocation_table(&allocation) })
+}
+
+/// Checks a method and its bounds for `tickers` assets (0 when not yet
+/// known), before any prices are fetched.
+pub(crate) fn check_allocation(
+    method: Method,
+    risk_aversion: Option<f64>,
+    bounds: &Bounds,
+    tickers: usize,
+) -> Result<(), CliError> {
+    let _ = by_name(method.engine_name(), risk_aversion)?;
+    check_bounds(bounds, tickers)
+}
+
+/// The allocation of `returns` by `method` within `bounds`: what
+/// `nalufx allocate` and `nalufx tui` both compute.
+pub(crate) fn allocation(
+    method: Method,
+    risk_aversion: Option<f64>,
+    bounds: &Bounds,
+    assets: Vec<String>,
+    returns: ndarray::Array2<f64>,
+) -> Result<Allocation, CliError> {
     let input = AllocationInput {
         assets,
         returns,
-        constraints,
-        estimator: estimator(args.bounds.estimator),
+        constraints: constraints(bounds),
+        estimator: estimator(bounds.estimator),
     };
-    let allocation = method.allocate(&input)?;
-    Ok(if args.json { json(&allocation)? } else { allocation_table(&allocation) })
+    Ok(by_name(method.engine_name(), risk_aversion)?.allocate(&input)?)
 }
 
 /// `nalufx forecast`.
 fn forecast(args: &ForecastArgs) -> Result<String, CliError> {
-    let history = history(args)?;
-    let days = usize::from(args.days);
-    let periods: Vec<usize> = args.seasonal.iter().map(|p| usize::from(*p)).collect();
-    let forecast = if periods.is_empty() {
-        forecast_time_series(&history, days)?
-    } else {
-        forecast_seasonal(&history, &periods, days)?
-    };
+    let forecast = forecast_series(&history(args)?, args.days, &args.seasonal)?;
     Ok(if args.json { json(&forecast)? } else { forecast_table(&forecast) })
+}
+
+/// The forecast of `history` for `days`, seasonal when `seasonal` names
+/// cycle lengths: what `nalufx forecast` and `nalufx tui` both compute.
+pub(crate) fn forecast_series(
+    history: &[f64],
+    days: u16,
+    seasonal: &[u16],
+) -> Result<IntervalForecast, CliError> {
+    let days = usize::from(days);
+    let periods: Vec<usize> = seasonal.iter().map(|p| usize::from(*p)).collect();
+    Ok(if periods.is_empty() {
+        forecast_time_series(history, days)?
+    } else {
+        forecast_seasonal(history, &periods, days)?
+    })
 }
 
 /// The series to forecast, from the file or the command line.
@@ -119,6 +151,13 @@ async fn backtest(args: &BacktestArgs) -> Result<String, CliError> {
 /// `nalufx serve`; prints nothing, since the server logs instead.
 async fn serve(args: &ServeArgs, config: Option<&Path>) -> Result<String, CliError> {
     settings::serve(config, args).await?;
+    Ok(String::new())
+}
+
+/// `nalufx tui`; prints nothing, since the interface drew on the
+/// terminal.
+fn tui(args: &TuiArgs) -> Result<String, CliError> {
+    crate::tui::run(args)?;
     Ok(String::new())
 }
 
@@ -196,20 +235,20 @@ fn read_allocation(from: &Path) -> Result<Allocation, CliError> {
     })
 }
 
+/// Every method and what it does, as `nalufx methods` and `nalufx tui`
+/// list them.
+pub(crate) const METHODS: [(Method, &str); 5] = [
+    (Method::EqualWeight, "1/n to every asset; the baseline every other method must beat"),
+    (Method::MinVariance, "the least-variance portfolio; ignores expected returns (the default)"),
+    (Method::MeanVariance, "Markowitz: return against variance, --risk-aversion (default 10)"),
+    (Method::RiskParity, "each asset contributes the same share of the variance"),
+    (Method::Hrp, "hierarchical risk parity; stable when assets are highly correlated"),
+];
+
 /// `nalufx methods`.
 fn methods() -> String {
     let mut t = table(&["Method", "What it does"]);
-    let rows = [
-        (Method::EqualWeight, "1/n to every asset; the baseline every other method must beat"),
-        (
-            Method::MinVariance,
-            "the least-variance portfolio; ignores expected returns (the default)",
-        ),
-        (Method::MeanVariance, "Markowitz: return against variance, --risk-aversion (default 10)"),
-        (Method::RiskParity, "each asset contributes the same share of the variance"),
-        (Method::Hrp, "hierarchical risk parity; stable when assets are highly correlated"),
-    ];
-    for (m, what) in rows {
+    for (m, what) in METHODS {
         let _ = t.add_row(vec![Cell::new(kebab(m.engine_name())), Cell::new(what)]);
     }
     t.to_string()
@@ -286,7 +325,7 @@ pub(crate) fn table(header: &[&str]) -> Table {
 }
 
 /// `min_variance` as `min-variance`, as the command line spells it.
-fn kebab(name: &str) -> String {
+pub(crate) fn kebab(name: &str) -> String {
     name.replace('_', "-")
 }
 
