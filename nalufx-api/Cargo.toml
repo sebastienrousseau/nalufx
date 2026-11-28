@@ -47,6 +47,7 @@ prometheus-client = "0.26.0"
 rlg = { version = "0.0.20", default-features = false, features = ["tracing-layer"] }
 rlg-otlp = { version = "0.0.20", features = ["tracing"] }
 rlg-redact = { version = "0.0.20", features = ["tracing"] }
+toml = { version = "1.2.3", default-features = false, features = ["std", "parse", "serde"] }
 
 [dev-dependencies]
 async-trait = "0.1.80"

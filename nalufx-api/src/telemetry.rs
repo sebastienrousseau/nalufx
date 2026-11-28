@@ -60,6 +60,15 @@ impl std::str::FromStr for LogSink {
     }
 }
 
+impl std::fmt::Display for LogSink {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Stdout => "stdout",
+            Self::Native => "native",
+        })
+    }
+}
+
 /// How log lines are written.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum LogFormat {
@@ -79,6 +88,15 @@ impl std::str::FromStr for LogFormat {
             "text" => Ok(Self::Text),
             other => Err(format!("NALUFX_LOG_FORMAT must be json or text, not `{other}`")),
         }
+    }
+}
+
+impl std::fmt::Display for LogFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Json => "json",
+            Self::Text => "text",
+        })
     }
 }
 

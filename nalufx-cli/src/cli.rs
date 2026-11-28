@@ -14,6 +14,10 @@ use std::path::PathBuf;
     after_help = "Try it offline:\n  nalufx allocate --file nalufx-cli/data/sample-returns.csv\n  nalufx backtest --file nalufx-cli/data/sample-returns.csv --method all"
 )]
 pub struct Cli {
+    /// A `nalufx.toml` to take settings from; `nalufx config check` shows
+    /// the result. Environment variables and flags override it.
+    #[arg(long, global = true, env = "NALUFX_CONFIG", value_name = "PATH")]
+    pub config: Option<PathBuf>,
     /// What to do.
     #[command(subcommand)]
     pub command: Command,
@@ -34,6 +38,41 @@ pub enum Command {
     Methods,
     /// The language model providers, and whether each one's key is set.
     Providers,
+    /// The HTTP API server, until SIGTERM or Ctrl-C.
+    Serve(ServeArgs),
+    /// The configuration: `nalufx config check`.
+    Config(ConfigArgs),
+}
+
+/// `nalufx serve`.
+#[derive(Debug, Clone, Copy, Args)]
+#[command(
+    after_help = "Example:\n  NALUFX_API_KEY_SHA256=\"$(printf %s \"$KEY\" | sha256sum | cut -d' ' -f1)\" nalufx serve\n  nalufx serve --config nalufx.toml --addr 0.0.0.0:8080\n\ndocs/runbook.md covers every setting, the logs, metrics and alerts."
+)]
+pub struct ServeArgs {
+    /// The listen address, over the file's and `NALUFX_ADDR`.
+    #[arg(long, value_name = "HOST:PORT")]
+    pub addr: Option<std::net::SocketAddr>,
+}
+
+/// `nalufx config`.
+#[derive(Debug, Clone, Copy, Args)]
+pub struct ConfigArgs {
+    /// What to do with it.
+    #[command(subcommand)]
+    pub command: ConfigCommand,
+}
+
+/// The `nalufx config` commands.
+#[derive(Debug, Clone, Copy, Subcommand)]
+pub enum ConfigCommand {
+    /// Checks the server's configuration and shows every setting, where it
+    /// came from, and whether the provider's key is set; never a key.
+    Check {
+        /// Print JSON instead of a table.
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 /// Where the returns come from: live prices or a CSV file.
@@ -151,12 +190,14 @@ pub struct BacktestArgs {
     after_help = "Example:\n  nalufx allocate --file nalufx-cli/data/sample-returns.csv --json \\\n    | nalufx report --provider anthropic --model claude-sonnet-5-5 --from -"
 )]
 pub struct ReportArgs {
-    /// The provider (`nalufx providers` lists them and their keys).
+    /// The provider (`nalufx providers` lists them and their keys); or
+    /// `llm.provider` in the configuration file.
     #[arg(long, env = "NALUFX_LLM_PROVIDER")]
-    pub provider: String,
-    /// The model's name at the provider; there is no default.
+    pub provider: Option<String>,
+    /// The model's name at the provider; or `llm.model` in the
+    /// configuration file. There is no default.
     #[arg(long, env = "NALUFX_LLM_MODEL")]
-    pub model: String,
+    pub model: Option<String>,
     /// An allocation as `nalufx allocate --json` prints it; `-` reads standard input.
     #[arg(long, value_name = "PATH")]
     pub from: PathBuf,
@@ -166,9 +207,10 @@ pub struct ReportArgs {
     /// The investor's objectives, in their words.
     #[arg(long, default_value = "No stated objectives.")]
     pub context: String,
-    /// The report's token limit.
-    #[arg(long, default_value_t = 2048)]
-    pub max_tokens: u32,
+    /// The report's token limit; or `llm.max_tokens` in the
+    /// configuration file, or 2048.
+    #[arg(long, env = "NALUFX_LLM_MAX_TOKENS")]
+    pub max_tokens: Option<u32>,
     /// Print JSON instead of text.
     #[arg(long)]
     pub json: bool,

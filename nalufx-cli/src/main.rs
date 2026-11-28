@@ -8,7 +8,9 @@ use std::process::ExitCode;
 #[tokio::main]
 async fn main() -> ExitCode {
     let cli = Cli::parse();
-    match execute(cli, &mut std::io::stdout().lock()).await {
+    // Not `stdout().lock()`: `serve` logs to standard output from another
+    // thread, which would wait on a lock held for the whole command.
+    match execute(cli, &mut std::io::stdout()).await {
         Ok(()) => ExitCode::SUCCESS,
         Err(err) => {
             eprintln!("error: {err}");

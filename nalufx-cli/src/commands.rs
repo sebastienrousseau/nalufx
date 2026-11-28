@@ -3,11 +3,14 @@
 //! file is read.
 
 use crate::cli::{
-    AllocateArgs, BacktestArgs, Bounds, Cli, Command, Estimator, ForecastArgs, Method, ReportArgs,
+    AllocateArgs, BacktestArgs, Bounds, Cli, Command, ConfigArgs, ConfigCommand, Estimator,
+    ForecastArgs, Method, ReportArgs, ServeArgs,
 };
 use crate::error::CliError;
 use crate::input;
+use crate::settings;
 use comfy_table::{presets::UTF8_FULL_CONDENSED, Cell, CellAlignment, Table};
+use nalufx_api::config_file::ConfigFile;
 use nalufx_engine::allocate::{by_name, Allocation, AllocationInput, Constraints};
 use nalufx_engine::backtest::{run, BacktestConfig, BacktestReport};
 use nalufx_engine::covariance::CovarianceEstimator;
@@ -17,6 +20,7 @@ use nalufx_llms::provider::{ClientConfig, LlmConfig};
 use nalufx_llms::registry::{from_env, PROVIDERS};
 use nalufx_llms::report::{generate, Report, ReportInput};
 use std::io::Write;
+use std::path::Path;
 
 /// Runs a command, writing its output to `out`.
 ///
@@ -24,21 +28,26 @@ use std::io::Write;
 ///
 /// A [`CliError`] with its exit code and a hint.
 pub async fn execute(cli: Cli, out: &mut impl Write) -> Result<(), CliError> {
-    let text = dispatch(cli.command).await?;
+    let text = dispatch(cli.command, cli.config.as_deref()).await?;
+    if text.is_empty() {
+        return Ok(());
+    }
     writeln!(out, "{text}").map_err(|e| {
         CliError::input(format!("cannot write the output: {e}"), "check the output pipe")
     })
 }
 
-/// The output of one command.
-async fn dispatch(command: Command) -> Result<String, CliError> {
+/// The output of one command; empty for `serve`, which logs instead.
+async fn dispatch(command: Command, config: Option<&Path>) -> Result<String, CliError> {
     match command {
         Command::Allocate(args) => allocate(&args).await,
         Command::Forecast(args) => forecast(&args),
         Command::Backtest(args) => backtest(&args).await,
-        Command::Report(args) => report(&args).await,
+        Command::Report(args) => report(&args, config).await,
         Command::Methods => Ok(methods()),
         Command::Providers => Ok(providers()),
+        Command::Serve(args) => serve(&args, config).await,
+        Command::Config(args) => config_command(args, config),
     }
 }
 
@@ -107,18 +116,25 @@ async fn backtest(args: &BacktestArgs) -> Result<String, CliError> {
     Ok(if args.json { json(&reports)? } else { backtest_table(&reports) })
 }
 
+/// `nalufx serve`; prints nothing, since the server logs instead.
+async fn serve(args: &ServeArgs, config: Option<&Path>) -> Result<String, CliError> {
+    settings::serve(config, args).await?;
+    Ok(String::new())
+}
+
+/// `nalufx config ...`.
+fn config_command(args: ConfigArgs, config: Option<&Path>) -> Result<String, CliError> {
+    match args.command {
+        ConfigCommand::Check { json } => settings::check(config, json),
+    }
+}
+
 /// `nalufx report`.
-async fn report(args: &ReportArgs) -> Result<String, CliError> {
-    let config = LlmConfig::new(args.model.clone(), args.max_tokens)?;
+async fn report(args: &ReportArgs, config: Option<&Path>) -> Result<String, CliError> {
+    let (name, settings) = llm_settings(args, config)?;
     let http = Http::new(ClientConfig::default())?;
-    let provider = from_env(&args.provider, config, http)?;
-    let text = input::read_text(&args.from)?;
-    let allocation: Allocation = serde_json::from_str(&text).map_err(|e| {
-        CliError::input(
-            format!("{}: not an allocation: {e}", args.from.display()),
-            "pass the output of `nalufx allocate --json`",
-        )
-    })?;
+    let provider = from_env(&name, settings, http)?;
+    let allocation = read_allocation(&args.from)?;
     let input = ReportInput {
         portfolio: args.portfolio.clone(),
         facts: serde_json::to_value(&allocation).unwrap_or_default(),
@@ -126,6 +142,58 @@ async fn report(args: &ReportArgs) -> Result<String, CliError> {
     };
     let report = generate(provider.as_ref(), &input).await?;
     Ok(if args.json { json(&report)? } else { report_text(&report) })
+}
+
+/// The report's provider and model settings: each flag (or its
+/// environment variable) over the configuration file's value.
+fn llm_settings(args: &ReportArgs, config: Option<&Path>) -> Result<(String, LlmConfig), CliError> {
+    let file = settings::file(config)?;
+    let name = flag_or_file(&args.provider, &file, "NALUFX_LLM_PROVIDER").ok_or_else(|| {
+        CliError::input(
+            "no provider",
+            "pass --provider, set NALUFX_LLM_PROVIDER, or set llm.provider in nalufx.toml",
+        )
+    })?;
+    let model = flag_or_file(&args.model, &file, "NALUFX_LLM_MODEL").ok_or_else(|| {
+        CliError::input(
+            "no model",
+            "pass --model, set NALUFX_LLM_MODEL, or set llm.model in nalufx.toml",
+        )
+    })?;
+    let max_tokens = match args.max_tokens {
+        Some(n) => n,
+        None => file_max_tokens(&file)?,
+    };
+    Ok((name, LlmConfig::new(model, max_tokens)?))
+}
+
+/// The flag's value, or else the file's value for `var`. A blank flag
+/// counts as unset, as a blank variable does for the server.
+fn flag_or_file(flag: &Option<String>, file: &ConfigFile, var: &str) -> Option<String> {
+    flag.clone().filter(|v| !v.trim().is_empty()).or_else(|| file.get(var).map(str::to_string))
+}
+
+/// `llm.max_tokens` from the file, or 2048.
+fn file_max_tokens(file: &ConfigFile) -> Result<u32, CliError> {
+    file.get("NALUFX_LLM_MAX_TOKENS").map_or(Ok(2048), |n| {
+        n.parse().map_err(|_| {
+            CliError::input(
+                format!("llm.max_tokens `{n}` is not a whole number"),
+                "fix it in nalufx.toml",
+            )
+        })
+    })
+}
+
+/// An allocation as `nalufx allocate --json` prints it.
+fn read_allocation(from: &Path) -> Result<Allocation, CliError> {
+    let text = input::read_text(from)?;
+    serde_json::from_str(&text).map_err(|e| {
+        CliError::input(
+            format!("{}: not an allocation: {e}", from.display()),
+            "pass the output of `nalufx allocate --json`",
+        )
+    })
 }
 
 /// `nalufx methods`.
@@ -165,7 +233,7 @@ fn providers() -> String {
 }
 
 /// The environment variable that holds a provider's key, if it needs one.
-fn key_variable(provider: &str) -> Option<&'static str> {
+pub(crate) fn key_variable(provider: &str) -> Option<&'static str> {
     match provider {
         "anthropic" => Some("ANTHROPIC_API_KEY"),
         "gemini" => Some("GEMINI_API_KEY"),
@@ -211,7 +279,7 @@ fn json(value: &impl serde::Serialize) -> Result<String, CliError> {
 }
 
 /// A table with a header.
-fn table(header: &[&str]) -> Table {
+pub(crate) fn table(header: &[&str]) -> Table {
     let mut t = Table::new();
     let _ = t.load_style(UTF8_FULL_CONDENSED).set_header(header.to_vec());
     t

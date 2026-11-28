@@ -10,7 +10,7 @@ use std::fmt;
 /// | Code | Kind |
 /// | --- | --- |
 /// | 0 | success |
-/// | 1 | anything else |
+/// | 1 | [`CliError::Runtime`]: anything else, such as a server that cannot start |
 /// | 2 | a usage error: an unknown flag or a bad value (from clap) |
 /// | 3 | [`CliError::Input`]: the data could not be read or used |
 /// | 4 | [`CliError::NoAnswer`]: valid data, but the maths has no answer |
@@ -38,6 +38,13 @@ pub enum CliError {
         /// What to do about it.
         hint: Option<String>,
     },
+    /// Anything else, such as a server that cannot start.
+    Runtime {
+        /// What went wrong.
+        message: String,
+        /// What to do about it.
+        hint: Option<String>,
+    },
 }
 
 impl CliError {
@@ -53,6 +60,7 @@ impl CliError {
             Self::Input { .. } => 3,
             Self::NoAnswer { .. } => 4,
             Self::Provider { .. } => 5,
+            Self::Runtime { .. } => 1,
         }
     }
 
@@ -62,7 +70,8 @@ impl CliError {
         match self {
             Self::Input { hint, .. }
             | Self::NoAnswer { hint, .. }
-            | Self::Provider { hint, .. } => hint.as_deref(),
+            | Self::Provider { hint, .. }
+            | Self::Runtime { hint, .. } => hint.as_deref(),
         }
     }
 }
@@ -71,7 +80,8 @@ impl fmt::Display for CliError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (Self::Input { message, .. }
         | Self::NoAnswer { message, .. }
-        | Self::Provider { message, .. }) = self;
+        | Self::Provider { message, .. }
+        | Self::Runtime { message, .. }) = self;
         f.write_str(message)
     }
 }

@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.13] - Unreleased
+
+### Added
+
+- **`nalufx.toml`.** Every server setting has a key in a configuration
+  file (`--config PATH` or `NALUFX_CONFIG`); environment variables
+  override it. Unknown keys and wrong types are refused, and an error
+  names the file's key. Provider keys stay in the environment only.
+- **`nalufx serve`** runs the API server from the CLI, as `nalufx-api`
+  does, with `--addr` over the file and the environment.
+- **`nalufx config check`** validates the configuration, shows each
+  setting and where it came from (`--json` too), says whether the
+  provider's key is set, and never prints a key.
+- `nalufx report` takes `llm.provider`, `llm.model` and
+  `llm.max_tokens` from the file when no flag or variable sets them.
+
+### Changed
+
+- Logs through rlg 0.0.20: standard output by default
+  (`NALUFX_LOG_SINK=native` for journald or os_log), each line naming
+  the nalufx code that wrote it, and a W3C `traceparent` joins the
+  caller's trace.
+- Exit code 1 is now `CliError::Runtime`, such as a server that cannot
+  start.
+
+### Fixed
+
+- The nightly `LLM live` workflow failed when a provider's model secret
+  was not set: GitHub expands a missing secret to an empty string, which
+  the tests took as set. An empty variable now skips that provider.
+
+### Dependencies
+
+- `toml` 1.2.3 (std, parse, serde) for `nalufx.toml`, with
+  `toml_parser`, `toml_datetime`, `toml_writer`, `serde_spanned` and
+  `winnow`; see `docs/dependencies.md`.
+
 ## [0.0.12] - 2026-11-27
 
 Observability and operations (M6): every request can be explained

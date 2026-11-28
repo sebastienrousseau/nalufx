@@ -18,9 +18,10 @@
 //! Keys are stored only as hashes. Hash one with
 //! `printf %s "$KEY" | sha256sum`.
 
-use crate::telemetry::{LogFormat, LogSink};
+use crate::config_file::{ConfigFile, CONFIG_VAR};
+use crate::telemetry::{key_id, LogFormat, LogSink};
 use std::net::SocketAddr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 /// The largest request body accepted, in bytes.
@@ -95,6 +96,63 @@ impl ApiConfig {
     /// `NALUFX_API_KEY_SHA256`: the server never starts without keys.
     pub fn from_env() -> Result<Self, String> {
         Self::from_lookup(|name| std::env::var(name).ok())
+    }
+
+    /// Reads the configuration file, then the environment, which takes
+    /// precedence. The file is `path`, or the one `NALUFX_CONFIG` names, or
+    /// none. The file comes back too, to say where each setting came from.
+    ///
+    /// # Errors
+    ///
+    /// As [`ApiConfig::from_env`], naming the file's key for a value the
+    /// file set; or the file cannot be read or holds an unknown key.
+    pub fn load(path: Option<&Path>) -> Result<(Self, ConfigFile), String> {
+        Self::load_with(path, &|name: &str| std::env::var(name).ok())
+    }
+
+    /// As [`ApiConfig::load`], with `env` in place of the environment.
+    ///
+    /// # Errors
+    ///
+    /// As [`ApiConfig::load`].
+    pub fn load_with(
+        path: Option<&Path>,
+        env: &impl Fn(&str) -> Option<String>,
+    ) -> Result<(Self, ConfigFile), String> {
+        let named = env(CONFIG_VAR).filter(|p| !p.trim().is_empty()).map(PathBuf::from);
+        let file = match path.map(Path::to_path_buf).or(named) {
+            Some(path) => ConfigFile::read(&path)?,
+            None => ConfigFile::none(),
+        };
+        let config = Self::from_lookup(file.lookup(env)).map_err(|e| file.explain(&e, env))?;
+        Ok((config, file))
+    }
+
+    /// Every setting's value as `nalufx config check` shows it, by
+    /// environment variable. Key hashes are shown as key ids.
+    #[must_use]
+    pub fn describe(&self) -> Vec<(&'static str, String)> {
+        let or_none = |v: Option<String>| v.unwrap_or_else(|| "none".to_string());
+        let llm = self.llm.as_ref();
+        let ids: Vec<String> = self.key_hashes.iter().map(key_id).collect();
+        vec![
+            ("NALUFX_ADDR", self.addr.to_string()),
+            ("NALUFX_API_KEY_SHA256", format!("{} key(s), ids {}", ids.len(), ids.join(", "))),
+            (
+                "NALUFX_CORS_ORIGINS",
+                or_none(Some(self.cors_origins.join(", ")).filter(|o| !o.is_empty())),
+            ),
+            ("NALUFX_RATE_PER_MINUTE", self.rate_per_minute.to_string()),
+            ("NALUFX_REPORT_RATE_PER_MINUTE", self.report_rate_per_minute.to_string()),
+            ("NALUFX_TIMEOUT_SECS", self.timeout.as_secs().to_string()),
+            ("NALUFX_CONCURRENCY", self.concurrency.to_string()),
+            ("NALUFX_LLM_PROVIDER", or_none(llm.map(|l| l.provider.clone()))),
+            ("NALUFX_LLM_MODEL", or_none(llm.map(|l| l.model.clone()))),
+            ("NALUFX_LLM_MAX_TOKENS", or_none(llm.map(|l| l.max_tokens.to_string()))),
+            ("NALUFX_LOG_FORMAT", self.log_format.to_string()),
+            ("NALUFX_LOG_SINK", self.log_sink.to_string()),
+            ("NALUFX_AUDIT_LOG", or_none(self.audit_log.as_ref().map(|p| p.display().to_string()))),
+        ]
     }
 
     /// Reads the configuration through `get`, which returns a variable's
@@ -268,5 +326,58 @@ mod tests {
             vars.push((name, value));
             assert!(from(&vars).is_err(), "{name}={value}");
         }
+    }
+
+    /// A `nalufx.toml` in a fresh directory, and its path.
+    fn toml(text: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("nalufx.toml");
+        std::fs::write(&path, text).unwrap();
+        (dir, path)
+    }
+
+    #[test]
+    fn the_file_sets_and_the_environment_overrides() {
+        let (_dir, path) = toml(&format!(
+            "[server]\naddr = \"0.0.0.0:9000\"\napi_key_sha256 = [\"{HASH}\"]\n\
+             [limits]\nconcurrency = 8\n[log]\nformat = \"text\"\n"
+        ));
+        let env = |v: &str| (v == "NALUFX_CONCURRENCY").then(|| "16".to_string());
+        let (c, file) = ApiConfig::load_with(Some(&path), &env).unwrap();
+        assert_eq!(c.addr.to_string(), "0.0.0.0:9000");
+        assert_eq!(c.concurrency, 16);
+        assert_eq!(c.log_format, LogFormat::Text);
+        assert_eq!(c.rate_per_minute, 600);
+        assert_eq!(file.path(), Some(path.as_path()));
+    }
+
+    #[test]
+    fn nalufx_config_names_the_file_when_no_path_is_given() {
+        let (_dir, path) = toml(&format!("[server]\napi_key_sha256 = [\"{HASH}\"]\n"));
+        let named = path.display().to_string();
+        let env = move |v: &str| (v == "NALUFX_CONFIG").then(|| named.clone());
+        assert!(ApiConfig::load_with(None, &env).is_ok());
+        let none = |_: &str| None;
+        assert!(ApiConfig::load_with(None, &none).unwrap_err().contains("NALUFX_API_KEY_SHA256"));
+    }
+
+    #[test]
+    fn a_bad_value_in_the_file_is_named_by_its_key() {
+        let (_dir, path) =
+            toml(&format!("[server]\napi_key_sha256 = [\"{HASH}\"]\n[limits]\ntimeout_secs = 0\n"));
+        let err = ApiConfig::load_with(Some(&path), &|_: &str| None).unwrap_err();
+        assert!(err.contains("limits.timeout_secs in "), "{err}");
+        assert!(!err.contains("NALUFX_TIMEOUT_SECS"), "{err}");
+        let missing = ApiConfig::load_with(Some(Path::new("/no/such.toml")), &|_: &str| None);
+        assert!(missing.unwrap_err().contains("cannot read /no/such.toml"));
+    }
+
+    #[test]
+    fn describe_shows_key_ids_never_hashes() {
+        let c = from(&[("NALUFX_API_KEY_SHA256", HASH)]).unwrap();
+        let shown: Vec<String> = c.describe().into_iter().map(|(_, v)| v).collect();
+        assert!(shown.iter().any(|v| v == "1 key(s), ids 9f86d081"), "{shown:?}");
+        assert!(!shown.iter().any(|v| v.contains(HASH)), "{shown:?}");
+        assert_eq!(c.describe().len(), crate::config_file::SETTINGS.len());
     }
 }

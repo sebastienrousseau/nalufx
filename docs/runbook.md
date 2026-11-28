@@ -10,6 +10,14 @@ export NALUFX_API_KEY_SHA256="$(printf %s "$KEY" | sha256sum | cut -d' ' -f1)"
 nalufx-api                     # listens on 127.0.0.1:8080
 ```
 
+`nalufx serve` runs the same server from the CLI, and takes a
+configuration file (see Configure):
+
+```sh
+nalufx config check --config nalufx.toml   # what the server would run with
+nalufx serve --config nalufx.toml
+```
+
 The server refuses to start without at least one key hash, and exits
 with a message naming the first unusable setting.
 
@@ -28,26 +36,33 @@ Give the process at least 30 seconds before a forced kill.
 
 ## Configure
 
-Everything comes from the environment.
+Settings come from their defaults, then a `nalufx.toml` if one is
+given (`nalufx serve --config PATH`, or `NALUFX_CONFIG`), then the
+environment, which overrides the file. A blank variable counts as unset.
+`nalufx config check` validates the result, shows every setting and where
+it came from, and fails as the server would (exit 3), naming the file's
+key for a bad value. It never prints a key, only key ids.
 
-| Variable | Default | |
-| --- | --- | --- |
-| `NALUFX_ADDR` | `127.0.0.1:8080` | Listen address. |
-| `NALUFX_API_KEY_SHA256` | (required) | Comma-separated hex SHA-256 hashes of the accepted keys. |
-| `NALUFX_CORS_ORIGINS` | none | Comma-separated origins CORS allows; none denies them all. |
-| `NALUFX_RATE_PER_MINUTE` | `600` | Requests per key per minute. |
-| `NALUFX_REPORT_RATE_PER_MINUTE` | `30` | `/v1/report` calls per key per minute. |
-| `NALUFX_TIMEOUT_SECS` | `30` | Time a request may take before it answers 408. |
-| `NALUFX_CONCURRENCY` | `64` | Requests handled at once; the rest wait. |
-| `NALUFX_LLM_PROVIDER`, `NALUFX_LLM_MODEL` | unset | The provider and model for `/v1/report`; without them it answers 503. |
-| `NALUFX_LLM_MAX_TOKENS` | `2048` | The report's token limit. |
-| `NALUFX_LOG_FORMAT` | `json` | `json` lines, or `text` (logfmt) for a terminal. |
-| `NALUFX_LOG_SINK` | `stdout` | `stdout`, or `native` for journald (Linux) or os_log (macOS). |
-| `RUST_LOG` | `info` | The log level, such as `warn` or `nalufx_api=debug`. |
-| `NALUFX_AUDIT_LOG` | unset | A file to append the audit log to; unset, there is none. |
+| Variable | Key in `nalufx.toml` | Default | |
+| --- | --- | --- | --- |
+| `NALUFX_ADDR` | `server.addr` | `127.0.0.1:8080` | Listen address. |
+| `NALUFX_API_KEY_SHA256` | `server.api_key_sha256` | (required) | Comma-separated hex SHA-256 hashes of the accepted keys (a list in the file). |
+| `NALUFX_CORS_ORIGINS` | `server.cors_origins` | none | Comma-separated origins CORS allows (a list in the file); none denies them all. |
+| `NALUFX_RATE_PER_MINUTE` | `limits.rate_per_minute` | `600` | Requests per key per minute. |
+| `NALUFX_REPORT_RATE_PER_MINUTE` | `limits.report_rate_per_minute` | `30` | `/v1/report` calls per key per minute. |
+| `NALUFX_TIMEOUT_SECS` | `limits.timeout_secs` | `30` | Time a request may take before it answers 408. |
+| `NALUFX_CONCURRENCY` | `limits.concurrency` | `64` | Requests handled at once; the rest wait. |
+| `NALUFX_LLM_PROVIDER` | `llm.provider` | unset | The provider for `/v1/report`; without it and a model it answers 503. |
+| `NALUFX_LLM_MODEL` | `llm.model` | unset | The model at that provider. |
+| `NALUFX_LLM_MAX_TOKENS` | `llm.max_tokens` | `2048` | The report's token limit. |
+| `NALUFX_LOG_FORMAT` | `log.format` | `json` | `json` lines, or `text` (logfmt) for a terminal. |
+| `NALUFX_LOG_SINK` | `log.sink` | `stdout` | `stdout`, or `native` for journald (Linux) or os_log (macOS). |
+| `NALUFX_AUDIT_LOG` | `audit.log` | unset | A file to append the audit log to; unset, there is none. |
+| `RUST_LOG` | (environment only) | `info` | The log level, such as `warn` or `nalufx_api=debug`. |
 
 The provider's own key goes in its variable (`ANTHROPIC_API_KEY`,
-`GEMINI_API_KEY`, `OPENAI_API_KEY`, ...); `nalufx providers` lists them.
+`GEMINI_API_KEY`, `OPENAI_API_KEY`, ...), never in the file;
+`nalufx providers` lists them. The file refuses any key it does not know.
 
 ## Rotate an API key
 
