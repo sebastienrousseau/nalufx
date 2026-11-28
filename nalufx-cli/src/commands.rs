@@ -338,12 +338,17 @@ fn allocation_table(a: &Allocation) -> String {
             Cell::new(format!("{:.2}%", w * 100.0)).set_alignment(CellAlignment::Right),
         ]);
     }
+    format!("{} allocation\n{t}\n{}", kebab(&a.method), solver_line(a))
+}
+
+/// How the solver did: `nalufx allocate` and `nalufx tui` print this line.
+pub(crate) fn solver_line(a: &Allocation) -> String {
     let d = &a.diagnostics;
     let shrinkage = d.shrinkage.map_or_else(|| "none".to_string(), |s| format!("{s:.3}"));
     let projected = if d.projected { "; projected onto the bounds" } else { "" };
     format!(
-        "{} allocation\n{t}\nsolver {} in {} iterations, covariance condition number {:.1}, shrinkage {shrinkage}{projected}",
-        kebab(&a.method), d.solver_status, d.iterations, d.condition_number
+        "solver {} in {} iterations, covariance condition number {:.1}, shrinkage {shrinkage}{projected}",
+        d.solver_status, d.iterations, d.condition_number
     )
 }
 

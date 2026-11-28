@@ -3,7 +3,7 @@
 use super::job::{Job, Outcome};
 use super::keys::ScreenKeys;
 use super::model::{App, Screen};
-use crate::commands::kebab;
+use crate::commands::{kebab, solver_line};
 use crate::error::CliError;
 use petitcarnets::bubbles::table::{Column, Row};
 use petitcarnets::style::{wrap, Color, Style};
@@ -68,16 +68,6 @@ fn results(app: &App) -> String {
         None => (String::new(), String::new()),
     };
     format!("{}\n\n{}\n{}", TITLE.render(&title), app.table.view(), FAINT.render(&footer))
-}
-
-/// How the solver did, as `nalufx allocate` says it.
-fn solver_line(a: &nalufx_engine::allocate::Allocation) -> String {
-    let d = &a.diagnostics;
-    let shrinkage = d.shrinkage.map_or_else(|| "none".to_string(), |s| format!("{s:.3}"));
-    format!(
-        "solver {} in {} iterations, condition number {:.1}, shrinkage {shrinkage}",
-        d.solver_status, d.iterations, d.condition_number
-    )
 }
 
 /// An error as `nalufx` prints it, with its hint, wrapped at `columns`

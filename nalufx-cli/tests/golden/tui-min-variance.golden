@@ -22,6 +22,6 @@ min-variance allocation
 
 
 
-solver Solved in 8 iterations, condition number 66.1, shrinkage 0.010
+solver Solved in 8 iterations, covariance condition number 66.1, shrinkage 0.010
 
 ↑/k up • ↓/j down • esc back • q quit

@@ -90,6 +90,17 @@ fn min_variance_matches_nalufx_allocate() {
         cli["weights"].as_array().unwrap().iter().map(|w| w.as_f64().unwrap()).collect();
     let tui: Vec<f64> = weights(&test).into_iter().map(|(_, w)| w).collect();
     assert_eq!(tui, cli_weights, "the interface and the command disagree");
+
+    // The solver's line, word for word as the command prints it.
+    let out = Command::new(env!("CARGO_BIN_EXE_nalufx"))
+        .args(["allocate", "--file"])
+        .arg(sample_path())
+        .args(["--method", "min-variance"])
+        .output()
+        .unwrap();
+    let text = String::from_utf8_lossy(&out.stdout);
+    let line = text.lines().find(|l| l.starts_with("solver ")).expect("a solver line");
+    assert!(test.screen().text().contains(line), "no {line:?} in:\n{}", test.screen().text());
 }
 
 #[test]
